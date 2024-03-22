@@ -37,7 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 添加其他模块
+    'Department',
+    'Inventory',
+    'Message',
+    'User',
+    'Statistic',
+    'Layout',
 ]
 
 MIDDLEWARE = [
