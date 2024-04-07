@@ -37,13 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'Department',
     'Inventory',
-    'Message',
     'User',
     'Statistic',
     'Layout',
     'System',
+    'Venue',
+    'Exhibition',
+    'Booth'
 ]
 
 MIDDLEWARE = [
@@ -117,8 +118,6 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = 'User.User'
-
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -178,3 +177,9 @@ LOGGING = {
 
 # 配置CORS:
 CORS_ALLOW_ALL_ORIGINS = True
+
+# 配置ImageField的上传路径
+#TODO 注意: 在部署到服务器上后, 需要在 Nginx 配置文件中为你的数据文件添加一个 location 块，以便让 Nginx 知道如何找到和服务这些文件
+MEDIA_ROOT = os.path.join(BASE_DIR, 'data') # 配置 MEDIA_ROOT 至项目根目录下的 'data' 文件夹
+# 配置 MEDIA_URL，用于访问媒体资源
+MEDIA_URL = '/data/'

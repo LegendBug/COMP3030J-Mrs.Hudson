@@ -16,20 +16,20 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from Department.views import *
 from Inventory.views import *
 from Layout.views import *
-from Message.views import *
 from Statistic.views import *
 from User.views import *
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('Department/', include(('Department.urls', 'Department'), namespace='Department')),
-    path('Inventory/', include(('Inventory.urls', 'Inventory'), namespace='Inventory')),
-    path('Layout/', include(('Layout.urls', 'Layout'), namespace='Layout')),
-    path('Message/', include(('Message.urls', 'Message'), namespace='Message')),
-    path('Statistic/', include(('Statistic.urls', 'Statistic'), namespace='Statistic')),
-    path('User/', include(('User.urls', 'User'), namespace='User')),
-
-]
+                  path('admin/', admin.site.urls),
+                  path('Inventory/', include(('Inventory.urls', 'Inventory'), namespace='Inventory')),
+                  path('Layout/', include(('Layout.urls', 'Layout'), namespace='Layout')),
+                  path('Statistic/', include(('Statistic.urls', 'Statistic'), namespace='Statistic')),
+                  path('User/', include(('User.urls', 'User'), namespace='User')),
+                  path('Venue/', include(('Venue.urls', 'Venue'), namespace='Venue')),
+                  path('Exhibition/', include(('Exhibition.urls', 'Exhibition'), namespace='Exhibition')),
+                  path('Booth/', include(('Booth.urls', 'Venue'), namespace='Booth'))
+              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
