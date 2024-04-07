@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(5a5(g(-94lpvgwef13(iza+5^=#we4ts*9c^0g9*@km@&2p50'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True # 为True时, 404拦截器将不会生效, 这样便于debug
 
 #ALLOWED_HOSTS = []
 ALLOWED_HOSTS = ["*"]  # TODO 在测试时使用，允许所有的主机访问;在部署上线前,应该更改为允许访问的主机的IP地址和域名(即我的云服务器的ip地址和我购买的域名)
@@ -64,11 +64,11 @@ TEMPLATES = [
     # Jinja2模板引擎
     {
         'BACKEND': 'django.template.backends.jinja2.Jinja2',
-        'DIRS': [], # 可以添加templates文件夹的路径: os.path.join(BASE_DIR, 'templates')
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # 指定Jinja2模板文件的位置
         'APP_DIRS': True,
         'OPTIONS': {
             # 在这里添加Jinja2的environment配置
-            'environment': 'COMP3030J_Hudson.jinja2_config.environment',
+            'environment': 'COMP3030J_Hudson.jinja2_config.jinja2_environment',
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -80,7 +80,7 @@ TEMPLATES = [
     # Django模板引擎
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [], # 可以添加templates文件夹的路径: os.path.join(BASE_DIR, 'templates')
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], # 可以添加templates文件夹的路径: os.path.join(BASE_DIR, 'templates')
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

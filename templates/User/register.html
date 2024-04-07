@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+</head>
+<body>
+<h2>Register</h2>
+<form action="{{ url_for('User:register') }}" method="post">
+    <div>
+        <label for="username">User Name:</label>
+        <input type="text" id="username" name="username" required>
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+    </div>
+    <div>
+        <label for="user_type">User Type:</label>
+        <select id="user_type" name="user_type" required>
+            <option value="Manager">Manager</option>
+            <option value="Organizer">Organizer</option>
+            <option value="Exhibitor">Exhibitor</option>
+        </select>
+    </div>
+    <div>
+        <button type="submit">Register</button>
+    </div>
+</form>
+</body>
+</html>
