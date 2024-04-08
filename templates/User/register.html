@@ -1,35 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+{% extends "Public/base.html" %}
+
+{% block extra_head %}
     <title>Register</title>
-</head>
-<body>
-<h2>Register</h2>
-<form action="{{ url_for('User:register') }}" method="post">
-    <div>
-        <label for="username">User Name:</label>
-        <input type="text" id="username" name="username" required>
-    </div>
-    <div>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-    </div>
-    <div>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-    </div>
-    <div>
-        <label for="user_type">User Type:</label>
-        <select id="user_type" name="user_type" required>
-            <option value="Manager">Manager</option>
-            <option value="Organizer">Organizer</option>
-            <option value="Exhibitor">Exhibitor</option>
-        </select>
-    </div>
-    <div>
-        <button type="submit">Register</button>
-    </div>
-</form>
-</body>
-</html>
+{% endblock %}
+
+{% block content %}
+    <h2>Register</h2>
+    <form action="{{ url_for('User:register') }}" method="post">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Error:</strong> Please check your input.
+            </div>
+        {% endif %}
+        <div>
+            {{ form.username.label }}
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="alert alert-danger">
+                    {{ form.username.errors[0] }}
+                </div>
+            {% endif %}
+        </div>
+        <div>
+            {{ form.email.label }}
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="alert alert-danger">
+                    {{ form.email.errors[0] }}
+                </div>
+            {% endif %}
+        </div>
+        <div>
+            {{ form.account_type.label }}
+            {{ form.account_type }}
+            {% if form.account_type.errors %}
+                <div class="alert alert-danger">
+                    {{ form.account_type.errors[0] }}
+                </div>
+            {% endif %}
+        </div>
+        <div>
+            {{ form.password1.label }}
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <div class="alert alert-danger">
+                    {{ form.password1.errors[0] }}
+                </div>
+            {% endif %}
+        </div>
+        <div>
+            {{ form.password2.label }}
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <div class="alert alert-danger">
+                    {{ form.password2.errors[0] }}
+                </div>
+            {% endif %}
+        </div>
+        <div>
+            <input type="submit" value="Register">
+        </div>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+    <!-- Your scripts here -->
+{% endblock %}

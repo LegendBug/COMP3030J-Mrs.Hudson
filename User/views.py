@@ -1,72 +1,48 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.hashers import make_password
-from .models import Manager, Organizer, Exhibitor  # 根据你的模型调整
-from django.http import HttpResponse
-
+from .forms import RegisterForm, LoginForm  # 导入注册和登录表单类
+from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
+from .models import *
 
 def register(request):
-    if request.method == 'GET':
-        return render(request, 'User/register.html')
-    elif request.method == 'POST':
-        # 获取表单数据
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        email = request.POST.get('email')
-        user_type = request.POST.get('user_type')  # 获取用户类型
-
-        # 这里可以添加更多的验证逻辑
-        if not username or not password or not email or not user_type:
-            return HttpResponse("Invalid input.", status=400)
-
-        # 根据用户类型创建不同的用户实例
-        if user_type == 'Manager':
-            new_user = Manager(username=username, password=make_password(password), email=email)
-        elif user_type == 'Organizer':
-            new_user = Organizer(username=username, password=make_password(password), email=email)
-        elif user_type == 'Exhibitor':
-            new_user = Exhibitor(username=username, password=make_password(password), email=email)
+    if request.method == 'POST':  # 如果是 POST 请求
+        form = RegisterForm(request.POST)  # 使用提交的数据实例化注册表单
+        if form.is_valid():  # 如果表单数据有效
+            user = form.save()  # 保存用户信息
+            user_type = form.cleaned_data.get('account_type')
+            if user_type == 'Manager':
+                manager = Manager.objects.create(detail=user)
+                manager.save()
+            elif user_type == 'Organizer':
+                organizer = Organizer.objects.create(detail=user)
+                organizer.save()
+            elif user_type == 'Exhibitor':
+                exhibitor = Exhibitor.objects.create(detail=user)
+                exhibitor.save()
+            return redirect('User:login')  # 重定向到登录页面
         else:
-            return HttpResponse("Invalid user type.", status=400)
+            # 如果表单数据无效，将错误信息返回给用户并重新渲染注册页面
+            return render(request, 'User/register.html', {'form': form})
+    else:
+        form = RegisterForm()  # 创建一个空的注册表单
+        return render(request, 'User/register.html', {'form': form})  # 渲染注册页面，显示空表单
 
-        new_user.save()
-        # 重定向到登录页面或其他页面
-        return redirect('/login')  # 调整为合适的重定向地址
-
-    # 对于其他 HTTP 方法，返回错误或适当的响应
-    return HttpResponse("Invalid HTTP method.", status=405)
 
 def login(request):
-    if request.method == 'GET':
-        return render(request, 'User/login.html')
-    elif request.method == 'POST':
-        # 获取表单数据
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user_type = request.POST.get('user_type')  # 获取用户类型
-
-        # 这里可以添加更多的验证逻辑
-        if not username or not password or not user_type:
-            return HttpResponse("Invalid input.", status=400)
-
-        # 根据用户类型查询用户实例
-        if user_type == 'Manager':
-            user = Manager.objects.filter(username=username).first()
-        elif user_type == 'Organizer':
-            user = Organizer.objects.filter(username=username).first()
-        elif user_type == 'Exhibitor':
-            user = Exhibitor.objects.filter(username=username).first()
+    if request.method == 'POST':  # 如果是 POST 请求
+        form = LoginForm(request.POST)  # 使用提交的数据实例化登录表单
+        if form.is_valid():  # 如果表单数据有效
+            username = form.cleaned_data.get('username')  # 获取用户名
+            password = form.cleaned_data.get('password')  # 获取密码
+            user = authenticate(username=username, password=password)  # 调用认证方法验证用户
+            if user is not None:  # 如果用户存在
+                auth_login(request, user)  # 将用户存入session
+                return redirect('User:login')  # TODO 重定向到主页面
+            else:
+                # 如果认证失败，将错误信息返回给用户并重新渲染登录页面
+                return render(request, 'User/login.html', {'form': form})
         else:
-            return HttpResponse("Invalid user type.", status=400)
-
-        if user is None:
-            return HttpResponse("User not found.", status=404)
-
-        # 验证密码
-        if not user.check_password(password):
-            return HttpResponse("Incorrect password.", status=401)
-
-        # 登录成功，可以设置 session 或 cookie
-        return HttpResponse("Login success.", status=200)
-
-    # 对于其他 HTTP 方法，返回错误或适当的响应
-    return HttpResponse("Invalid HTTP method.", status=405)
+            # 如果表单数据无效，将错误信息返回给用户并重新渲染登录页面
+            return render(request, 'User/login.html', {'form': form})
+    else:
+        form = LoginForm()  # 创建一个空的登录表单
+        return render(request, 'User/login.html', {'form': form})  # 渲染登录页面，显示空表单

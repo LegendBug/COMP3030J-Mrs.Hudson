@@ -5,8 +5,6 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.storage import default_storage
 from django.db import models
-
-import System
 from System.models import Application
 
 
@@ -60,8 +58,7 @@ class ExhibitionApplication(Application):
     created_at = models.DateTimeField(auto_now_add=True)
     venue = models.ForeignKey("Venue.Venue", on_delete=models.CASCADE, related_name='exhibition_applications')
     # 某个展览被删除后，申请不会被删除
-    sectors = models.ForeignKey("Layout.SpaceUnit", on_delete=models.SET_NULL, null=True,
-                                related_name='exhibition_applications')
+    sectors = models.ManyToManyField("Layout.SpaceUnit", related_name='exhibition_applications')
     # 某个展览被删除后，申请不会被删除
     exhibition = models.OneToOneField("Exhibition", on_delete=models.SET_NULL, null=True,
                                       related_name='exhibition_application')

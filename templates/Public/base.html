@@ -1,0 +1,65 @@
+{#该页面实现了导航栏和底边栏, 其他页面在使用时需要用Jinja2的继承语法来继承该模板, 并在其中的block中填充内容#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {#导入bootstrap的css和js#}
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    {#导入jquery#}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {#导入axios#}
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    {#导入静态资源#}
+    <link rel="stylesheet" href="{{ static('css/Public/base.css') }}">
+    {% block extra_head %}
+        {#在这里添加额外的head内容#}
+
+    {% endblock %}
+</head>
+<body>
+
+<div class="public-base-content">
+    {#导航栏#}
+
+
+    <main class="public-base-main-content">
+        {% block content %}
+        <!-- 页面主体内容 -->
+
+
+        {% endblock %}
+    </main>
+
+    {#底边栏#}
+    <footer class="public-base-footer">
+        <div class="container text-center">
+            <div class="row">
+                <div class="col-md-4 my-auto">
+                    <!-- Logo 1 -->
+                    <img src="{{ static('images/Public/bjut.png') }}" alt="BJUT Logo" class="img-fluid"
+                         style="max-height: 50px;">
+                </div>
+                <div class="col-md-4 my-auto">
+                    <!-- 版权信息 -->
+                    <p>Copyright © 2024 Beijing University of Technology & University College Dublin</p>
+                </div>
+                <div class="col-md-4 my-auto">
+                    <!-- Logo 2 -->
+                    <img src="{{ static('images/Public/ucd.png') }}" alt="UCD Logo" class="img-fluid"
+                         style="max-height: 50px;">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</div>
+
+{% block scripts %}
+{#在这里添加js代码#}
+
+{% endblock %}
+
+</body>
+</html>
