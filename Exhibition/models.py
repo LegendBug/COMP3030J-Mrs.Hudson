@@ -2,12 +2,16 @@ import os
 import uuid
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.storage import default_storage
 from django.db import models
 
+import System
+from System.models import Application
+
 
 class Exhibition(models.Model):
-    def exhibition_upload_to(instance, filename): # 即使不使用filename参数,也必须保留, 这是Django的硬性要求
+    def exhibition_upload_to(instance, filename):  # 即使不使用filename参数,也必须保留, 这是Django的硬性要求
         # 获取文件的扩展名
         extension = filename.split('.')[-1]
         # 文件将上传到 data/Exhibition/<模型的主键值>/filename.文件后缀
@@ -49,12 +53,17 @@ class Exhibition(models.Model):
     image = models.ImageField(upload_to=exhibition_upload_to, null=True, blank=True)
 
 
-class ExhibitionApplication(models.Model):
-    content = models.TextField(blank=True, null=True)
-    organizer = models.ForeignKey("User.Organizer", on_delete=models.CASCADE, related_name='exhibition_applications')
-    venue = models.ForeignKey("Venue.Venue", on_delete=models.CASCADE, related_name='exhibition_applications')
-    sectors = models.ForeignKey("Layout.SpaceUnit", on_delete=models.CASCADE)
+class ExhibitionApplication(Application):
     start_at = models.DateTimeField()
     end_at = models.DateTimeField()
-    is_approved = models.BooleanField(null=True)
+    initial_deadline = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
+    venue = models.ForeignKey("Venue.Venue", on_delete=models.CASCADE, related_name='exhibition_applications')
+    # 某个展览被删除后，申请不会被删除
+    sectors = models.ForeignKey("Layout.SpaceUnit", on_delete=models.SET_NULL, null=True,
+                                related_name='exhibition_applications')
+    # 某个展览被删除后，申请不会被删除
+    exhibition = models.OneToOneField("Exhibition", on_delete=models.SET_NULL, null=True,
+                                      related_name='exhibition_application')
+    # 某个消息被删除后，申请不会被删除
+    message_details = GenericRelation("System.MessageDetail", related_query_name='exhibition_application')
