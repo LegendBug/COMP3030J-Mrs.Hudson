@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -107,14 +109,15 @@ WSGI_APPLICATION = 'COMP3030J_Hudson.wsgi.application'
 # }
 
 # 不使用Docker来管理项目的各个容器时,请使用以下配置:
+load_dotenv()
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hudson', #TODO 数据库名,需要修改成你自己的
-        'USER': 'root',
-        'PASSWORD': '20030207TLY', #TODO 数据库密码,需要修改成你自己的
-        'HOST': 'localhost',
-        'PORT': 3306,
+        'NAME': os.getenv('MYSQL_DATABASE', 'hudson'),
+        'USER': os.getenv('localhost', 'root'),
+        'PASSWORD': os.getenv('MYSQL_ROOT_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '3306'),
     }
 }
 
