@@ -1,5 +1,8 @@
-# COMP3030J-Mrs.Hudson
-### Holistic Utility Deployment & Sustainability Overseeing Network ⚒️
+# Mrs. Hudson
+
+**H.U.D.S.O.N.** stands for **Holistic Utility Deployment & Sustainability Overseeing Network**.
+
+An internal resource management system developed for the COMP3030J Project.
 
 ## Project Background
 
@@ -15,7 +18,9 @@ To address the outlined issues, we’re developing a resource management system 
 
 ### Recommended Environment
 
-Python 3.11, Django 5.x, MySQL 8.x
++ Python 3.11
++ Django 5.x
++ MySQL 8.x
 
 ### Project Set-up
 
@@ -46,7 +51,7 @@ MYSQL_ROOT_PASSWORD='your_password'
 MYSQL_DATABASE='hudson'
 ```
 
----
+### Additional Commands
 Using these commands to create superusers and new Django apps:
 ``` shell
 # 创建超级管理员:
