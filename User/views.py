@@ -1,7 +1,20 @@
+from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect
 from .forms import RegisterForm, LoginForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *
+
+
+def index(request):
+    if request.user.is_authenticated:
+        return redirect('User:home')
+    else:
+        return redirect('User:login')
+
+
+def home(request):
+    return render(request, 'User/home.html')
+
 
 def register(request):
     if request.method == 'POST':  # 如果是 POST 请求
@@ -27,7 +40,12 @@ def register(request):
         return render(request, 'User/register.html', {'form': form})  # 渲染注册页面，显示空表单
 
 
+@never_cache  # 禁用缓存，防止用户未退出登录直接通过浏览器返回按钮访问登录页面
 def login(request):
+    # 检查用户是否已登录
+    if request.user.is_authenticated:
+        return redirect('User:home')
+
     if request.method == 'POST':  # 如果是 POST 请求
         form = LoginForm(request.POST)  # 使用提交的数据实例化登录表单
         if form.is_valid():  # 如果表单数据有效
@@ -36,7 +54,8 @@ def login(request):
             user = authenticate(username=username, password=password)  # 调用认证方法验证用户
             if user is not None:  # 如果用户存在
                 auth_login(request, user)  # 将用户存入session
-                return redirect('User:login')  # TODO 重定向到主页面
+                # request.session['logged_in'] = True  # 将登录状态存入session(便于模板中判断用户是否登录)
+                return redirect('User:home')  # 重定向到主页
             else:
                 # 如果认证失败，将错误信息返回给用户并重新渲染登录页面
                 return render(request, 'User/login.html', {'form': form})
@@ -46,3 +65,12 @@ def login(request):
     else:
         form = LoginForm()  # 创建一个空的登录表单
         return render(request, 'User/login.html', {'form': form})  # 渲染登录页面，显示空表单
+
+
+def logout(request):
+    request.session.flush()
+    return redirect('User:login')
+
+
+def view_message(request):
+    return render(request, 'User/message.html')

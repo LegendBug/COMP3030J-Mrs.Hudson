@@ -13,6 +13,7 @@ class RegisterForm(UserCreationForm):
 
     email = forms.EmailField(required=True)
     account_type = forms.ChoiceField(choices=ACCOUNT_TYPES)
+
     class Meta:
         model = User
         fields = ("username", "email", "password1", "password2", "account_type")
@@ -31,6 +32,7 @@ class RegisterForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
 
 class LoginForm(forms.Form):
     username = forms.CharField()

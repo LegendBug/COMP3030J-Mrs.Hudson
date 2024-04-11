@@ -24,15 +24,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 # 当settings.py的DEBUG为True时, handler404不会生效, 因为Django要暴露错误信息以方便开发者调试
-handler404 = 'System.views.custom_404_interceptor' # 该行代码用于无效页面的重定向
+handler404 = 'System.views.custom_404_interceptor'  # 该行代码用于无效页面的重定向
 
-urlpatterns = [   path('', login, name='login'),
-                  path('admin/', admin.site.urls),
-                  path('Inventory/', include(('Inventory.urls', 'Inventory'), namespace='Inventory')),
-                  path('Layout/', include(('Layout.urls', 'Layout'), namespace='Layout')),
-                  path('Statistic/', include(('Statistic.urls', 'Statistic'), namespace='Statistic')),
-                  path('User/', include(('User.urls', 'User'), namespace='User')),
-                  path('Venue/', include(('Venue.urls', 'Venue'), namespace='Venue')),
-                  path('Exhibition/', include(('Exhibition.urls', 'Exhibition'), namespace='Exhibition')),
-                  path('Booth/', include(('Booth.urls', 'Venue'), namespace='Booth'))
-              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns = [path('', index, name='index'),  # 重定向到主页或登录页面
+               path('admin/', admin.site.urls),
+               path('Inventory/', include(('Inventory.urls', 'Inventory'), namespace='Inventory')),
+               path('Layout/', include(('Layout.urls', 'Layout'), namespace='Layout')),
+               path('Statistic/', include(('Statistic.urls', 'Statistic'), namespace='Statistic')),
+               path('User/', include(('User.urls', 'User'), namespace='User')),
+               path('Venue/', include(('Venue.urls', 'Venue'), namespace='Venue')),
+               path('Exhibition/', include(('Exhibition.urls', 'Exhibition'), namespace='Exhibition')),
+               path('Booth/', include(('Booth.urls', 'Venue'), namespace='Booth'))
+               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

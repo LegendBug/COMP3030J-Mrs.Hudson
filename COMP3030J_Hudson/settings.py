@@ -16,7 +16,6 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -24,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(5a5(g(-94lpvgwef13(iza+5^=#we4ts*9c^0g9*@km@&2p50'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True # 为True时, 404拦截器将不会生效, 这样便于debug
+DEBUG = True  # 为True时, 404拦截器将不会生效, 这样便于debug
 
-#ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
 ALLOWED_HOSTS = ["*"]  # TODO 在测试时使用，允许所有的主机访问;在部署上线前,应该更改为允许访问的主机的IP地址和域名(即我的云服务器的ip地址和我购买的域名)
 
 # Application definition
@@ -81,7 +80,7 @@ TEMPLATES = [
     # Django模板引擎
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')], # 可以添加templates文件夹的路径: os.path.join(BASE_DIR, 'templates')
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # 可以添加templates文件夹的路径: os.path.join(BASE_DIR, 'templates')
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -95,7 +94,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'COMP3030J_Hudson.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -138,14 +136,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization 国家化
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images) 静态文件
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
@@ -181,7 +177,7 @@ LOGGING = {
 CORS_ALLOW_ALL_ORIGINS = True
 
 # 配置ImageField的上传路径
-#TODO 注意: 在部署到服务器上后, 需要在 Nginx 配置文件中为你的数据文件添加一个 location 块，以便让 Nginx 知道如何找到和服务这些文件
-MEDIA_ROOT = os.path.join(BASE_DIR, 'static/data') # 配置 MEDIA_ROOT 至项目根目录下的 'static/data' 文件夹
+# TODO 注意: 在部署到服务器上后, 需要在 Nginx 配置文件中为你的数据文件添加一个 location 块，以便让 Nginx 知道如何找到和服务这些文件
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/data')  # 配置 MEDIA_ROOT 至项目根目录下的 'static/data' 文件夹
 # 配置 MEDIA_URL，用于访问媒体资源
 MEDIA_URL = '/data/'

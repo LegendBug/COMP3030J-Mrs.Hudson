@@ -1,0 +1,16 @@
+{% extends "Public/base.html" %}
+
+{% block extra_head %}
+    <title>Hudson Resource Management System</title>
+{% endblock %}
+
+{% block content %}
+    {#以下部分都需要整合进topbar#}
+    <a href="{{ url_for('User:view_message') }}" class="btn btn-primary">Message</a>
+    {#登出按键#}
+    <a href="{{ url_for('User:logout') }}" class="btn btn-primary">Logout</a>
+{% endblock %}
+
+{% block scripts %}
+
+{% endblock %}
