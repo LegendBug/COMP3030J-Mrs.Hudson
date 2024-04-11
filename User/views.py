@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect
 from .forms import RegisterForm, LoginForm  # 导入注册和登录表单类
@@ -72,5 +73,19 @@ def logout(request):
     return redirect('User:login')
 
 
+# 跳转到消息页面
 def view_message(request):
-    return render(request, 'User/message.html')
+    # 检查用户是否已登录
+    if request.user.is_authenticated:
+        # TODO 通过侧栏展示不同的消息类型
+        messages = Message.objects.filter(sender=request.user).order_by('-created_at')
+        paginator = Paginator(messages, 10)  # 每页显示 10 条消息
+        page_number = request.GET.get('page')  # 获取页码参数（默认为第一页）
+        page_obj = paginator.get_page(page_number)  # 获取当前页的消息
+        return render(request, 'User/message.html', {'page_obj': page_obj})
+    else:
+        return redirect('User:login')
+
+
+
+

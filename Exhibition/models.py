@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.storage import default_storage
 from django.db import models
-from System.models import Application
+from User.models import Application
 
 
 class Exhibition(models.Model):
