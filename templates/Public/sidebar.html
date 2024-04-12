@@ -1,10 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+<div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width: 280px; height: 100vh;">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+        <span class="fs-4">Sidebar</span>
+    </a>
+    <hr>
+    <!-- 添加 flex-grow-1 使这部分内容填充剩余空间 -->
+    <ul class="nav nav-pills flex-column mb-auto flex-grow-1">
+        <li class="nav-item">
+            <a href="#" class="nav-link active" aria-current="page">
+                Home
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white">
+                Dashboard
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white">
+                Orders
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white">
+                Products
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white">
+                Customers
+            </a>
+        </li>
+    </ul>
+    {#    <!-- 如果有需要固定在底部的按钮或链接，可以在这里添加 -->#}
+    {#    <div>#}
+    {#        <a href="#" class="nav-link text-white">Bottom Link</a>#}
+    {#    </div>#}
+</div>
