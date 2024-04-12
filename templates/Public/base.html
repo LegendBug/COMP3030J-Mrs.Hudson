@@ -27,20 +27,28 @@
             {#主页键#}
             <a class="navbar-brand" href="{{ url_for('User:home') }}">Hudson RMS</a>
             {#其它导航键，登录注册时不展示#}
-            {% if not hide_nav_items %}
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            {% if not hide_nav_items|default(false) %}
+                {#需要折叠的导航#}
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarLeft"
+                        aria-controls="navbarLeft" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
+                <div class="collapse navbar-collapse" id="navbarLeft">
+                    <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('User:view_message') }}">Messages</a>
+                            {# TODO 添加导航按键，替换掉下一行 #}
+                            <a class="nav-link me-3" href="{{ url_for('User:view_message') }}">Messages</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('User:logout') }}">Logout</a>
+                            {# TODO 添加导航按键，替换掉下一行 #}
+                            <a class="nav-link me-3" href="{{ url_for('User:view_message') }}">Messages</a>
                         </li>
                     </ul>
+                </div>
+                {#无需折叠的导航#}
+                <div class="navbar-nav ms-auto d-flex flex-row">
+                    <a class="nav-link me-3" href="{{ url_for('User:view_message') }}">Messages</a>
+                    <a class="nav-link me-3" href="{{ url_for('User:logout') }}">Logout</a>
                 </div>
             {% endif %}
         </div>
