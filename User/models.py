@@ -54,7 +54,7 @@ class MessageDetail(models.Model):
 
 
 # 抽象申请类，数据库中不会生成对应的表
-class Application:
+class Application(models.Model):
     class Meta:
         abstract = True
 

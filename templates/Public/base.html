@@ -19,7 +19,7 @@
 </head>
 <body>
 
-<div class="public-base-content">
+<div class="public-base-content pt-5 mt-1">
     {#导航栏#}
     <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
         <div class="container-fluid">
@@ -54,35 +54,45 @@
     </nav>
 
     {#底边栏#}
-    <footer class="public-base-footer fixed-bottom">
+    <footer class="fixed-bottom bg-dark text-white pt-2 pb-2">
         <div class="container-fluid">
             <div class="row align-items-baseline">
                 <!-- 版权信息区域 -->
                 <div class="col">
-                    <p style="font-size: 0.8rem; margin-bottom: 0;">Copyright © 2024 Beijing University of Technology &
-                        University College Dublin</p>
+                    <p class="mb-0 text-small" style="font-size: 12px">Copyright © 2024 Beijing University of Technology
+                        & University College Dublin</p>
                 </div>
                 <!-- 图片区域 -->
-                <div class="col-md-auto">
+                <div class="col-auto">
                     <img src="{{ static('images/Public/bjut.png') }}" alt="BJUT Logo" class="img-fluid"
-                         style="max-height: 25px;">
+                         style="max-height: 30px;">
                     <img src="{{ static('images/Public/ucd.png') }}" alt="UCD Logo" class="img-fluid"
-                         style="max-height: 25px;">
+                         style="max-height: 30px;">
                 </div>
             </div>
         </div>
     </footer>
 
-
+    {# 主体内容，可选择是否展示侧边栏 #}
     <main class="public-base-main-content">
-        {% block content %}
-            <!-- 页面主体内容 -->
-        {% endblock %}
-
-        {% block sidebar %}
-            <!-- 侧边栏内容 -->
-        {% endblock %}
+        <div class="container-fluid px-0">
+            <div class="row g-0">
+                <div class="d-flex flex-row" style="min-height: 100vh;"> <!-- 使用 Flexbox 确保内容区填满剩余空间 -->
+                    {% if show_sidebar|default(false) %}
+                        <div class="col-md-2 px-0" style="position: sticky; height: calc(100vh - 56px);">
+                            {% include 'Public/sidebar.html' %}
+                        </div>
+                    {% endif %}
+                    <div class="{% if show_sidebar|default(false) %}col-md-10{% else %}col-12{% endif %} px-0">
+                        {% block content %}
+                            <!-- 页面主体内容 -->
+                        {% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
+
 
 </div>
 
