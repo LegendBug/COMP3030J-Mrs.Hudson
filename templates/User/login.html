@@ -4,6 +4,9 @@
     <title>Login</title>
 {% endblock %}
 
+{#不展示部分导航键#}
+{% set hide_nav_items = true %}
+
 {% block content %}
     <h2>Login</h2>
     <form action="{{ url_for('User:login') }}" method="post">

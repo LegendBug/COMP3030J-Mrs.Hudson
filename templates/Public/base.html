@@ -22,6 +22,29 @@
 
 <div class="public-base-content">
     {#导航栏#}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            {#主页键#}
+            <a class="navbar-brand" href="{{ url_for('User:home') }}">Hudson RMS</a>
+            {#其它导航键，登录注册时不展示#}
+            {% if not hide_nav_items %}
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('User:view_message') }}">Messages</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('User:logout') }}">Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </nav>
 
 
     <main class="public-base-main-content">
