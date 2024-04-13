@@ -1,12 +1,15 @@
-from django.contrib import messages
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponseNotAllowed
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import RegisterForm, LoginForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *
+from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
 
 
 def register(request):
@@ -58,26 +61,57 @@ def logout(request):
 
 
 def profile(request):
-    if request.user.is_authenticated:
+    if request.method == 'GET':  # 如果是 GET 请求
+        # 从session中获取当前用户的数据
         user = request.user
         if hasattr(user, 'manager'):
-            manager = Manager.objects.get(detail=user)
-            return render(request, 'User/profile.html', {'user': user, 'manager': manager})
+            user_type = 'Manager'
         elif hasattr(user, 'organizer'):
-            organizer = Organizer.objects.get(detail=user)
-            return render(request, 'User/profile.html', {'user': user, 'organizer': organizer})
-        elif hasattr(user, 'exhibitor'):
-            exhibitor = Exhibitor.objects.get(detail=user)
-            return render(request, 'User/profile.html', {'user': user, 'exhibitor': exhibitor})
-    else:
-        return redirect('User:login')
+            user_type = 'Organizer'
+        else:
+            user_type = 'Exhibitor'
+        return render(request, 'User/profile.html', {'user': user, 'user_type': user_type})
+
+    else:  # POST请求, 处理用户信息更新
+        # 从request中获取用户提交的数据
+        new_username = request.POST.get('username')
+        new_email = request.POST.get('email')
+        new_password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        # 获取当前登录的用户实例
+        user = request.user
+        # 检查是否提供了有效的用户名，且与当前不同
+        if new_username and user.username != new_username:
+            if not User.objects.filter(username=new_username).exists():
+                user.username = new_username
+            else:
+                return JsonResponse({'error': 'Username already exists.'}, status=400)
+
+        # 检查是否提供了有效的邮箱，且与当前不同
+        if new_email and user.email != new_email:
+            if not User.objects.filter(email=new_email).exists():
+                user.email = new_email
+            else:
+                return JsonResponse({'error': 'Email already exists.'}, status=400)
+
+        # 检查是否提供了密码，并进行相应的处理
+        if new_password and confirm_password and not check_password(new_password, user.password):
+            if new_password == confirm_password:
+                user.set_password(new_password)
+                # 更新session以避免用户被登出
+                update_session_auth_hash(request, user)
+            else:
+                return JsonResponse({'error': 'Passwords do not match.'}, status=400)
+        # 保存用户信息的更改
+        user.save()
+        # 返回更新后的用户信息页
+        return JsonResponse({'message': 'Profile updated successfully.'}, status=200)
+
+    # 跳转到消息页面
 
 
-# 跳转到消息页面
 def view_message(request):
-    if not request.user.is_authenticated:
-        return redirect('User:login')
-
     try:
         # 消息类型默认为 'unread_message'
         message_type = request.GET.get('type', 'unread_messages')
@@ -115,8 +149,6 @@ def view_message_detail(request, message_id):
         message = Message.objects.get(id=message_id)
         message_detail = message.detail
 
-
-
         if not message.is_read:
             message.is_read = True
             message.save()
@@ -131,4 +163,3 @@ def view_message_detail(request, message_id):
         return JsonResponse(data)
     except Exception as e:
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
-

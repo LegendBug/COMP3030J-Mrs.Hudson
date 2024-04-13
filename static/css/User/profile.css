@@ -1,0 +1,19 @@
+.profile-container {
+    max-width: 800px; /* 控制卡片的最大宽度 */
+    margin: auto;     /* 让卡片在页面中居中显示 */
+}
+
+/* 可以在这里添加更多自定义样式 */
+.card-header {
+    background-color: #007bff; /* 调整标题栏的背景颜色 */
+}
+
+.card-body {
+    padding: 2rem; /* 增加内边距 */
+}
+
+body {
+    background: url('../../images/User/poster.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #f6f0f0; /* 设置文本颜色为白色，视您的海报而定 */
+}
