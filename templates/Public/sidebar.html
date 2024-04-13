@@ -1,16 +1,23 @@
-<div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width: 240px; height: 100vh;">
-    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-        <span class="fs-4">Sidebar</span>
-    </a>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto flex-grow-1">
-        {% block sidebar_items %}
-            <!-- 默认的侧边栏项可以在这里定义，也可以留空 -->
-        {% endblock %}
-    </ul>
-    <!-- 可以在这里放置其他固定的侧边栏内容 -->
-    {#    <!-- 如果有需要固定在底部的按钮或链接，可以在这里添加 -->#}
-    {#    <div>#}
-    {#        <a href="#" class="nav-link text-white">Bottom Link</a>#}
-    {#    </div>#}
-</div>
+{#通过macro宏来渲染侧边栏，可以在模板中调用该宏，传入自定义的侧边栏内容#}
+{% macro custom_sidebar(custom_items) %}
+    <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark"
+         style="width: 240px; height: 100vh; position: sticky">
+    
+        <!-- TODO 侧边栏标题，点击收缩 -->
+        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <span class="fs-4">Sidebar</span>
+        </a>
+    
+        <hr>
+    
+        <!-- 自定义的侧边栏内容，使用例见User.message.html -->
+        <ul class="nav nav-pills flex-column mb-auto flex-grow-1">
+            {% for item in custom_items %}
+                <li class="nav-item">
+                    <a href="{{ item.url }}" class="nav-link {{ item.active_class }}">{{ item.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endmacro %}
+

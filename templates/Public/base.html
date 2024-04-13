@@ -76,14 +76,16 @@
     {# 主体内容，可选择是否展示侧边栏 #}
     <main class="public-base-main-content">
         <div class="container-fluid px-0">
-            <div class="row g-0">
-                <div class="d-flex flex-row" style="min-height: 100vh;"> <!-- 使用 Flexbox 确保内容区填满剩余空间 -->
+            <div class="row">
+                <div class="d-flex flex-row">
+                
                     {% if show_sidebar|default(false) %}
-                        <div class="col-md-2 px-0" style="position: sticky; height: calc(100vh - 56px);">
-                            {% include 'Public/sidebar.html' %}
-                        </div>
+                        {% block sidebar %}
+                            <!-- 侧边栏内容 -->
+                        {% endblock %}
                     {% endif %}
-                    <div class="{% if show_sidebar|default(false) %}col-md-10{% else %}col-12{% endif %} px-0">
+                
+                    <div class="flex-grow-1"> <!-- 使得主体内容区域占满右侧剩余空间 -->
                         {% block content %}
                             <!-- 页面主体内容 -->
                         {% endblock %}
