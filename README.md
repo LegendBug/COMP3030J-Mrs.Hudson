@@ -2,7 +2,7 @@
 
 **H.U.D.S.O.N.** stands for **Holistic Utility Deployment & Sustainability Overseeing Network**.
 
-An internal resource management system developed for the COMP3030J Project.
+An internal resource management system developed for COMP3030J Software Engineering Project 2.
 
 ## Project Background
 
@@ -41,7 +41,7 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Note that before running the project for the first time, you need to create a `.env` file in the root directory of your project. Format the file as shown below, replacing username and password with your actual RDBMS settings:
+Note that before running the project for the first time, you need to create a `.env` file in the root directory of your project. Format the file as shown below, replacing `your_username` and `your_password` with your actual RDBMS settings:
 
 ```text
 DB_HOST='localhost'
