@@ -15,7 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, reverse
+from django.views.generic import RedirectView
+
 from Inventory.views import *
 from Layout.views import *
 from Statistic.views import *
@@ -26,13 +28,13 @@ from django.conf.urls.static import static
 # 当settings.py的DEBUG为True时, handler404不会生效, 因为Django要暴露错误信息以方便开发者调试
 handler404 = 'System.views.custom_404_interceptor'  # 该行代码用于无效页面的重定向
 
-urlpatterns = [path('', index, name='index'),  # 重定向到主页或登录页面
-               path('admin/', admin.site.urls),
-               path('Inventory/', include(('Inventory.urls', 'Inventory'), namespace='Inventory')),
-               path('Layout/', include(('Layout.urls', 'Layout'), namespace='Layout')),
-               path('Statistic/', include(('Statistic.urls', 'Statistic'), namespace='Statistic')),
-               path('User/', include(('User.urls', 'User'), namespace='User')),
-               path('Venue/', include(('Venue.urls', 'Venue'), namespace='Venue')),
-               path('Exhibition/', include(('Exhibition.urls', 'Exhibition'), namespace='Exhibition')),
-               path('Booth/', include(('Booth.urls', 'Venue'), namespace='Booth'))
-               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns = [   path('', RedirectView.as_view(pattern_name='User:login', permanent=False)),
+                  path('admin/', admin.site.urls),
+                  path('Inventory/', include(('Inventory.urls', 'Inventory'), namespace='Inventory')),
+                  path('Layout/', include(('Layout.urls', 'Layout'), namespace='Layout')),
+                  path('Statistic/', include(('Statistic.urls', 'Statistic'), namespace='Statistic')),
+                  path('User/', include(('User.urls', 'User'), namespace='User')),
+                  path('Venue/', include(('Venue.urls', 'Venue'), namespace='Venue')),
+                  path('Exhibition/', include(('Exhibition.urls', 'Exhibition'), namespace='Exhibition')),
+                  path('Booth/', include(('Booth.urls', 'Venue'), namespace='Booth'))
+              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

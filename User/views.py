@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse
 from django.urls import reverse
@@ -6,19 +7,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .forms import RegisterForm, LoginForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *
-
-
-def index(request):
-    if request.user.is_authenticated:
-        return redirect('User:home')
-    else:
-        return redirect('User:login')
-
-
-def home(request):
-    if not request.user.is_authenticated:
-        return redirect('User:login')
-    return render(request, 'User/home.html')
 
 
 def register(request):
@@ -36,21 +24,15 @@ def register(request):
             elif user_type == 'Exhibitor':
                 exhibitor = Exhibitor.objects.create(detail=user)
                 exhibitor.save()
+            messages.success(request, 'Registration successful. You can now log in.')
             return redirect('User:login')  # 重定向到登录页面
-        else:
-            # 如果表单数据无效，将错误信息返回给用户并重新渲染注册页面
-            return render(request, 'User/register.html', {'form': form})
     else:
         form = RegisterForm()  # 创建一个空的注册表单
-        return render(request, 'User/register.html', {'form': form})  # 渲染注册页面，显示空表单
+    return render(request, 'User/register.html', {'form': form})  # 渲染注册页面，显示空表单
 
 
 @never_cache  # 禁用缓存，防止用户未退出登录直接通过浏览器返回按钮访问登录页面
 def login(request):
-    # 检查用户是否已登录
-    if request.user.is_authenticated:
-        return redirect('User:home')
-
     if request.method == 'POST':  # 如果是 POST 请求
         form = LoginForm(request.POST)  # 使用提交的数据实例化登录表单
         if form.is_valid():  # 如果表单数据有效
@@ -59,22 +41,36 @@ def login(request):
             user = authenticate(username=username, password=password)  # 调用认证方法验证用户
             if user is not None:  # 如果用户存在
                 auth_login(request, user)  # 将用户存入session
-                # request.session['logged_in'] = True  # 将登录状态存入session(便于模板中判断用户是否登录)
-                return redirect('User:home')  # 重定向到主页
+                messages.success(request, 'Login successful. Welcome!')
+                return redirect('Venue:home')  # 重定向到主页
             else:
                 # 如果认证失败，将错误信息返回给用户并重新渲染登录页面
-                return render(request, 'User/login.html', {'form': form})
-        else:
-            # 如果表单数据无效，将错误信息返回给用户并重新渲染登录页面
-            return render(request, 'User/login.html', {'form': form})
+                messages.error(request, 'Invalid login credentials.')
     else:
         form = LoginForm()  # 创建一个空的登录表单
-        return render(request, 'User/login.html', {'form': form})  # 渲染登录页面，显示空表单
+    return render(request, 'User/login.html', {'form': form})  # 渲染登录页面，显示空表单
 
 
 def logout(request):
     request.session.flush()
+    messages.success(request, 'You have been logged out.')
     return redirect('User:login')
+
+
+def profile(request):
+    if request.user.is_authenticated:
+        user = request.user
+        if hasattr(user, 'manager'):
+            manager = Manager.objects.get(detail=user)
+            return render(request, 'User/profile.html', {'user': user, 'manager': manager})
+        elif hasattr(user, 'organizer'):
+            organizer = Organizer.objects.get(detail=user)
+            return render(request, 'User/profile.html', {'user': user, 'organizer': organizer})
+        elif hasattr(user, 'exhibitor'):
+            exhibitor = Exhibitor.objects.get(detail=user)
+            return render(request, 'User/profile.html', {'user': user, 'exhibitor': exhibitor})
+    else:
+        return redirect('User:login')
 
 
 # 跳转到消息页面

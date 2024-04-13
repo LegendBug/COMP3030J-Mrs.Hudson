@@ -56,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # 添加corsheaders中间件以处理跨域请求
+    'COMP3030J_Hudson.middleware.LoginRequiredMiddleware',  # 添加自定义中间件以处理登录验证
 ]
 
 ROOT_URLCONF = 'COMP3030J_Hudson.urls'

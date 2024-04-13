@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+body {
+    background: url('../../images/User/poster.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #f6f0f0; /* 设置文本颜色为白色，视您的海报而定 */
+}
+
+.container {
+    max-width: 600px; /* 保持容器的最大宽度不变 */
+    margin: 1rem auto; /* 增加上下边距使容器居中，并提供空间 */
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
+    border-radius: 8px; /* 边角圆润 */
+    padding: 40px; /* 增加更多内边距以提高高度 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 轻微的阴影效果 */
+}
+
+.form-control {
+    margin-bottom: 1rem; /* 增加输入框之间的外边距 */
+    padding: 0.3rem; /* 增加输入框内的内边距 */
+    box-shadow: none;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+}
+
+.btn-primary {
+    padding: 0.5rem; /* 调整按钮的内边距 */
+    margin-top: 0.5rem; /* 在按钮上方增加外边距 */
+    width: 100%;
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    transition: background-color 0.3s;
+}
+
+.login-title {
+    text-align: center; /* 文本居中 */
+    font-family: 'Great Vibes', cursive; /* 应用 'Great Vibes' 字体或其他您选择的字体 */
+    color: #fff; /* 根据背景调整字体颜色 */
+    font-size: 3rem; /* 调整字体大小 */
+    margin-top: 0; /* 如果需要的话，调整上边距以使其与容器边缘对齐 */
+    margin-bottom: 1rem; /* 调整下边距以提供足够的空间 */
+    /* 添加更多样式来增强视觉效果 */
+}

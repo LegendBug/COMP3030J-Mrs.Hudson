@@ -10,96 +10,103 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {#导入axios#}
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    {#导入font-awesome#}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     {#导入静态资源#}
     <link rel="stylesheet" href="{{ static('css/Public/base.css') }}">
     <link rel="stylesheet" href="{{ static('css/Public/sidebar.css') }}">
+    <script src="{{ static('js/Public/base.js') }}"></script>
+    <script src="{{ static('js/Public/sidebar.js') }}"></script>
+
     {% block extra_head %}
         {#在这里添加额外的head内容#}
     {% endblock %}
 </head>
 <body>
 
-<div class="public-base-content pt-5 mt-1">
-    {#导航栏#}
-    <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
-        <div class="container-fluid">
-            {#主页键#}
-            <a class="navbar-brand" href="{{ url_for('User:home') }}">Hudson RMS</a>
-            {#其它导航键，登录注册时不展示#}
-            {% if not hide_nav_items|default(false) %}
-                {#需要折叠的导航#}
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarLeft"
-                        aria-controls="navbarLeft" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarLeft">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            {# TODO 添加导航按键，替换掉下一行 #}
-                            <a class="nav-link me-3" href="{{ url_for('User:view_message') }}">Messages</a>
-                        </li>
-                        <li class="nav-item">
-                            {# TODO 添加导航按键，替换掉下一行 #}
-                            <a class="nav-link me-3" href="{{ url_for('User:view_message') }}">Messages</a>
-                        </li>
-                    </ul>
-                </div>
-                {#无需折叠的导航#}
-                <div class="navbar-nav ms-auto d-flex flex-row">
-                    <a class="nav-link me-3" href="{{ url_for('User:view_message') }}">Messages</a>
-                    <a class="nav-link me-3" href="{{ url_for('User:logout') }}">Logout</a>
-                </div>
-            {% endif %}
+
+{#导航栏#}
+{#----------------------------------------------------------------------------------------------------------------------#}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('Venue:home') }}">
+            <img src="{{ static('images/Public/hudson.jpg') }}" alt="Hudson Logo"
+                 style="height: 30px; margin-right: 10px;">
+            Hudson
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-moon"></i></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-robot"></i></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('User:view_message') }}"><i class="fas fa-envelope"></i></a>
+                </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('User:logout') }}"><i class="fas fa-sign-out-alt"></i></a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('User:login') }}"><i class="fas fa-sign-in-alt"></i></a>
+                    </li>
+                {% endif %}
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('User:profile') }}"><i class="fas fa-user"></i></a>
+                </li>
+            </ul>
         </div>
-    </nav>
-
-    {#底边栏#}
-    <footer class="fixed-bottom bg-dark text-white pt-2 pb-2">
-        <div class="container-fluid">
-            <div class="row align-items-baseline">
-                <!-- 版权信息区域 -->
-                <div class="col">
-                    <p class="mb-0 text-small" style="font-size: 12px">Copyright © 2024 Beijing University of Technology
-                        & University College Dublin</p>
-                </div>
-                <!-- 图片区域 -->
-                <div class="col-auto">
-                    <img src="{{ static('images/Public/bjut.png') }}" alt="BJUT Logo" class="img-fluid"
-                         style="max-height: 30px;">
-                    <img src="{{ static('images/Public/ucd.png') }}" alt="UCD Logo" class="img-fluid"
-                         style="max-height: 30px;">
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    {# 主体内容，可选择是否展示侧边栏 #}
-    <main class="public-base-main-content">
-        <div class="container-fluid px-0">
-            <div class="row">
-                <div class="d-flex flex-row">
-
-                    {% if show_sidebar|default(false) %}
-                        {% block sidebar %}
-                            <!-- 侧边栏内容 -->
-                        {% endblock %}
-                    {% endif %}
-
-                    <div class="flex-grow-1" id="content"> <!-- 使得主体内容区域占满右侧剩余空间 -->
-                        {% block content %}
-                            <!-- 页面主体内容 -->
-                        {% endblock %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+    </div>
+</nav>
 
 
+{#消息提醒(Toast)#}
+{#----------------------------------------------------------------------------------------------------------------------#}
+<div id="toast-container" class="toast-container position-fixed top-0 start-50 translate-middle-x p-3">
+    {% for message in messages %}
+        <div class="toast-message" data-message="{{ message }}" data-tag="{{ message.tags }}"
+             style="display: none;"></div>
+    {% endfor %}
 </div>
 
+
+{#页面主体内容#}
+{#----------------------------------------------------------------------------------------------------------------------#}
+<div class="public-base-main-content">
+    {% if show_sidebar|default(false) %}
+        {% block sidebar %}
+            <!-- 侧边栏内容 -->
+        {% endblock %}
+    {% endif %}
+
+    {% block content %}
+        <!-- 页面主体内容 -->
+    {% endblock %}
+</div>
+
+
+{#底边栏#}
+{#----------------------------------------------------------------------------------------------------------------------#}
+<footer class="public-base-footer bg-dark text-center text-lg-start text-white">
+    <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+        <img src="{{ static('images/Public/bjut.png') }}" alt="BJUT Logo" style="height: 50px;">
+        © 2024 Hudson: All rights reserved.
+        <img src="{{ static('images/Public/ucd.png') }}" alt="UCD Logo" style="height: 50px;">
+    </div>
+</footer>
+
+{#JS脚本#}
+{#----------------------------------------------------------------------------------------------------------------------#}
 {% block scripts %}
-    <script src="../../static/js/Public/sidebar.js"></script>
+
 {% endblock %}
 
 </body>

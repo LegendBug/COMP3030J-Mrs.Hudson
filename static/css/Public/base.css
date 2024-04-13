@@ -1,29 +1,135 @@
 html, body {
     height: 100%;
     margin: 0;
-}
-
-.public-base-content {
     display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    flex-direction: column; /* 设定主轴为垂直方向 */
 }
 
+/*导航栏样式: */
+/*--------------------------------------------------------------*/
+/* 基础导航栏样式 */
+.navbar {
+    background-color: #343a40; /* 深灰色背景 */
+    border-bottom: 3px solid #ff4500; /* 添加一个橙色边框在底部 */
+}
+
+/* 导航栏品牌LOGO样式 */
+.navbar-brand {
+    font-weight: bold; /* 加粗字体 */
+    color: #ffffff; /* 白色文字 */
+}
+
+/* 导航栏链接样式 */
+.nav-link {
+    color: #f8f9fa; /* 浅灰色文字 */
+    transition: color 0.3s ease; /* 平滑颜色过渡效果 */
+}
+
+/* 导航栏链接悬停与焦点样式 */
+.nav-link:hover, .nav-link:focus {
+    color: #ff4500; /* 橙色高亮 */
+    text-decoration: none; /* 去除下划线 */
+}
+
+/* 导航栏当前活动链接样式 */
+.nav-item.active .nav-link {
+    color: #fff; /* 白色文字 */
+    background-color: #ff4500; /* 橙色背景 */
+}
+
+/* 响应式导航按钮样式 */
+.navbar-toggler {
+    border-color: #ff4500; /* 橙色边框 */
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255, 69, 0, 0.7)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); /* 自定义导航按钮图标颜色 */
+}
+
+/* 提示：确保导航栏容器使用正确的CSS类 */
+.public-base-navigation .container-fluid {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    width: 100%; /* 确保容器宽度为100% */
+}
+
+
+/*页面内容样式*/
+/*--------------------------------------------------------------*/
 .public-base-main-content {
     flex: 1;
-}
-
-.public-base-footer {
-    background-color: #212529;
-    color: white;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
 }
 
-.public-base-footer img {
-    max-height: 50px;
-    margin: 0 15px;
+
+/*页脚样式*/
+/*--------------------------------------------------------------*/
+/* 页脚样式 */
+.public-base-footer {
+    background: linear-gradient(180deg, rgba(52, 58, 64, 0.8), rgba(52, 58, 64, 1)); /* 渐变背景 */
+    color: #f8f9fa; /* 浅灰色文字 */
+    text-align: center;
+    border-top: 4px solid #ff4500; /* 橙色边框 */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* 向上的阴影效果 */
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 优雅的字体 */
 }
+
+/* 页脚链接样式 */
+.public-base-footer a {
+    color: #ffffff; /* 白色链接 */
+    text-decoration: none; /* 去除下划线 */
+    transition: color 0.2s ease-in-out; /* 平滑颜色过渡效果 */
+}
+
+/* 页脚链接悬停效果 */
+.public-base-footer a:hover {
+    color: #ff4500; /* 橙色高亮 */
+}
+
+/* 页脚图片样式 */
+.public-base-footer img {
+    vertical-align: middle; /* 垂直对齐 */
+    border-style: none; /* 无边框 */
+    margin: 0 10px; /* 图片间距 */
+}
+
+/*--------------------------------------------------------------*/
+/* Toast样式 */
+.toast-container {
+    top: 20px; /* 距离顶部20px */
+}
+
+.toast {
+    border-left: 4px solid #ff4500; /* 给Toast添加左侧边框 */
+    background-color: #fff; /* 设置Toast的背景颜色 */
+    color: #343a40; /* 设置Toast的文字颜色 */
+}
+
+.toast-header {
+    background-color: #f8f9fa; /* 设置Toast头部的背景颜色 */
+    border-bottom: 1px solid #e2e3e5; /* 设置Toast头部的底部边框 */
+    color: #6c757d; /* 设置Toast头部的文字颜色 */
+}
+
+.toast-body {
+    padding: 10px; /* 设置Toast内容的内边距 */
+}
+
+/* 成功消息样式 */
+.toast-success {
+    border-left: 4px solid #28a745; /* 绿色边框 */
+}
+
+/* 警告消息样式 */
+.toast-warning {
+    border-left: 4px solid #ffc107; /* 橙色边框 */
+}
+
+/* 错误消息样式 */
+.toast-error {
+    border-left: 4px solid #dc3545; /* 红色边框 */
+}
+
