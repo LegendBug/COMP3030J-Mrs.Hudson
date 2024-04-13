@@ -3,6 +3,34 @@
 {% block extra_head %}
     <title>Message Center</title>
     <link rel="stylesheet" href="{{ static('css/User/message.css') }}">
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            function loadMessageDetail(messageId, url) {
+                axios.get(url)
+                    .then(response => {
+                        const data = response.data;
+                        document.getElementById('content').innerHTML = `
+                        <div>
+                            <h5>${data.title}</h5>
+                            <p>${data.content}</p>
+                            <small>Sent by ${data.sender} on ${data.created_at}</small>
+                            <button onclick="backToList()">Back</button>
+                        </div>
+                    `;
+                    })
+                    .catch(error => console.error('Error loading the message details:', error));
+            }
+
+            function backToList() {
+                window.location.reload(); // Reload the current page to show the message list again
+            }
+
+            window.loadMessageDetail = loadMessageDetail; // Expose function to global scope if needed
+            window.backToList = backToList; // Expose function to global scope if needed
+        });
+    </script>
+
+
 {% endblock %}
 
 
@@ -12,9 +40,9 @@
 {#自定义sidebar按键#}
 {% block sidebar %}
     {{ sidebar.custom_sidebar([
-        {'name': 'Unread Messages', 'url': '#custom', 'active_class': 'active'},
-        {'name': 'All Messages', 'url': '#another', 'active_class': ''},
-        {'name': 'Sent Messages', 'url': '#another', 'active_class': ''},
+        {'name': 'Unread Messages', 'url': '?type=unread_messages', 'active_class': 'active' if message_type == 'unread_messages' else ''},
+        {'name': 'All Messages', 'url': '?type=all_messages', 'active_class': 'active' if message_type == 'all_messages' else ''},
+        {'name': 'Sent Messages', 'url': '?type=sent_messages', 'active_class': 'active' if message_type == 'sent_messages' else ''},
     ]) }}
 {% endblock %}
 
@@ -22,22 +50,18 @@
 {#显示content#}
 {% block content %}
     <h2 class="mb-4">Message Center</h2>
-    <div class="d-flex align-items-center p-3 my-3 text-white bg-purple rounded shadow-sm">
-        <div class="lh-1">
-            <h1 class="h6 mb-0 text-white lh-1">Bootstrap</h1>
-            <small>Since 2011</small>
-        </div>
-    </div>
     {% if page_obj %}
         <div class="list-group mb-4">
             {% for message in page_obj %}
-                <div class="list-group-item">
+                <div class="list-group-item cursor-pointer"
+                     onclick="loadMessageDetail('{{ message.id }}', '{{ message_urls[message.id] }}')">
                     <h5 class="mb-1">{{ message.title }}</h5>
-                    <small>Sent by {{ message.sender }} on {{ message.created_at }}</small>
+                    <small>Sent by {{ message.sender.username }}
+                        on {{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
                 </div>
             {% endfor %}
         </div>
-        {% if page_obj.has_other_pages %}
+        {% if page_obj.paginator.num_pages > 1 %}
             <nav aria-label="Page navigation">
                 <ul class="pagination">
                     {% if page_obj.has_previous %}
@@ -72,10 +96,12 @@
             </nav>
         {% endif %}
     {% else %}
-        <p>Great job, all messages have been addressed!👍</p>
+        {% if message_type == 'unread_messages' %}
+            <p>Great job, all messages have been addressed!👍</p>
+        {% elif message_type == 'all_messages' %}
+            <p>No message received yet.</p>
+        {% elif message_type == 'sent_messages' %}
+            <p>No sent messages.</p>
+        {% endif %}
     {% endif %}
-{% endblock %}
-
-{% block extra_script %}
-    <script src="../../static/js/Public/sidebar.js"></script>
 {% endblock %}

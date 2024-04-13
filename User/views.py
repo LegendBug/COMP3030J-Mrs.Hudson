@@ -1,6 +1,8 @@
 from django.core.paginator import Paginator
+from django.http import Http404, JsonResponse
+from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import RegisterForm, LoginForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *
@@ -77,17 +79,60 @@ def logout(request):
 
 # 跳转到消息页面
 def view_message(request):
-    # 检查用户是否已登录
-    if request.user.is_authenticated:
-        # TODO 通过侧栏展示不同的消息类型
-        messages = Message.objects.filter(sender=request.user).order_by('-created_at')
+    if not request.user.is_authenticated:
+        return redirect('User:login')
+
+    try:
+        # 消息类型默认为 'unread_message'
+        message_type = request.GET.get('type', 'unread_messages')
+        # 根据请求的消息类型进行查询
+        if message_type == 'unread_messages':
+            messages = Message.objects.filter(recipient=request.user, is_read=False).order_by('-created_at')
+        elif message_type == 'all_messages':
+            messages = Message.objects.filter(recipient=request.user).order_by('-created_at')
+        elif message_type == 'sent_messages':
+            messages = Message.objects.filter(sender=request.user).order_by('-created_at')
+        else:
+            raise Http404("Message type not found")
+
+        # 设置分页
         paginator = Paginator(messages, 10)  # 每页显示 10 条消息
         page_number = request.GET.get('page')  # 获取页码参数（默认为第一页）
         page_obj = paginator.get_page(page_number)  # 获取当前页的消息
-        return render(request, 'User/message.html', {'page_obj': page_obj})
-    else:
-        return redirect('User:login')
+
+        # 创建包含每个消息详细信息页面URL的字典
+        message_urls = {message.id: reverse('User:view_message_detail', args=[message.id]) for message in page_obj}
+        return render(request, 'User/message.html',
+                      {'page_obj': page_obj,
+                       'message_type': message_type,  # 将当前消息类型传递到模板中，用于侧边栏链接
+                       'message_urls': message_urls
+                       })
+    except Exception as e:
+        return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
+
+
+def view_message_detail(request, message_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    try:
+        message = Message.objects.get(id=message_id)
+        message_detail = message.detail
 
 
 
+        if not message.is_read:
+            message.is_read = True
+            message.save()
+        data = {
+            'title': message.title,
+            'sender': message.sender.username,
+            'recipient': message.recipient.username,
+            'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'content': message_detail.content,
+            'application': message_detail.application if hasattr(message_detail, 'application') else None,
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
 

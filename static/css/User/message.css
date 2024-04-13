@@ -43,3 +43,7 @@ body {
 .bg-purple {
   background-color: #6f42c1;
 }
+
+.cursor-pointer {
+    cursor: pointer;
+}
