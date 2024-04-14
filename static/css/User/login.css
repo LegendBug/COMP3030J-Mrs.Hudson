@@ -28,6 +28,7 @@ body {
     margin-top: 0.5rem; /* 在按钮上方增加外边距 */
     width: 100%;
     background-color: #009631;
+    border-radius: 8px; /* 边角圆润 */
     border: none;
 }
 
