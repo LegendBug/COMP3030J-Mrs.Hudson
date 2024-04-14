@@ -38,8 +38,7 @@ class Venue(models.Model):
     address = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     floor = models.IntegerField()
-    area = models.IntegerField(blank=True, null=True)
-    manager = models.ForeignKey("User.Manager", on_delete=models.CASCADE, related_name='venues')
+    area = models.FloatField(blank=True, null=True)
     sectors = models.ForeignKey("Layout.SpaceUnit", on_delete=models.CASCADE)
     # items = List<Item>, 由Django ORM的反向关系实现
     items = GenericRelation('Inventory.Item')
@@ -48,3 +47,6 @@ class Venue(models.Model):
     # unresolved_resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现
     # breakage_alerts : List<BreakageAlert>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=venue_upload_to, null=True, blank=True)
+
+
+
