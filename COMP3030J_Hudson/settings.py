@@ -62,22 +62,6 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'COMP3030J_Hudson.urls'
 
 TEMPLATES = [
-    # Jinja2模板引擎
-    {
-        'BACKEND': 'django.template.backends.jinja2.Jinja2',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # 指定Jinja2模板文件的位置
-        'APP_DIRS': True,
-        'OPTIONS': {
-            # 在这里添加Jinja2的environment配置
-            'environment': 'COMP3030J_Hudson.jinja2_config.jinja2_environment',
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
     # Django模板引擎
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

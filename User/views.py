@@ -71,7 +71,6 @@ def profile(request):
         else:
             user_type = 'Exhibitor'
         return render(request, 'User/profile.html', {'user': user, 'user_type': user_type})
-
     else:  # POST请求, 处理用户信息更新
         # 从request中获取用户提交的数据
         new_username = request.POST.get('username')
@@ -107,8 +106,6 @@ def profile(request):
         user.save()
         # 返回更新后的用户信息页
         return JsonResponse({'message': 'Profile updated successfully.'}, status=200)
-
-    # 跳转到消息页面
 
 
 def view_message(request):

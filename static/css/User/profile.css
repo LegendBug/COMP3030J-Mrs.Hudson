@@ -1,19 +1,45 @@
 .profile-container {
-    max-width: 800px; /* 控制卡片的最大宽度 */
-    margin: auto;     /* 让卡片在页面中居中显示 */
+    max-width: 700px;
+    margin: auto;
+    animation: fadeIn 1s ease-in-out;
 }
 
-/* 可以在这里添加更多自定义样式 */
+.font-artistic {
+    font-family: 'Pacifico', cursive;
+}
+
+.form-label {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+}
+
+.form-control, .form-control-plaintext {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+}
+
 .card-header {
-    background-color: #007bff; /* 调整标题栏的背景颜色 */
+    background-color: #007bff;
 }
 
 .card-body {
-    padding: 2rem; /* 增加内边距 */
+    padding: 2rem;
+    background-color: #f8f9fa;
+    color: #212529;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 body {
     background: url('../../images/User/poster.jpg') no-repeat center center fixed;
     background-size: cover;
-    color: #f6f0f0; /* 设置文本颜色为白色，视您的海报而定 */
+    color: #f8f9fa;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.row {
+    margin-bottom: 1rem;
 }

@@ -1,72 +1,73 @@
 {% extends "Public/base.html" %}
+{% load static %}
 
 {% block extra_head %}
     <title>Register</title>
-    <link rel="stylesheet" href="{{ static('css/User/register.css') }}">
+    <link rel="stylesheet" href="{% static 'css/User/register.css' %}">
+    <link href="https://fonts.googleapis.com/css?family=Pacifico&display=swap" rel="stylesheet">
 {% endblock %}
 
-{#不展示部分导航键#}
-{% set hide_nav_items = true %}
-
 {% block content %}
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <h2 class="register-title mb-3">Register</h2>
-                <form action="{{ url_for('User:register') }}" method="post" novalidate>
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-
+    <div class="container mt-5 profile-container">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h2 class="font-artistic">User Profile</h2>
+            </div>
+            <div class="card-body bg-light text-dark">
+                <form id="profile-form" class="needs-validation" novalidate>
+                    {% csrf_token %}
                     <div class="form-group">
-                        <label for="username" class="form-label">Username:</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                        {% if form.username.errors %}
-                            <div class="alert alert-danger">
-                                {{ form.username.errors[0] }}
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label for="username" class="form-label font-artistic">Username:</label>
+                                <input type="text" class="form-control" id="username" name="username"
+                                       value="{{ user.username }}" required>
+                                <div class="invalid-feedback">
+                                    Please choose a username.
+                                </div>
                             </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email" class="form-label">Email:</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                        {% if form.email.errors %}
-                            <div class="alert alert-danger">
-                                {{ form.email.errors[0] }}
+                            <div class="col-md-6">
+                                <label for="email" class="form-label font-artistic">Email:</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       value="{{ user.email }}" required>
+                                <div class="invalid-feedback">
+                                    Please provide a valid email.
+                                </div>
                             </div>
-                        {% endif %}
-                    </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="account_type" class="form-label">Account Type:</label>
-                        <select name="account_type" id="account_type" class="form-control" required>
-                            <option value="Manager">Manager</option>
-                            <option value="Organizer">Organizer</option>
-                            <option value="Exhibitor">Exhibitor</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password1" class="form-label">Password:</label>
-                        <input type="password" class="form-control" id="password1" name="password1" required>
-                        {% if form.password1.errors %}
-                            <div class="alert alert-danger">
-                                {{ form.password1.errors[0] }}
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label for="password" class="form-label font-artistic">Password:</label>
+                                <input type="password" class="form-control" id="password" name="password"
+                                       placeholder="Enter new password">
                             </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password2" class="form-label">Password Confirmation:</label>
-                        <input type="password" class="form-control" id="password2" name="password2" required>
-                        {% if form.password2.errors %}
-                            <div class="alert alert-danger">
-                                {{ form.password2.errors[0] }}
+                            <div class="col-md-6">
+                                <label for="confirm_password" class="form-label font-artistic">Confirm Password:</label>
+                                <input type="password" class="form-control" id="confirm_password"
+                                       name="confirm_password" placeholder="Confirm new password">
                             </div>
-                        {% endif %}
-                    </div>
+                        </div>
 
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">Register</button>
+                        <div class="row g-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label font-artistic">User Type:</label>
+                                <input type="text" class="form-control-plaintext" id="user_type" name="user_type"
+                                       value="{{ user_type }}" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label font-artistic">Account Created:</label>
+                                <input type="text" class="form-control-plaintext" id="account_created"
+                                       name="account_created" value="{{ user.date_joined|date:'Y-m-d' }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-md-12 d-flex justify-content-end">
+                                <button type="submit" class="btn btn-success save-btn">Save Changes</button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -75,5 +76,5 @@
 {% endblock %}
 
 {% block scripts %}
-
+    {# 自定义脚本可以在这里插入，如果需要的话 #}
 {% endblock %}

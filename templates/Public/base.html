@@ -1,36 +1,34 @@
-{#该页面实现了导航栏和底边栏, 其他页面在使用时需要用Jinja2的继承语法来继承该模板, 并在其中的block中填充内容#}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    {#导入bootstrap的css和js#}
+    <!-- 导入bootstrap的css和js -->
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
-    {#导入jquery#}
+    <!-- 导入jquery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    {#导入axios#}
+    <!-- 导入axios -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    {#导入font-awesome#}
+    <!-- 导入font-awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    {#导入静态资源#}
-    <link rel="stylesheet" href="{{ static('css/Public/base.css') }}">
-    <link rel="stylesheet" href="{{ static('css/Public/sidebar.css') }}">
-    <script src="{{ static('js/Public/base.js') }}"></script>
-    <script src="{{ static('js/Public/sidebar.js') }}"></script>
+    <!-- 导入静态资源 -->
+    <link rel="stylesheet" href="{% static 'css/Public/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/Public/sidebar.css' %}">
+    <script src="{% static 'js/Public/base.js' %}"></script>
+    <script src="{% static 'js/Public/sidebar.js' %}"></script>
 
     {% block extra_head %}
-        {#在这里添加额外的head内容#}
+        <!-- 在这里添加额外的head内容 -->
     {% endblock %}
 </head>
 <body>
 
-
-{#导航栏#}
-{#----------------------------------------------------------------------------------------------------------------------#}
+<!-- 导航栏 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('Venue:home') }}">
-            <img src="{{ static('images/Public/hudson.jpg') }}" alt="Hudson Logo"
+        <a class="navbar-brand" href="{% url 'Venue:home' %}">
+            <img src="{% static 'images/Public/hudson.jpg' %}" alt="Hudson Logo"
                  style="height: 30px; margin-right: 10px;">
             Mrs. Hudson
         </a>
@@ -47,45 +45,43 @@
                     <a class="nav-link" href="#"><i class="fas fa-robot"></i></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('User:view_message') }}"><i class="fas fa-envelope"></i></a>
+                    <a class="nav-link" href="{% url 'User:view_message' %}"><i class="fas fa-envelope"></i></a>
                 </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('User:logout') }}"><i class="fas fa-sign-out-alt"></i></a>
+                        <a class="nav-link" href="{% url 'User:logout' %}"><i class="fas fa-sign-out-alt"></i></a>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('User:login') }}"><i class="fas fa-sign-in-alt"></i></a>
+                        <a class="nav-link" href="{% url 'User:login' %}"><i class="fas fa-sign-in-alt"></i></a>
                     </li>
                 {% endif %}
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('User:profile') }}"><i class="fas fa-user"></i></a>
+                    <a class="nav-link" href="{% url 'User:profile' %}"><i class="fas fa-user"></i></a>
                 </li>
             </ul>
         </div>
     </div>
 </nav>
 
-
-{#消息提醒(Toast)#}
-{#----------------------------------------------------------------------------------------------------------------------#}
+<!-- 消息提醒(Toast) -->
 <div id="toast-container" class="toast-container position-fixed top-0 start-50 translate-middle-x p-3">
     {% for message in messages %}
-        <div class="toast-message" data-message="{{ message }}" data-tag="{{ message.tags }}"
+        <div class="toast-message" data-message="{{ message.message }}" data-tag="{{ message.tags }}"
              style="display: none;"></div>
     {% endfor %}
 </div>
 
-
-{#页面主体内容#}
-{#----------------------------------------------------------------------------------------------------------------------#}
+<!-- 页面主体内容 -->
 <div class="public-base-main-content">
-    {% if show_sidebar|default(false) %}
-        {% block sidebar %}
-            <!-- 侧边栏内容 -->
-        {% endblock %}
-    {% endif %}
+    {% with show_sidebar=show_sidebar|default:"False" %}
+        {% if show_sidebar %}
+            {% block sidebar %}
+                <!-- 侧边栏内容 -->
+            {% endblock %}
+        {% endif %}
+    {% endwith %}
 
     {% block content %}
         <!-- 页面主体内容 -->
@@ -93,19 +89,18 @@
 </div>
 
 <div class="flex-grow-1"></div>
-{#底边栏#}
-{#----------------------------------------------------------------------------------------------------------------------#}
+<!-- 底边栏 -->
 <footer class="public-base-footer bg-dark text-center text-lg-start text-white">
     <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-        <img src="{{ static('images/Public/bjut.png') }}" alt="BJUT Logo" style="height: 50px;">
-        © 2024 Mrs. H.U.D.S.O.N. <i>Holistic Utility Deployment & Sustainability Overseeing Network.</i> All rights reserved.
-        <img src="{{ static('images/Public/ucd.png') }}" alt="UCD Logo" style="height: 50px;">
+        <img src="{% static 'images/Public/bjut.png' %}" alt="BJUT Logo" style="height: 50px;">
+        © 2024 Mrs. H.U.D.S.O.N. <i>Holistic Utility Deployment & Sustainability Overseeing Network.</i> All rights
+        reserved.
+        <img src="{% static 'images/Public/ucd.png' %}" alt="UCD Logo" style="height: 50px;">
         <br>
     </div>
 </footer>
 
-{#JS脚本#}
-{#----------------------------------------------------------------------------------------------------------------------#}
+<!-- JS脚本 -->
 {% block scripts %}
 
 {% endblock %}

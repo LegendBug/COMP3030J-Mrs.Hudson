@@ -1,14 +1,19 @@
 {% extends "Public/base.html" %}
+{% load static %}
 
 {% block extra_head %}
     <title>Hudson Resource Management System</title>
-    <link rel="stylesheet" href="{{ static('css/Venue/home.css')}}">
+    <link rel="stylesheet" href="{% static 'css/Venue/home.css' %}">
 {% endblock %}
 
 {% block content %}
-    {#网站主页#}
+    <!-- 网站主页内容 -->
+    <div class="container">
+        <h1>Welcome to Hudson Resource Management System</h1>
+        <p>This is the homepage of your system where you can manage resources effectively.</p>
+    </div>
 {% endblock %}
 
 {% block scripts %}
-
+    <!-- 如果需要在此处添加 JavaScript 脚本，可在这里加入相应的 <script> 标签 -->
 {% endblock %}

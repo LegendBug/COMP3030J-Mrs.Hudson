@@ -1,74 +1,77 @@
 {% extends "Public/base.html" %}
+{% load static %}
 
 {% block extra_head %}
     <title>Profile</title>
-    <link rel="stylesheet" href="{{ static('css/User/profile.css') }}">
+    <link rel="stylesheet" href="{% static 'css/User/profile.css' %}">
 {% endblock %}
-
 
 {% block content %}
-<div class="container mt-5">
-    <div class="card shadow-lg">
-        <div class="card-header bg-primary text-white">
-            <h2>User Profile</h2>
-        </div>
-        <div class="card-body">
-            <form id="profile-form" class="needs-validation" novalidate>
-                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="username" class="form-label">Username:</label>
-                        <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
-                        <div class="invalid-feedback">
-                            Please choose a username.
+    <div class="container mt-5 profile-container">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h2>User Profile</h2>
+            </div>
+            <div class="card-body bg-light text-dark">
+                <form id="profile-form" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="username" class="form-label">Username:</label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                   value="{{ user.username }}" required>
+                            <div class="invalid-feedback">
+                                Please choose a username.
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email:</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}"
+                                   required>
+                            <div class="invalid-feedback">
+                                Please provide a valid email.
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="email" class="form-label">Email:</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
-                        <div class="invalid-feedback">
-                            Please provide a valid email.
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Password:</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="Enter new password">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirm_password" class="form-label">Confirm Password:</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                                   placeholder="Confirm new password">
                         </div>
                     </div>
-                </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="password" class="form-label">Password:</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter new password">
+                    <div class="mb-3">
+                        <label class="form-label">User Type:</label>
+                        <input type="text" class="form-control-plaintext" id="user_type" name="user_type"
+                               value="{{ user_type }}" readonly>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="confirm_password" class="form-label">Confirm Password:</label>
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
+
+                    <div class="mb-3">
+                        <label class="form-label">Account Created:</label>
+                        <input type="text" class="form-control-plaintext" value="{{ user.date_joined|date:'Y-m-d' }}"
+                               readonly>
                     </div>
-                </div>
 
-                <div class="mb-3">
-                    <label class="form-label">User Type:</label>
-                    <input type="text" class="form-control-plaintext" id="user_type" name="user_type" value="{{ user_type }}" readonly>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Account Created:</label>
-                    <input type="text" class="form-control-plaintext" value="{{ user.date_joined }}" readonly>
-                </div>
-
-                <button type="button" class="btn btn-success" onclick="submitProfileForm()">Save Changes</button>
-            </form>
+                    <button type="submit" class="btn btn-success" onclick="submitProfileForm()">Save Changes</button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}
-
 
 {% block scripts %}
     <script>
         function submitProfileForm() {
             const formElement = document.getElementById('profile-form');
             const formData = new FormData(formElement);
-
-            axios.post('{{ url_for('User:profile') }}', formData)
+            axios.post('{% url 'User:profile' %}', formData)
                 .then(function (response) {
                     if (response.data.message) {
                         alert(response.data.message); // 展示成功消息
@@ -87,5 +90,4 @@
                 });
         }
     </script>
-
 {% endblock %}
