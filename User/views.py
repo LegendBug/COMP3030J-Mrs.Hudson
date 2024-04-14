@@ -123,16 +123,25 @@ def view_message(request):
             raise Http404("Message type not found")
 
         # 设置分页
-        paginator = Paginator(messages, 10)  # 每页显示 10 条消息
-        page_number = request.GET.get('page')  # 获取页码参数（默认为第一页）
-        page_obj = paginator.get_page(page_number)  # 获取当前页的消息
+        paginator = Paginator(messages, 8)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
-        # 创建包含每个消息详细信息页面URL的字典
-        message_urls = {message.id: reverse('User:view_message_detail', args=[message.id]) for message in page_obj}
+        # 自定义侧边栏链接
+        custom_items = [
+            {'name': 'Unread Messages', 'url': '?type=unread_messages',
+             'active_class': 'active' if message_type == 'unread_messages' else ''},
+            {'name': 'All Messages', 'url': '?type=all_messages',
+             'active_class': 'active' if message_type == 'all_messages' else ''},
+            {'name': 'Sent Messages', 'url': '?type=sent_messages',
+             'active_class': 'active' if message_type == 'sent_messages' else ''},
+        ]
+
         return render(request, 'User/message.html',
                       {'page_obj': page_obj,
+                       'show_sidebar': True,  # 显示侧边栏
                        'message_type': message_type,  # 将当前消息类型传递到模板中，用于侧边栏链接
-                       'message_urls': message_urls
+                       'custom_items': custom_items,  # 传递自定义侧边栏链接
                        })
     except Exception as e:
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
@@ -153,7 +162,7 @@ def view_message_detail(request, message_id):
             'title': message.title,
             'sender': message.sender.username,
             'recipient': message.recipient.username,
-            'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'created_at': message.created_at.strftime('%Y-%m-%d %H:%M'),
             'content': message_detail.content,
             'application': message_detail.application if hasattr(message_detail, 'application') else None,
         }
