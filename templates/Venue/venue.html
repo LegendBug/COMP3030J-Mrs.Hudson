@@ -1,0 +1,89 @@
+{% extends 'Public/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+    <title>Venue</title>
+    <link rel="stylesheet" href="{% static 'css/Venue/venue.css' %}">
+{% endblock %}
+
+{% block content %}
+   
+    <form method="GET" class="mb-3">
+        <div class="row">
+            <div class="col">
+                <label for="status" class="form-label">Status:</label>
+                <select id="status" name="status" class="form-select">
+                    <!-- TODO add code for status!!!-->
+                </select>
+            </div>
+
+            
+            <div class="col">
+                <label for="address" class="form-label">Address:</label>
+                <select id="address" name="address" class="form-select">
+                    <option value="">All</option>
+                    {% for venue in venues %}
+                        <option value="{{ venue.address }}">{{ venue.address }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col">
+                <label for="floor" class="form-label">Floor:</label>
+                <select id="floor" name="floor" class="form-select">
+                    <option value="">All</option>
+                    {% for floor in floors %}
+                        <option value="{{ floor }}">{{ floor }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col">
+                <label for="area" class="form-label">Area: </label>
+                <select id="area" name="area" class="form-select">
+                    <option value="">All</option>
+                    {% for area in areas %}
+                        <option value="{{ area }}">{{ area }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col">
+                <label for="name" class="form-label">Name:</label>
+                <input type="text" id="name" name="name" class="form-control">
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <input type="submit" value="Filter" class="btn btn-primary">
+        </div>
+    </form>
+
+    <table class="table">
+        
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Poster</th>
+                <th>Description</th>
+                <th>Floor</th>
+                <th>Area</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venue in venues %}
+                <tr>
+                    <td>{{ venue.name }}</td>
+                    <td>{{ venue.image }}</td>
+                    <td>{{ venue.description }}</td>
+                    <td>{{ venue.floor }}</td>
+                    <td>{{ venue.area }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6">No venues found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

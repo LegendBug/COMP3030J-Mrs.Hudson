@@ -27,3 +27,26 @@ def home(request):
             return redirect('Venue:home')
         else:
             return JsonResponse({'errors': form.errors}, status=400)
+
+def venue(request):
+    venues = Venue.objects.all()
+    floors = Venue.objects.values_list('floor', flat=True).distinct()
+    areas = Venue.objects.values_list('area', flat=True).distinct()
+
+    # 通过GET请求参数筛选场馆
+    # status_para = request.GET.get('status')
+    address_para = request.GET.get('address')
+    area_para = request.GET.get('area')
+    floor_para = request.GET.get('floor')
+    name_input = request.GET.get('name')
+
+    if address_para and address_para != '':
+        venues = venues.filter(address=address_para)
+    if area_para and area_para != '':
+        venues = venues.filter(area=area_para)
+    if floor_para and floor_para != '':
+        venues = venues.filter(floor=floor_para)
+    if name_input and name_input != '':
+        venues = venues.filter(name__icontains=name_input)
+
+    return render(request, 'Venue/venue.html', {'venues': venues, 'floors': floors, 'areas': areas})
