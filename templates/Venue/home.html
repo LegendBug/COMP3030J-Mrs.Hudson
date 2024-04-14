@@ -26,29 +26,37 @@
     </div>
 
     <!-- Floating Action Button -->
-    <a href="#" class="btn btn-primary rounded-circle" id="add-venue-btn"
-       style="position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 24px;"
-       data-bs-toggle="modal" data-bs-target="#venueModal">
-        +
-    </a>
+    {% if user.is_authenticated and is_manager %}
+        <!-- Floating Action Button -->
+        <a href="#" class="btn btn-primary rounded-circle" id="add-venue-btn"
+           style="position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 24px;"
+           data-bs-toggle="modal" data-bs-target="#venueModal">
+            +
+        </a>
+    {% endif %}
 
     <!-- Modal for creating a new venue -->
     <div class="modal fade" id="venueModal" tabindex="-1" aria-labelledby="venueModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="post" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="venueModalLabel">New Venue</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Create Venue</button>
-                    </div>
-                </form>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Create a Venue</h5>
+                    {% comment %} <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>{% endcomment %} {% comment %}使用该按钮关闭模糊框会导致模糊框在关闭后屏幕的背景色无法恢复原色的bug,猜测为Bootstrap5的bug{% endcomment %}
+                </div>
+                <div class="modal-body">
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                        </div>
+
+                        <div class="modal-footer">
+                            {% comment %}<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>{% endcomment %} {% comment %}使用该按钮关闭模糊框会导致模糊框在关闭后屏幕的背景色无法恢复原色的bug,猜测为Bootstrap5的bug{% endcomment %}
+                            <button type="submit" class="btn btn-primary">Create Venue</button>
+                        </div>
+                        <div id="errors-container" style="display: none;"></div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -56,16 +64,36 @@
 
 {% block scripts %}
     <script>
-        // 检查是否存在错误，并在有错误时显示模态框
-        {% if form.errors %}
-            var myModal = new bootstrap.Modal(document.getElementById('venueModal'), {});
-            myModal.show();
-        {% endif %}
+        document.addEventListener('DOMContentLoaded', function () {
+            // 如果表单有错误，显示模态框
+            {% if form.errors %}
+                var myModal = new bootstrap.Modal(document.getElementById('venueModal'), {});
+                myModal.show();
+            {% endif %}
 
-        // 当悬浮按钮被点击时显示模态框
-        document.getElementById('add-venue-btn').addEventListener('click', function () {
-            var myModal = new bootstrap.Modal(document.getElementById('venueModal'), {});
-            myModal.show();
+            // 监听悬浮按钮点击事件，显示模态框
+            document.getElementById('add-venue-btn').addEventListener('click', function () {
+                var myModal = new bootstrap.Modal(document.getElementById('venueModal'), {});
+                myModal.show();
+            });
+
+            // 表单提交处理
+            var form = document.querySelector('form');
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var formData = new FormData(form);
+                axios.post(' {% url 'Venue:home' %}', formData).then(function (response) {
+                    window.location.reload();
+                }).catch(function (error) {
+                    if (error.response && error.response.data.errors) {
+                        var errorsContainer = document.getElementById('errors-container');
+                        errorsContainer.innerHTML = error.response.data.errors;
+                        errorsContainer.style.display = 'block';
+                    } else {
+                        console.log('An error occurred:', error);
+                    }
+                });
+            });
         });
     </script>
 {% endblock %}
