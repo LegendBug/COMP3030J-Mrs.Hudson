@@ -1,6 +1,7 @@
 import os
 import uuid
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.storage import default_storage
 from django.db import models
 
@@ -41,11 +42,9 @@ class Venue(models.Model):
     manager = models.ForeignKey("User.Manager", on_delete=models.CASCADE, related_name='venues')
     sectors = models.ForeignKey("Layout.SpaceUnit", on_delete=models.CASCADE)
     # items = List<Item>, 由Django ORM的反向关系实现
+    items = GenericRelation('Inventory.Item')
     # exhibitions : List<Exhibition>, 由Django ORM的反向关系实现
     # exhibition_applications : List<ExhibitionApplication>, 由Django ORM的反向关系实现
     # unresolved_resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现
     # breakage_alerts : List<BreakageAlert>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=venue_upload_to, null=True, blank=True)
-
-
-
