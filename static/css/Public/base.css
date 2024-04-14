@@ -59,9 +59,10 @@ html, body {
 /*页面内容样式*/
 /*--------------------------------------------------------------*/
 .public-base-main-content {
-    flex: 1;
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
+    width: 100%; /* 确保宽度填满父容器 */
 }
 
 

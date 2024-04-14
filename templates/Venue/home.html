@@ -2,18 +2,70 @@
 {% load static %}
 
 {% block extra_head %}
-    <title>Hudson Resource Management System</title>
+    <title>Homepage</title>
     <link rel="stylesheet" href="{% static 'css/Venue/home.css' %}">
 {% endblock %}
 
 {% block content %}
-    <!-- 网站主页内容 -->
-    <div class="container">
-        <h1>Welcome to Hudson Resource Management System</h1>
-        <p>This is the homepage of your system where you can manage resources effectively.</p>
+    <div class="container mt-4">
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for venue in venues %}
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="{{ venue.image.url }}" class="card-img-top" alt="{{ venue.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ venue.name }}</h5>
+                            <p class="card-text">{{ venue.address }}</p>
+                            <p class="card-text">Area: {{ venue.area }} m²</p>
+                            <p class="card-text">Floor: {{ venue.floor }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <a href="#" class="btn btn-primary rounded-circle" id="add-venue-btn"
+       style="position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 24px;"
+       data-bs-toggle="modal" data-bs-target="#venueModal">
+        +
+    </a>
+
+    <!-- Modal for creating a new venue -->
+    <div class="modal fade" id="venueModal" tabindex="-1" aria-labelledby="venueModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="venueModalLabel">New Venue</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Create Venue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 {% endblock %}
 
 {% block scripts %}
-    <!-- 如果需要在此处添加 JavaScript 脚本，可在这里加入相应的 <script> 标签 -->
+    <script>
+        // 检查是否存在错误，并在有错误时显示模态框
+        {% if form.errors %}
+            var myModal = new bootstrap.Modal(document.getElementById('venueModal'), {});
+            myModal.show();
+        {% endif %}
+
+        // 当悬浮按钮被点击时显示模态框
+        document.getElementById('add-venue-btn').addEventListener('click', function () {
+            var myModal = new bootstrap.Modal(document.getElementById('venueModal'), {});
+            myModal.show();
+        });
+    </script>
 {% endblock %}

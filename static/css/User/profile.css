@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
 .profile-container {
     max-width: 700px;
     margin: auto;
@@ -46,4 +48,14 @@ body {
 
 .row {
     margin-bottom: 1rem;
+}
+
+.profile-title {
+    text-align: center; /* 文本居中 */
+    font-family: 'Great Vibes', cursive; /* 应用 'Great Vibes' 字体或其他您选择的字体 */
+    color: #fff; /* 根据背景调整字体颜色 */
+    font-size: 3rem; /* 调整字体大小 */
+    margin-top: 1rem; /* 如果需要的话，调整上边距以使其与容器边缘对齐 */
+    margin-bottom: 1rem; /* 调整下边距以提供足够的空间 */
+    /* 添加更多样式来增强视觉效果 */
 }

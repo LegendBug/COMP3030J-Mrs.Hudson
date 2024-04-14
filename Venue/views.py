@@ -1,19 +1,25 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
-
+from django.views.decorators.http import require_http_methods
+from Venue.form import VenueForm
 from Venue.models import Venue
+from django.contrib import messages
 
 
+@require_http_methods(["GET", "POST"])
 def home(request):
     if request.method == 'GET':
-        # 先获取所有的Venue
+        # GET请求，展示场馆列表和空的创建表单
         venues = Venue.objects.all()
-        # 然后把所有的Venue传给模板
-        return render(request, 'Venue/home.html', {'venues': venues})
-    if request.method == 'POST':
-        # 获取用户提交的数据
-        name = request.POST.get('name')
-        address = request.POST.get('address')
-        # 创建一个新的Venue
-        Venue.objects.create(name=name, address=address)
-        # 重定向到home页面
-        return redirect('home')
+        form = VenueForm()  # 创建一个空的表单实例
+        return render(request, 'Venue/home.html', {'venues': venues, 'form': form})
+    else:  # POST请求
+        if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
+            return JsonResponse({'errors': 'Permission denied!'}, status=403)
+        form = VenueForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Venue created successfully!')
+            return redirect('Venue:home')
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
