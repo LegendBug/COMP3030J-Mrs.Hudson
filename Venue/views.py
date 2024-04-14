@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 from Venue.form import VenueForm
 from Venue.models import Venue
+from Exhibition.models import Exhibition
 from django.contrib import messages
 
 
@@ -29,24 +30,29 @@ def home(request):
             return JsonResponse({'errors': form.errors}, status=400)
 
 def venue(request):
-    venues = Venue.objects.all()
-    floors = Venue.objects.values_list('floor', flat=True).distinct()
-    areas = Venue.objects.values_list('area', flat=True).distinct()
+    exhibitions = Exhibition.objects.all()
 
-    # 通过GET请求参数筛选场馆
-    # status_para = request.GET.get('status')
-    address_para = request.GET.get('address')
-    area_para = request.GET.get('area')
-    floor_para = request.GET.get('floor')
+    sectors = Exhibition.objects.values_list('sectors', flat=True).distinct()
+    start_ats = Exhibition.objects.values_list('start_at', flat=True).distinct()
+    end_ats = Exhibition.objects.values_list('end_at', flat=True).distinct()
+    organizers = Exhibition.objects.values_list('organizer', flat=True).distinct()
+
+    # filter exhibitions via GET parameters
+    sectors_param = request.GET.get('sectors')
+    start_ats_param = request.GET.get('start_ats') # FIXME need to convert the string to datetime
+    end_ats_param = request.GET.get('end_ats') # FIXME need to convert the string to datetime
+    organizers_param = request.GET.get('organizers')
     name_input = request.GET.get('name')
 
-    if address_para and address_para != '':
-        venues = venues.filter(address=address_para)
-    if area_para and area_para != '':
-        venues = venues.filter(area=area_para)
-    if floor_para and floor_para != '':
-        venues = venues.filter(floor=floor_para)
+    if sectors_param and sectors_param != '':
+        exhibitions = exhibitions.filter(sectors=sectors_param)
+    if start_ats_param and start_ats_param != '':
+        exhibitions = exhibitions.filter(start_at=start_ats_param)
+    if end_ats_param and end_ats_param != '':
+        exhibitions = exhibitions.filter(end_at=end_ats_param)
+    if organizers_param and organizers_param != '':
+        exhibitions = exhibitions.filter(organizer=organizers_param)
     if name_input and name_input != '':
-        venues = venues.filter(name__icontains=name_input)
+        exhibitions = exhibitions.filter(name__icontains=name_input)
 
-    return render(request, 'Venue/venue.html', {'venues': venues, 'floors': floors, 'areas': areas})
+    return render(request, 'Venue/venue.html', {'exhibitions': exhibitions, 'sectors': sectors, 'start_ats': start_ats, 'end_ats': end_ats, 'organizers': organizers})

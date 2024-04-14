@@ -19,31 +19,41 @@
 
             
             <div class="col">
-                <label for="address" class="form-label">Address:</label>
-                <select id="address" name="address" class="form-select">
+                <label for="sector" class="form-label">Sector:</label>
+                <select id="sector" name="sector" class="form-select">
                     <option value="">All</option>
-                    {% for venue in venues %}
-                        <option value="{{ venue.address }}">{{ venue.address }}</option>
+                    {% for sector in sectors %}
+                        <option value="{{ sector }}">{{ sector }}</option>
                     {% endfor %}
                 </select>
             </div>
             
             <div class="col">
-                <label for="floor" class="form-label">Floor:</label>
-                <select id="floor" name="floor" class="form-select">
+                <label for="organizers" class="form-label">Organizer:</label>
+                <select id="organizers" name="organizers" class="form-select">
                     <option value="">All</option>
-                    {% for floor in floors %}
-                        <option value="{{ floor }}">{{ floor }}</option>
+                    {% for organizer in organizers %}
+                        <option value="{{ organizer }}">{{ organizer }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <div class="col">
-                <label for="area" class="form-label">Area: </label>
-                <select id="area" name="area" class="form-select">
+                <label for="start_ats" class="form-label">From:</label>
+                <select id="start_ats" name="start_ats" class="form-select">
                     <option value="">All</option>
-                    {% for area in areas %}
-                        <option value="{{ area }}">{{ area }}</option>
+                    {% for start_at in start_ats %}
+                        <option value="{{ start_at }}">{{ start_at }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col">
+                <label for="end_ats" class="form-label">To:</label>
+                <select id="end_ats" name="end_ats" class="form-select">
+                    <option value="">All</option>
+                    {% for end_at in end_ats %}
+                        <option value="{{ end_at }}">{{ end_at }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -64,24 +74,26 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Poster</th>
                 <th>Description</th>
-                <th>Floor</th>
-                <th>Area</th>
+                <th>Organizer</th>
+                <th>Sector</th>
+                <th>From</th>
+                <th>To</th>
             </tr>
         </thead>
         <tbody>
-            {% for venue in venues %}
+            {% for exhibition in exhibitions %}
                 <tr>
-                    <td>{{ venue.name }}</td>
-                    <td>{{ venue.image }}</td>
-                    <td>{{ venue.description }}</td>
-                    <td>{{ venue.floor }}</td>
-                    <td>{{ venue.area }}</td>
+                    <td>{{ exhibition.name }}</td>
+                    <td>{{ exhibition.description }}</td>
+                    <td>{{ exhibition.organizer }}</td>
+                    <td>{{ exhibition.sectors }}</td>
+                    <td>{{ exhibition.start_at }}</td>
+                    <td>{{ exhibition.end_at }}</td>
                 </tr>
             {% empty %}
                 <tr>
-                    <td colspan="6">No venues found.</td>
+                    <td colspan="6">No events found.</td>
                 </tr>
             {% endfor %}
         </tbody>
