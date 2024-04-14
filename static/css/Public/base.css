@@ -10,7 +10,7 @@ html, body {
 /* 基础导航栏样式 */
 .navbar {
     background-color: #343a40; /* 深灰色背景 */
-    border-bottom: 3px solid #ff4500; /* 添加一个橙色边框在底部 */
+    border-bottom: 3px solid #009631; /* 添加一个橙色边框在底部 */
 }
 
 /* 导航栏品牌LOGO样式 */
@@ -26,24 +26,24 @@ html, body {
 }
 
 /* 导航栏链接悬停与焦点样式 */
-.nav-link:hover, .nav-link:focus {
-    color: #ff4500; /* 橙色高亮 */
+.nav-link:hover, .nav-link:focus, .nav-link:active {
+    color: #009631; /* 高亮 */
     text-decoration: none; /* 去除下划线 */
 }
 
 /* 导航栏当前活动链接样式 */
 .nav-item.active .nav-link {
+    background-color: #009631; /* 背景 */
     color: #fff; /* 白色文字 */
-    background-color: #ff4500; /* 橙色背景 */
 }
 
 /* 响应式导航按钮样式 */
 .navbar-toggler {
-    border-color: #ff4500; /* 橙色边框 */
+    border-color: #009631; /* 边框 */
 }
 
 .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255, 69, 0, 0.7)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); /* 自定义导航按钮图标颜色 */
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(00, 96, 31, 0.7)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); /* 自定义导航按钮图标颜色 */
 }
 
 /* 提示：确保导航栏容器使用正确的CSS类 */
@@ -72,7 +72,7 @@ html, body {
     background: linear-gradient(180deg, rgba(52, 58, 64, 0.8), rgba(52, 58, 64, 1)); /* 渐变背景 */
     color: #f8f9fa; /* 浅灰色文字 */
     text-align: center;
-    border-top: 4px solid #ff4500; /* 橙色边框 */
+    border-top: 4px solid #009631; /* 边框 */
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* 向上的阴影效果 */
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 优雅的字体 */
 }
@@ -86,7 +86,7 @@ html, body {
 
 /* 页脚链接悬停效果 */
 .public-base-footer a:hover {
-    color: #ff4500; /* 橙色高亮 */
+    color: #009631; /* 高亮 */
 }
 
 /* 页脚图片样式 */
@@ -103,7 +103,7 @@ html, body {
 }
 
 .toast {
-    border-left: 4px solid #ff4500; /* 给Toast添加左侧边框 */
+    border-left: 4px solid #009631; /* 给Toast添加左侧边框 */
     background-color: #fff; /* 设置Toast的背景颜色 */
     color: #343a40; /* 设置Toast的文字颜色 */
 }

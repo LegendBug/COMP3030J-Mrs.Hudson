@@ -1,15 +1,14 @@
 body {
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
+    min-height: 100%;
+    display: flex; /* 使body使用flex布局填充屏幕 */
 }
 
 html {
-    height: -webkit-fill-available;
 }
 
 main {
-    height: 100vh;
-    height: -webkit-fill-available;
+    height: 100%;
+    display: flex; /* 使body使用flex布局填充屏幕 */
     max-height: 100vh;
     overflow-x: auto;
     overflow-y: hidden;
@@ -62,3 +61,23 @@ main {
 .scrollarea {
     overflow-y: auto;
 }
+
+
+.nav-link.active {
+    background-color: #009631;
+    color: white; /* 文本颜色为白色 */
+    border-radius: 0.25rem; /* 轻微的圆角 */
+}
+
+/* 导航栏当前活动链接样式 */
+.nav-item.active .nav-link {
+    background-color: #009631; /* 背景 */
+    color: #fff; /* 白色文字 */
+}
+
+.sidebar {
+    transition: width 0.3s ease-in-out;
+    min-height: 1000vh;
+}
+
+

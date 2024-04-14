@@ -123,7 +123,7 @@ def view_message(request):
             raise Http404("Message type not found")
 
         # 设置分页
-        paginator = Paginator(messages, 8)
+        paginator = Paginator(messages, 10)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
@@ -140,6 +140,7 @@ def view_message(request):
         return render(request, 'User/message.html',
                       {'page_obj': page_obj,
                        'show_sidebar': True,  # 显示侧边栏
+                       'page_title': 'Message Center',  # 侧栏标题
                        'message_type': message_type,  # 将当前消息类型传递到模板中，用于侧边栏链接
                        'custom_items': custom_items,  # 传递自定义侧边栏链接
                        })

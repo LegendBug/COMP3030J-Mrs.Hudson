@@ -18,8 +18,12 @@
     font-weight: 400;
 }
 
+.card {
+    background-color: #009631;
+}
+
 .card-header {
-    background-color: #007bff;
+    background-color: #009631;
 }
 
 .card-body {

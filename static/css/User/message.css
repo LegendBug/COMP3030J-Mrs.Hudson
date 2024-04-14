@@ -32,8 +32,9 @@ body {
 }
 
 .nav-scroller .nav-link:hover {
-  color: #007bff;
+  color: #009631;
 }
+
 
 .nav-scroller .active {
   font-weight: 500;
@@ -47,3 +48,16 @@ body {
 .cursor-pointer {
     cursor: pointer;
 }
+
+.btn-primary {
+    padding: 0.5rem; /* 调整按钮的内边距 */
+    margin-top: 0.5rem; /* 在按钮上方增加外边距 */
+    background-color: #009631;
+    border: none;
+}
+
+.message-info {
+    font-size: 2rem; /* 你可以根据需求调整这个大小 */
+    text-align: center; /* 这将替代 HTML 中的 text-center 类 */
+}
+

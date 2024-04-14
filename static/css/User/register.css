@@ -27,12 +27,12 @@ body {
     padding: 0.5rem;
     margin-top: 0.2rem;
     width: 100%;
-    background-color: #007bff;
+    background-color: #009631;
     border: none;
 }
 
 .btn-primary:hover {
-    background-color: #0056b3;
+    background-color: #009631;
     transition: background-color 0.3s;
 }
 
