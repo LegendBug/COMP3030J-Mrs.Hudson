@@ -1,33 +1,12 @@
-{% comment %}
-在 Django 中，没有直接对应 Jinja2 的 macro 功能的构造，因为 Django 模板系统设计上倾向于简单性和明确性，不支持如宏这样的复杂逻辑。
-不过，你可以通过使用 Django 的 include 标签与模板片段来达到类似的效果。
-要将你的 Jinja2 宏转换为 Django 可用的形式，你可以创建一个可重用的模板片段，并在需要的地方包含它。
-在任何需要侧边栏的模板中，你可以使用 {% include %} 标签来插入这个侧边栏片段，并传递需要的参数。
-{% endcomment %}
+<div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark"
+     style="width: 240px; height: 100vh; position: sticky">
 
-{#通过macro宏来渲染侧边栏，可以在模板中调用该宏，传入自定义的侧边栏内容#}
-{% comment %}
-{% macro custom_sidebar(custom_items) %}
-    <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark"
-         style="width: 240px; height: 100vh; position: sticky">
+    <!-- TODO 侧边栏标题，点击收缩 -->
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+        <span class="fs-4">Sidebar</span>
+    </a>
+    <hr>
 
-        <!-- TODO 侧边栏标题，点击收缩 -->
-        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-            <span class="fs-4">Sidebar</span>
-        </a>
-
-        <hr>
-
-        <!-- 自定义的侧边栏内容，使用例见User.message.html -->
-        <ul class="nav nav-pills flex-column mb-auto flex-grow-1">
-            {% for item in custom_items %}
-                <li class="nav-item">
-                    <a href="{{ item.url }}" class="nav-link {{ item.active_class }}">{{ item.name }}</a>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-{% endmacro %}
-{% endcomment %}
-
-
+    <!-- 自定义的侧边栏item列表 -->
+    {% include "User/sidebar_item.html" %}
+</div>

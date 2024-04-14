@@ -22,13 +22,14 @@
         <!-- 在这里添加额外的head内容 -->
     {% endblock %}
 </head>
-<body>
 
+
+<body>
 <!-- 导航栏 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'Venue:home' %}">
-            <img src="{% static 'images/Public/hudson.jpg' %}" alt="Hudson Logo"
+            <img src="{% static 'images/Public/hudson.png' %}" alt="Hudson Logo"
                  style="height: 30px; margin-right: 10px;">
             Mrs. Hudson
         </a>
@@ -74,26 +75,29 @@
 </div>
 
 <!-- 页面主体内容 -->
-<div class="public-base-main-content">
-    {% with show_sidebar=show_sidebar|default:"False" %}
-        {% if show_sidebar %}
-            {% block sidebar %}
-                <!-- 侧边栏内容 -->
-            {% endblock %}
-        {% endif %}
-    {% endwith %}
-
-    {% block content %}
-        <!-- 页面主体内容 -->
-    {% endblock %}
+<div class="public-base-main-content container-fluid px-0">
+    <div class="row">
+        <div class="d-flex flex-row">
+            <div class="public-base-sidebar" id="sidebar">
+                {% block sidebar %}
+                    <!-- 侧边栏内容 -->
+                {% endblock %}
+            </div>
+            <div class="public-base-main-content" id="content">
+                {% block content %}
+                    <!-- 页面主体内容 -->
+                {% endblock %}
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="flex-grow-1"></div>
+
 <!-- 底边栏 -->
 <footer class="public-base-footer bg-dark text-center text-lg-start text-white">
     <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
         <img src="{% static 'images/Public/bjut.png' %}" alt="BJUT Logo" style="height: 50px;">
-        © 2024 Mrs. H.U.D.S.O.N. <i>Holistic Utility Deployment & Sustainability Overseeing Network.</i> All rights
+        © 2024 Mrs.H.U.D.S.O.N. <i>Holistic Utility Deployment & Sustainability Overseeing Network.</i> All rights
         reserved.
         <img src="{% static 'images/Public/ucd.png' %}" alt="UCD Logo" style="height: 50px;">
         <br>
