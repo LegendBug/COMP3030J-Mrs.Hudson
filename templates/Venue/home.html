@@ -12,7 +12,9 @@
             {% for venue in venues %}
                 <div class="col">
                     <div class="card h-100">
-                        {% comment %} <img src="{{ venue.image.url }}" class="card-img-top" alt="{{ venue.name }}"> {% endcomment %}
+                        {% if venue.image %}
+                            <img src="{{ venue.image.url }}" class="card-img-top" alt="{{ venue.name }}">
+                        {% endif %}
                         <div class="card-body">
                             <h5 class="card-title">{{ venue.name }}</h5>
                             <p class="card-text">{{ venue.address }}</p>
