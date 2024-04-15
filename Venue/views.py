@@ -1,6 +1,8 @@
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
-from Venue.form import VenueForm
+
+from Exhibition.forms import ExhibApplicationForm
+from Venue.forms import VenueForm
 from Venue.models import Venue
 from Exhibition.models import Exhibition
 from django.contrib import messages
@@ -28,8 +30,11 @@ def home(request):
             return JsonResponse({'errors': form.errors}, status=400)
 
 
-def venue(request):
-    exhibitions = Exhibition.objects.all()
+def venue(request, venue_id):
+    current_venue = Venue.objects.get(pk=venue_id)
+    if current_venue is None:
+        return JsonResponse({'errors': 'Venue not found!'}, status=404)
+    exhibitions = Exhibition.objects.filter(venue=current_venue)
 
     sectors = Exhibition.objects.values_list('sectors', flat=True).distinct()
     start_ats = Exhibition.objects.values_list('start_at', flat=True).distinct()
@@ -54,6 +59,13 @@ def venue(request):
     if name_input and name_input != '':
         exhibitions = exhibitions.filter(name__icontains=name_input)
 
+    # 传出当前用户的类型
+    user_type = 'Manager' if hasattr(request.user, 'manager') \
+        else 'Organizer' if hasattr(request.user, 'organizer') \
+        else 'Exhibitor'
+
+    form = ExhibApplicationForm()
+
     return render(request, 'Venue/venue.html',
                   {'exhibitions': exhibitions, 'sectors': sectors, 'start_ats': start_ats, 'end_ats': end_ats,
-                   'organizers': organizers})
+                   'organizers': organizers, 'venue_id': venue_id, 'user_type': user_type, 'form': form})

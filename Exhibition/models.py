@@ -39,14 +39,8 @@ class Exhibition(models.Model):
 
 
 class ExhibitionApplication(Application):
-    start_at = models.DateTimeField()
-    end_at = models.DateTimeField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    venue = models.ForeignKey("Venue.Venue", on_delete=models.CASCADE, related_name='exhibition_applications')
-    # 某个展览被删除后，申请不会被删除
-    sectors = models.ManyToManyField("Layout.SpaceUnit", related_name='exhibition_applications')
     # 某个展览被删除后，申请不会被删除
     exhibition = models.OneToOneField("Exhibition", on_delete=models.SET_NULL, null=True,
                                       related_name='exhibition_application')
     # 某个消息被删除后，申请不会被删除
-    message_details = GenericRelation("User.MessageDetail", related_query_name='exhibition_application')
+    message_details = GenericRelation("User.MessageDetail", related_query_name='exhibition_application', null=True)

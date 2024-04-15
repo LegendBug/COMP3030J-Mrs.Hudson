@@ -3,6 +3,7 @@ import uuid
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
+
 class Venue(models.Model):
     def venue_upload_to(instance, filename):
         # 获取文件的扩展名

@@ -21,18 +21,6 @@ body {
     box-shadow: 0 4px 8px rgba(0, 123, 255, 0.5);
 }
 
-.modal-content {
-    padding: 20px;
-}
-
-.modal-header {
-    border-bottom: 1px solid #dee2e6;
-}
-
-.modal-footer {
-    border-top: 1px solid #dee2e6;
-}
-
 .btn-primary {
     background-color: #007bff;
     border-color: #007bff;

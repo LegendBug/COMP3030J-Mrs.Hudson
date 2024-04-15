@@ -1,27 +1,27 @@
 {% extends "Public/base.html" %}
 
 {% block content %}
-<div class="container mt-3">
-    <h2>物品详情 - {{ category.name }}</h2>
-    <table class="table">
-        <thead>
+    <div class="container mt-3">
+        <h2>物品详情 - {{ category.name }}</h2>
+        <table class="table">
+            <thead>
             <tr>
                 <th>物品名称</th>
                 <th>是否在使用</th>
                 <th>是否损坏</th>
                 <th>最后修改时间</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {% for item in items %}
-            <tr>
-                <td>{{ item.name }}</td>
-                <td>{{ item.is_using | yesno:"是,否" }}</td>
-                <td>{{ item.is_damaged | yesno:"是,否" }}</td>
-                <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>
-            </tr>
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.is_using | yesno:"是,否" }}</td>
+                    <td>{{ item.is_damaged | yesno:"是,否" }}</td>
+                    <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>
+                </tr>
             {% endfor %}
-        </tbody>
-    </table>
-</div>
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

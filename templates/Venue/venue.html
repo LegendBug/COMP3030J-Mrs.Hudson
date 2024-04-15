@@ -1,4 +1,6 @@
 {% extends 'Public/base.html' %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
 {% load static %}
 
 {% block extra_head %}
@@ -7,9 +9,9 @@
 {% endblock %}
 
 {% block content %}
-   
+
     <form method="GET" class="mb-3">
-        <div class="row">
+        <div class="row px-3">
             <div class="col">
                 <label for="status" class="form-label">Status:</label>
                 <select id="status" name="status" class="form-select">
@@ -17,7 +19,7 @@
                 </select>
             </div>
 
-            
+
             <div class="col">
                 <label for="sector" class="form-label">Sector:</label>
                 <select id="sector" name="sector" class="form-select">
@@ -27,7 +29,7 @@
                     {% endfor %}
                 </select>
             </div>
-            
+
             <div class="col">
                 <label for="organizers" class="form-label">Organizer:</label>
                 <select id="organizers" name="organizers" class="form-select">
@@ -57,45 +59,137 @@
                     {% endfor %}
                 </select>
             </div>
-            
+
             <div class="col">
                 <label for="name" class="form-label">Name:</label>
                 <input type="text" id="name" name="name" class="form-control">
             </div>
         </div>
-
-        <div class="mt-3">
-            <input type="submit" value="Filter" class="btn btn-primary">
-        </div>
     </form>
 
+
+
+    <div class="row mt-3 px-3">
+        <div class="col">
+            {#Filter按键#}
+            <input type="submit" value="Filter" class="btn btn-success">
+        </div>
+        <div class="col-auto">
+            {#申请展会按键，只有举办方能申请#}
+            {% if user_type == 'Organizer' %}
+                <button type="button" onclick="createExhibApply()" class="btn btn-success rounded-circle shadow"
+                        id="createExhibApply"
+                        style="width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-size: 30px;">
+                    +
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {#创建新展览模态框#}
+    <div class="modal fade" id="createExhibApplyModal" tabindex="-1" aria-labelledby="createExhibApplyModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createExhibApplyModalLabel">Apply for a New Exhibition</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success" onclick="submitApplication()">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <table class="table">
-        
+
         <thead>
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Organizer</th>
-                <th>Sector</th>
-                <th>From</th>
-                <th>To</th>
-            </tr>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Organizer</th>
+            <th>Sector</th>
+            <th>From</th>
+            <th>To</th>
+        </tr>
         </thead>
         <tbody>
-            {% for exhibition in exhibitions %}
-                <tr>
-                    <td>{{ exhibition.name }}</td>
-                    <td>{{ exhibition.description }}</td>
-                    <td>{{ exhibition.organizer }}</td>
-                    <td>{{ exhibition.sectors }}</td>
-                    <td>{{ exhibition.start_at }}</td>
-                    <td>{{ exhibition.end_at }}</td>
-                </tr>
+        {% for exhibition in exhibitions %}
+            <tr>
+                <td>{{ exhibition.name }}</td>
+                <td>{{ exhibition.description }}</td>
+                <td>{{ exhibition.organizer }}</td>
+                <td>{{ exhibition.sectors }}</td>
+                <td>{{ exhibition.start_at }}</td>
+                <td>{{ exhibition.end_at }}</td>
+            </tr>
             {% empty %}
-                <tr>
-                    <td colspan="6">No events found.</td>
-                </tr>
-            {% endfor %}
+            <tr>
+                <td colspan="6">No events found.</td>
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+
+            function createExhibApply() {
+                const myModal = new bootstrap.Modal(document.getElementById('createExhibApplyModal'), {
+                    keyboard: false
+                });
+                myModal.show(); // 显示模态框
+            }
+
+            function submitApplication() {
+                const formData = new FormData();
+                formData.append('venue_id', {{ venue_id }});
+                formData.append('name', document.getElementById('exhibName').value.trim());
+                formData.append('description', document.getElementById('exhibDescription').value.trim());
+                formData.append('start_at', document.getElementById('exhibStartAt').value);
+                formData.append('end_at', document.getElementById('exhibEndAt').value);
+                formData.append('image', document.getElementById('exhibImage').files[0]);
+                formData.append('sectors', document.getElementById('exhibSectors').value);
+                formData.append('content', document.getElementById('messageContent').value.trim());
+
+                const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // Get CSRF token
+                const url = `{% url 'Exhibition:create_exhib_application' %}`;
+
+                axios.post(url, formData, {
+                    headers: {
+                        'X-CSRFToken': token,  // Include CSRF token in the request headers
+                        'Content-Type': 'multipart/form-data'  // Important when sending files
+                    }
+                })
+                    .then(response => {
+                        if (response.data.success) {  // Checking for 'success' in the response
+                            console.log(response.data.success); // Log the success message from the server
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('createExhibApplyModel'));
+                            modal.hide();  // Hide the modal
+                            window.location.reload();  // Reload the page to update the message list
+                        } else {
+                            // If there is no 'success' key in the response, log or handle errors
+                            console.error('Error creating exhibition:', response.data.error);
+                            alert('Failed to create exhibition: ' + response.data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error creating exhibition:', error.response.data);
+                        alert('Failed to create exhibition: ' + error.response.data.error);
+                    });
+            }
+
+
+            window.createExhibApply = createExhibApply;
+            window.submitApplication = submitApplication;
+        });
+    </script>
 {% endblock %}

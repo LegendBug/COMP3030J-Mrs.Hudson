@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect
-from .forms import RegisterForm, LoginForm  # 导入注册和登录表单类
+from .forms import RegisterForm, LoginForm, ReplyMessageForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *
 from django.contrib.auth import update_session_auth_hash
@@ -37,6 +37,8 @@ def register(request):
 
 @never_cache  # 禁用缓存，防止用户未退出登录直接通过浏览器返回按钮访问登录页面
 def login(request):
+    if request.user.is_authenticated:  # 如果用户已经登录
+        return redirect('Venue:home')  # 重定向到主页
     if request.method == 'POST':  # 如果是 POST 请求
         form = LoginForm(request.POST)  # 使用提交的数据实例化登录表单
         if form.is_valid():  # 如果表单数据有效
@@ -138,12 +140,15 @@ def view_message(request):
              'active_class': 'active' if message_type == 'sent_messages' else ''},
         ]
 
+        form = ReplyMessageForm()
+
         return render(request, 'User/message.html',
                       {'page_obj': page_obj,
                        'show_sidebar': True,  # 显示侧边栏
                        'page_title': 'Message Center',  # 侧栏标题
                        'message_type': message_type,  # 将当前消息类型传递到模板中，用于侧边栏链接
                        'custom_items': custom_items,  # 传递自定义侧边栏链接
+                       'form': form,  # 传递回复消息表单
                        })
     except Exception as e:
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
@@ -161,14 +166,16 @@ def view_message_detail(request, message_id):
         if message.recipient == request.user and not message.is_read:
             message.is_read = True
             message.save()
-
+            # TODO 消息中展示关联申请
+            # TODO 回复消息继承申请
         data = {
             'title': message.title,
             'sender': message.sender.username,
             'recipient': message.recipient.username,
             'created_at': message.created_at.strftime('%Y-%m-%d %H:%M'),
             'content': message_detail.content,
-            'application': message_detail.application if hasattr(message_detail, 'application') else None,
+            'application_id': message_detail.application_id,
+            'application_type': message_detail.application_type.model,
         }
         return JsonResponse(data)
     except Exception as e:
@@ -192,7 +199,7 @@ def reply_message(request, message_id):
             new_message.detail = new_message_detail
             new_message.save()
 
-            return JsonResponse({'message': 'Reply sent successfully.'}, status=200)
+            return JsonResponse({'success': 'Reply sent successfully.'}, status=200)
         except Exception as e:
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
     else:
