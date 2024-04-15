@@ -13,7 +13,7 @@
         <div class="row row-cols-1 row-cols-md-2 g-4">
             {% for venue in venues %}
                 <div class="col">
-                    <div class="card h-100">
+                    <div class="card h-100 shadow-sm">
                         {% if venue.image %}
                             <img src="{{ venue.image.url }}" class="card-img-top" alt="{{ venue.name }}">
                         {% endif %}
@@ -31,14 +31,12 @@
 
     <!-- Floating Action Button -->
     {% if user.is_authenticated and is_manager %}
-        <!-- Floating Action Button -->
-        <a href="#" class="btn btn-primary rounded-circle" id="add-venue-btn"
-           style="position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 24px;"
+        <a href="#" class="btn btn-primary rounded-circle shadow" id="add-venue-btn"
+           style="position: fixed; bottom: 100px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
            data-bs-toggle="modal" data-bs-target="#venueModal">
             +
         </a>
     {% endif %}
-
     <!-- Modal for creating a new venue -->
     <div class="modal fade" id="venueModal" tabindex="-1" aria-labelledby="venueModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -49,24 +47,7 @@
                 <div class="modal-body">
                     <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                         {% csrf_token %}
-                        <div class="mb-3">
-                            {{ form.name|as_crispy_field }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.address|as_crispy_field }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.description|as_crispy_field }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.area|as_crispy_field }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.floor|as_crispy_field }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.image|as_crispy_field }}
-                        </div>
+                        {{ form|crispy }}
                         <div id="message-container"></div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
