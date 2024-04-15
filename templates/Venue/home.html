@@ -1,5 +1,7 @@
 {% extends "Public/base.html" %}
+{% load crispy_forms_filters %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block extra_head %}
     <title>Homepage</title>
@@ -43,17 +45,31 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Create a Venue</h5>
-                    {% comment %} <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>{% endcomment %} {% comment %}使用该按钮关闭模糊框会导致模糊框在关闭后屏幕的背景色无法恢复原色的bug,猜测为Bootstrap5的bug{% endcomment %}
                 </div>
                 <div class="modal-body">
-                    <form method="post" enctype="multipart/form-data">
-                        <div class="modal-body">
-                            {% csrf_token %}
-                            {{ form.as_p }}
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.name|as_crispy_field }}
                         </div>
-                        <div id="message-container" style="display: none;"></div>
+                        <div class="mb-3">
+                            {{ form.address|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.description|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.area|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.floor|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.image|as_crispy_field }}
+                        </div>
+                        <div id="message-container"></div>
                         <div class="modal-footer">
-                            {% comment %}<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>{% endcomment %} {% comment %}使用该按钮关闭模糊框会导致模糊框在关闭后屏幕的背景色无法恢复原色的bug,猜测为Bootstrap5的bug{% endcomment %}
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             <button type="submit" class="btn btn-primary">Create Venue</button>
                         </div>
                     </form>
