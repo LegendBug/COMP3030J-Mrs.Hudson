@@ -51,12 +51,11 @@
                             {% csrf_token %}
                             {{ form.as_p }}
                         </div>
-
+                        <div id="message-container" style="display: none;"></div>
                         <div class="modal-footer">
                             {% comment %}<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>{% endcomment %} {% comment %}使用该按钮关闭模糊框会导致模糊框在关闭后屏幕的背景色无法恢复原色的bug,猜测为Bootstrap5的bug{% endcomment %}
                             <button type="submit" class="btn btn-primary">Create Venue</button>
                         </div>
-                        <div id="errors-container" style="display: none;"></div>
                     </form>
                 </div>
             </div>
@@ -67,15 +66,9 @@
 {% block scripts %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // 如果表单有错误，显示模态框
-            {% if form.errors %}
-                var myModal = new bootstrap.Modal(document.getElementById('venueModal'), {});
-                myModal.show();
-            {% endif %}
-
+            var myModal = new bootstrap.Modal(document.getElementById('venueModal'), {});
             // 监听悬浮按钮点击事件，显示模态框
             document.getElementById('add-venue-btn').addEventListener('click', function () {
-                var myModal = new bootstrap.Modal(document.getElementById('venueModal'), {});
                 myModal.show();
             });
 
@@ -85,15 +78,22 @@
                 e.preventDefault();
                 var formData = new FormData(form);
                 axios.post(' {% url 'Venue:home' %}', formData).then(function (response) {
-                    window.location.reload();
-                }).catch(function (error) {
-                    if (error.response && error.response.data.errors) {
-                        var errorsContainer = document.getElementById('errors-container');
-                        errorsContainer.innerHTML = error.response.data.errors;
-                        errorsContainer.style.display = 'block';
-                    } else {
-                        console.log('An error occurred:', error);
+                    var messageContainer = document.getElementById('message-container');
+                    if (response.data.success) {
+                        messageContainer.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                        messageContainer.style.display = 'block';  // Make sure the message container is visible
+                        // 设置定时器等待1.5秒后关闭模态框并刷新页面
+                        setTimeout(function () {
+                            myModal.hide(); // 关闭模态框
+                            window.location.reload(); // 刷新页面
+                        }, 1500); // 1500毫秒后执行
                     }
+                    if (response.data.errors) {
+                        messageContainer.innerHTML = `<div class="alert alert-danger">${response.data.errors}</div>`;
+                        messageContainer.style.display = 'block';  // Make sure the message container is visible
+                    }
+                }).catch(function (error) {
+                    console.log('An error occurred:', error);
                 });
             });
         });

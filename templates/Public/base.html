@@ -66,7 +66,7 @@
 <!-- 消息提醒(Toast) -->
 <div id="toast-container" class="toast-container position-fixed top-0 start-50 translate-middle-x p-3">
     {% for message in messages %}
-        <div class="toast-message" data-message="{{ message.message }}" data-tag="{{ message.tags }}"
+        <div class="toast-message" data-message="{{ message }}" data-tag="{{ message.tags }}"
              style="display: none;"></div>
     {% endfor %}
 </div>

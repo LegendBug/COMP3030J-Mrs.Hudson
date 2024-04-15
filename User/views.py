@@ -4,9 +4,8 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse, HttpResponseNotAllowed
-from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from .forms import RegisterForm, LoginForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *

@@ -1,13 +1,11 @@
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
-from django.views.decorators.http import require_http_methods
 from Venue.form import VenueForm
 from Venue.models import Venue
 from Exhibition.models import Exhibition
 from django.contrib import messages
 
 
-@require_http_methods(["GET", "POST"])
 def home(request):
     if request.method == 'GET':
         # GET请求，展示场馆列表和空的创建表单
@@ -16,18 +14,19 @@ def home(request):
         is_manager = False
         if request.user.is_authenticated and hasattr(request.user, 'manager'):
             is_manager = True
-        return render(request, 'Venue/home.html', {'venues': venues, 'is_manager': is_manager, 'form': form})
+        return render(request, 'Venue/home.html',
+                      {'venues': venues, 'is_manager': is_manager, 'messages': messages.get_messages(request),
+                       'form': form})
     else:  # POST请求
         if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
             return JsonResponse({'errors': 'Permission denied!'}, status=403)
         form = VenueForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Venue created successfully!')
-            # TODO 该消息无法显示,需要debug
-            return redirect('Venue:home')
+            return JsonResponse({'success': 'Venue created successfully!'})
         else:
             return JsonResponse({'errors': form.errors}, status=400)
+
 
 def venue(request):
     exhibitions = Exhibition.objects.all()
@@ -39,8 +38,8 @@ def venue(request):
 
     # filter exhibitions via GET parameters
     sectors_param = request.GET.get('sectors')
-    start_ats_param = request.GET.get('start_ats') # FIXME need to convert the string to datetime
-    end_ats_param = request.GET.get('end_ats') # FIXME need to convert the string to datetime
+    start_ats_param = request.GET.get('start_ats')  # FIXME need to convert the string to datetime
+    end_ats_param = request.GET.get('end_ats')  # FIXME need to convert the string to datetime
     organizers_param = request.GET.get('organizers')
     name_input = request.GET.get('name')
 
@@ -55,4 +54,6 @@ def venue(request):
     if name_input and name_input != '':
         exhibitions = exhibitions.filter(name__icontains=name_input)
 
-    return render(request, 'Venue/venue.html', {'exhibitions': exhibitions, 'sectors': sectors, 'start_ats': start_ats, 'end_ats': end_ats, 'organizers': organizers})
+    return render(request, 'Venue/venue.html',
+                  {'exhibitions': exhibitions, 'sectors': sectors, 'start_ats': start_ats, 'end_ats': end_ats,
+                   'organizers': organizers})
