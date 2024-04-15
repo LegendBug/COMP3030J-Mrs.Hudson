@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
@@ -156,9 +158,11 @@ def view_message_detail(request, message_id):
         message = Message.objects.get(id=message_id)
         message_detail = message.detail
 
-        if not message.is_read:
+        # 如果消息的接收者是当前用户且消息未读，则将消息标记为已读
+        if message.recipient == request.user and not message.is_read:
             message.is_read = True
             message.save()
+
         data = {
             'title': message.title,
             'sender': message.sender.username,
@@ -170,3 +174,27 @@ def view_message_detail(request, message_id):
         return JsonResponse(data)
     except Exception as e:
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
+
+
+def reply_message(request, message_id):
+    if request.method == 'POST':
+        try:
+            # 从请求体加载JSON数据
+            data = json.loads(request.body)
+            title = data.get('title')
+            content = data.get('content')
+            if not title or not content:
+                return JsonResponse({'error': 'Cannot be empty.'}, status=400)
+
+            # 创建新的消息和消息详情
+            message = Message.objects.get(id=message_id)
+            new_message = Message.objects.create(title=title, sender=request.user, recipient=message.sender)
+            new_message_detail = MessageDetail.objects.create(message=new_message, content=content)
+            new_message.detail = new_message_detail
+            new_message.save()
+
+            return JsonResponse({'message': 'Reply sent successfully.'}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
+    else:
+        return HttpResponseNotAllowed(['POST'])
