@@ -1,5 +1,7 @@
 import os
 import uuid
+
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
 
@@ -27,7 +29,7 @@ class Booth(models.Model):
     sectors = models.ForeignKey("Layout.SpaceUnit", on_delete=models.CASCADE)
     start_at = models.DateField()
     end_at = models.DateField()
-    # items = List<Item>, 由Django ORM的反向关系实现
+    items = GenericRelation('Inventory.Item') # items = List<Item>, 由Django ORM的反向关系实现
     # resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=booth_upload_to, null=True, blank=True)
 

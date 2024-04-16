@@ -27,10 +27,10 @@ class Exhibition(models.Model):
     description = models.TextField(blank=True, null=True)
     organizer = models.ForeignKey("User.Organizer", on_delete=models.CASCADE, related_name='exhibitions')
     venue = models.ForeignKey("Venue.Venue", on_delete=models.CASCADE, related_name='exhibitions')
-    sectors = models.ForeignKey("Layout.SpaceUnit", on_delete=models.CASCADE)
+    sectors = GenericRelation('Layout.SpaceUnit')
     start_at = models.DateTimeField()
     end_at = models.DateTimeField()
-    # items = List<Item>, 由Django ORM的反向关系实现
+    items = GenericRelation('Inventory.Item') # items = List<Item>, 由Django ORM的反向关系实现
     # booths : List<Booth>, 由Django ORM的反向关系实现
     # booth_applications : List<ExhibitionApplication>, 由Django ORM的反向关系实现
     # resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现
@@ -44,3 +44,4 @@ class ExhibitionApplication(Application):
                                       related_name='exhibition_application')
     # 某个消息被删除后，申请不会被删除
     message_details = GenericRelation("User.MessageDetail", related_query_name='exhibition_application', null=True)
+

@@ -15,10 +15,14 @@
                 <div class="col">
                     <div class="card h-100 shadow-sm">
                         {% if venue.image %}
-                            <img src="{{ venue.image.url }}" class="card-img-top" alt="{{ venue.name }}">
+                            <a href="{% url 'Venue:venue' venue.id %}">
+                                <img src="{{ venue.image.url }}" class="card-img-top" alt="{{ venue.name }}">
+                            </a>
                         {% endif %}
                         <div class="card-body">
-                            <h5 class="card-title">{{ venue.name }}</h5>
+                            <h5 class="card-title">
+                                <a href="{% url 'Venue:venue' venue.id %}" class="text-decoration-none">{{ venue.name }}</a>
+                            </h5>
                             <p class="card-text">{{ venue.address }}</p>
                             <p class="card-text">Area: {{ venue.area }} m²</p>
                             <p class="card-text">Floor: {{ venue.floor }}</p>

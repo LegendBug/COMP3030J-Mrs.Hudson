@@ -12,6 +12,8 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <!-- 导入font-awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!--导入konva-->
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <!-- 导入静态资源 -->
     <link rel="stylesheet" href="{% static 'css/Public/base.css' %}">
     <script src="{% static 'js/Public/base.js' %}"></script>
@@ -39,6 +41,10 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#"><i class="fas fa-moon"></i></a>
                 </li>
+                {% block extra_nav_icons %}
+                    <!-- 在这里添加额外的icon-->
+
+                {% endblock %}
                 <li class="nav-item">
                     <a class="nav-link" href="#"><i class="fas fa-robot"></i></a>
                 </li>

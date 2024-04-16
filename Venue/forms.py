@@ -5,7 +5,7 @@ from Layout.models import SpaceUnit
 from .models import Venue
 
 
-class VenueForm(forms.ModelForm):
+class CreateVenueForm(forms.ModelForm):
     class Meta:
         model = Venue
         fields = ['name', 'address', 'description', 'floor', 'area', 'image']
@@ -15,14 +15,14 @@ class VenueForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super(VenueForm, self).__init__(*args, **kwargs)
+        super(CreateVenueForm, self).__init__(*args, **kwargs)
         self.fields['floor'].validators.append(MinValueValidator(1))
         self.fields['area'].validators.append(MinValueValidator(0.01))
         self.fields['image'].required = True
 
     def save(self, commit=True):
         # 首先，保存Venue实例
-        venue = super(VenueForm, self).save(commit=False)
+        venue = super(CreateVenueForm, self).save(commit=False)
         if commit:
             venue.save()  # Venue实例必须先保存以获得pk
             # 创建SpaceUnit实例并与Venue实例关联

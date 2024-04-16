@@ -1,7 +1,10 @@
 import datetime
-
+from django.utils.translation import gettext_lazy as _
 from django import forms
+
+from Exhibition.models import Exhibition
 from Layout.models import SpaceUnit
+from django.core.exceptions import ValidationError
 
 
 class ExhibApplicationForm(forms.Form):
@@ -43,3 +46,45 @@ class ExhibApplicationForm(forms.Form):
             self.add_error('exhib_start_at', 'Start date must be earlier than end date.')
             raise forms.ValidationError("Start date must be earlier than end date.")
         return cleaned_data
+
+
+class FilterExhibitionsForm(forms.Form):
+    name = forms.CharField(required=False, label="Exhibition Name")
+    venue_id = forms.IntegerField(widget=forms.HiddenInput())
+    start_at = forms.DateTimeField(required=False, label="Start Date", widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
+    end_at = forms.DateTimeField(required=False, label="End Date", widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
+    organizer = forms.CharField(required=False, label="Organizer Name")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_at = cleaned_data.get("start_at")
+        end_at = cleaned_data.get("end_at")
+
+        if start_at and end_at:
+            if end_at <= start_at:
+                raise ValidationError(_("End date must be after the start date."))
+
+        return cleaned_data
+
+    def filter(self):
+        if not self.is_valid():
+            return Exhibition.objects.none()  # 如果表单数据无效，则返回空查询集
+
+        cleaned_data = self.cleaned_data
+        name = cleaned_data.get('name')
+        venue_id = cleaned_data.get('venue_id')
+        start_at = cleaned_data.get('start_at')
+        end_at = cleaned_data.get('end_at')
+        organizer = cleaned_data.get('organizer')
+
+        # 建立基础查询
+        qs = Exhibition.objects.all().filter(venue_id=venue_id)
+        if name:
+            qs = qs.filter(name__icontains=name)
+        if start_at:
+            qs = qs.filter(start_at__gte=start_at)
+        if end_at:
+            qs = qs.filter(end_at__lte=end_at)
+        if organizer:
+            qs = qs.filter(organizer__name__icontains=organizer)
+        return qs
