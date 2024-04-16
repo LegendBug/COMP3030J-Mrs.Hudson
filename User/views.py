@@ -159,24 +159,29 @@ def view_message_detail(request, message_id):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
 
     try:
+        print(1)
         message = Message.objects.get(id=message_id)
         message_detail = message.detail
 
+        print(1)
         # 如果消息的接收者是当前用户且消息未读，则将消息标记为已读
         if message.recipient == request.user and not message.is_read:
             message.is_read = True
             message.save()
             # TODO 消息中展示关联申请
             # TODO 回复消息继承申请
+        print(1)
         data = {
             'title': message.title,
             'sender': message.sender.username,
             'recipient': message.recipient.username,
             'created_at': message.created_at.strftime('%Y-%m-%d %H:%M'),
             'content': message_detail.content,
-            'application_id': message_detail.application_id,
-            'application_type': message_detail.application_type.model,
+            # 'application_id': message_detail.application_id,
+            # 'application_type': message_detail.application_type.model,
         }
+
+        print(1)
         return JsonResponse(data)
     except Exception as e:
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
