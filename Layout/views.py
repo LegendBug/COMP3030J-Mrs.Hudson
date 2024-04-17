@@ -1,3 +1,4 @@
 from django.shortcuts import render
 
-# Create your views here.
+def venue_layout(request):
+    return render(request, 'Layout/venue_layout.html')

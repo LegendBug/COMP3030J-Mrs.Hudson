@@ -34,7 +34,7 @@
     </div>
 
     <!-- Floating Action Button -->
-    {% if user.is_authenticated and is_manager %}
+    {% if user.is_authenticated and user_type == 'Manager' %}
         <a href="#" class="btn btn-primary rounded-circle shadow" id="add-venue-btn"
            style="position: fixed; bottom: 100px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
            data-bs-toggle="modal" data-bs-target="#venueModal">

@@ -47,6 +47,11 @@ def login(request):
             user = authenticate(username=username, password=password)  # 调用认证方法验证用户
             if user is not None:  # 如果用户存在
                 auth_login(request, user)  # 将用户存入session
+                user_type = 'Manager' if hasattr(request.user, 'manager') \
+                    else 'Organizer' if hasattr(request.user, 'organizer') \
+                    else 'Exhibitor' if hasattr(request.user, 'exhibitor') \
+                    else 'Guest'
+                request.session['user_type'] = user_type  # 将user_type存入session
                 messages.success(request, 'Login successful. Welcome!')
                 return redirect('Venue:home')  # 重定向到主页
             else:
@@ -58,7 +63,7 @@ def login(request):
 
 
 def logout(request):
-    request.session.flush()
+    request.session.flush() # 清空session
     messages.success(request, 'You have been logged out.')
     return redirect('User:login')
 

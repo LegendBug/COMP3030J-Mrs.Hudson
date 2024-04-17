@@ -13,11 +13,8 @@ def home(request):
         # GET请求，展示场馆列表和空的创建表单
         venues = Venue.objects.all()
         form = CreateVenueForm()  # 创建一个空的表单实例
-        is_manager = False
-        if request.user.is_authenticated and hasattr(request.user, 'manager'):
-            is_manager = True
         return render(request, 'Venue/home.html',
-                      {'venues': venues, 'is_manager': is_manager, 'messages': messages.get_messages(request),
+                      {'venues': venues, 'user_type': request.session.get('user_type', 'Guest'), 'messages': messages.get_messages(request),
                        'form': form})
     else:  # POST请求
         if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
