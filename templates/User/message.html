@@ -70,11 +70,11 @@
             {#无消息说明#}
         {% else %}
             <div class="message-info mt-4">
-            {% if message_type == 'unread_messages' %}
+            {% if message_type == 'unread' %}
                 <p class="message-info">Great job, all messages have been addressed!👍</p>
-            {% elif message_type == 'all_messages' %}
+            {% elif message_type == 'inbox' %}
                 <p class="message-info">No message received yet.</p>
-            {% elif message_type == 'sent_messages' %}
+            {% elif message_type == 'sent' %}
                 <p class="message-info">No sent messages.</p>
             {% endif %}
         {% endif %}
@@ -115,7 +115,7 @@
                     .then(response => {
                         const data = response.data;
                         let replyButtonHtml = '';
-                        if (currentMessageType !== 'sent_messages') {  // 不是sent messages界面，显示回复按钮
+                        if (currentMessageType !== 'sent') {  // 不是sent messages界面，显示回复按钮
                             replyButtonHtml = `<button onclick="replyMessage()" class="btn btn-success mt-3">Reply</button>`;
                         }
                         document.getElementById('content').innerHTML = `

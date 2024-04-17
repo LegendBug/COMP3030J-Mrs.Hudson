@@ -119,13 +119,13 @@ def profile(request):
 def view_message(request):
     try:
         # 消息类型默认为 'unread_message'
-        message_type = request.GET.get('type', 'unread_messages')
+        message_type = request.GET.get('type', 'unread')
         # 根据请求的消息类型进行查询
-        if message_type == 'unread_messages':
+        if message_type == 'unread':
             messages = Message.objects.filter(recipient=request.user, is_read=False).order_by('-created_at')
-        elif message_type == 'all_messages':
+        elif message_type == 'inbox':
             messages = Message.objects.filter(recipient=request.user).order_by('-created_at')
-        elif message_type == 'sent_messages':
+        elif message_type == 'sent':
             messages = Message.objects.filter(sender=request.user).order_by('-created_at')
         else:
             raise Http404("Message type not found")
@@ -137,12 +137,12 @@ def view_message(request):
 
         # 自定义侧边栏链接
         custom_items = [
-            {'name': 'Unread Messages', 'url': '?type=unread_messages',
-             'active_class': 'active' if message_type == 'unread_messages' else ''},
-            {'name': 'All Messages', 'url': '?type=all_messages',
-             'active_class': 'active' if message_type == 'all_messages' else ''},
-            {'name': 'Sent Messages', 'url': '?type=sent_messages',
-             'active_class': 'active' if message_type == 'sent_messages' else ''},
+            {'name': '🚨 Unread', 'url': '?type=unread',
+             'active_class': 'active' if message_type == 'unread' else ''},
+            {'name': '📭 Inbox', 'url': '?type=inbox',
+             'active_class': 'active' if message_type == 'inbox' else ''},
+            {'name': '🗳️ Sent', 'url': '?type=sent',
+             'active_class': 'active' if message_type == 'sent' else ''},
         ]
 
         form = ReplyMessageForm()
