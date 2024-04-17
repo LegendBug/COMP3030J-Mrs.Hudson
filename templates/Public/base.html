@@ -39,30 +39,30 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-moon"></i></a>
+                    <a class="nav-link" href="#"><i class="fas fa-moon"></i> Theme</a>
                 </li>
                 {% block extra_nav_icons %}
                     <!-- 在这里添加额外的icon-->
 
                 {% endblock %}
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-robot"></i></a>
+                    <a class="nav-link" href="#"><i class="fas fa-robot"></i> Assistant</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:view_message' %}"><i class="fas fa-envelope"></i></a>
+                    <a class="nav-link" href="{% url 'User:view_message' %}"><i class="fas fa-envelope"></i> Messages</a>
                 </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'User:logout' %}"><i class="fas fa-sign-out-alt"></i></a>
+                        <a class="nav-link" href="{% url 'User:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'User:login' %}"><i class="fas fa-sign-in-alt"></i></a>
+                        <a class="nav-link" href="{% url 'User:login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
                     </li>
                 {% endif %}
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:profile' %}"><i class="fas fa-user"></i></a>
+                    <a class="nav-link" href="{% url 'User:profile' %}"><i class="fas fa-user"></i> Profile</a>
                 </li>
             </ul>
         </div>

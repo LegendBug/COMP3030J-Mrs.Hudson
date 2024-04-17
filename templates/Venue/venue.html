@@ -10,9 +10,17 @@
 
 {% block extra_nav_icons %}
     <!-- 在这里添加导航栏里额外的icon-->
-    <li class="nav-item">
-        <a class="nav-link" href="#"><i class="fas fa-robot"></i></a>
-    </li>
+    {% if user.is_authenticated and user_type == 'Manager'%}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'Inventory:venue-inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-edit"></i> Layout</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-chart-bar"></i> Statistics</a>
+        </li>
+    {% endif %}
 {% endblock %}
 
 {% block content %}
