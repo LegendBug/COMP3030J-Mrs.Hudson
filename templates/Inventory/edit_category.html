@@ -7,7 +7,7 @@
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="btn btn-success">保存修改</button>
-        <a href="{% url 'Inventory:venue-inventory' %}" class="btn btn-secondary">取消</a>
+        <a href="{% url 'Inventory:inventory' %}" class="btn btn-secondary">取消</a>
     </form>
 </div>
 {% endblock %}

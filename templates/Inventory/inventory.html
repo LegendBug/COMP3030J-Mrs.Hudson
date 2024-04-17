@@ -1,0 +1,120 @@
+{% extends "Public/base.html" %}
+{% load crispy_forms_filters %}
+
+{% block extra_head %}
+    <title>Inventory</title>
+    {% comment %} <link rel="stylesheet" href="{% static 'css/Inventory/inventory.css' %}">{% endcomment %}
+{% endblock %}
+
+{% block extra_nav_icons %}
+    <!-- 在这里添加导航栏里额外的icon-->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#"><i class="fas fa-edit"></i> Layout</a>
+    </li>
+    {% if user.is_authenticated and user_type == 'Manager' %}
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-chart-bar"></i> Statistics</a>
+        </li>
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="container mt-3">
+        {% if user.is_authenticated and user_type == 'Manager' %}
+            <h2><a href="{% url 'Venue:venue' venue.pk %}">{{ venue.name }}</a>'s Inventory</h2>
+        {% elif user.is_authenticated and user_type == 'Organizer' %}
+            <h2><a href="#">{{ exhibition.name }}</a>'s Inventory</h2>
+        {% elif user.is_authenticated and user_type == 'Exhibitor' %}
+            <h2><a href="#">{{ booth.name }}</a>'s Inventory</h2>
+        {% endif %}
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>名称</th>
+                <th>是否私有</th>
+                <th>描述</th>
+                <th>物品数量</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for category in categories %}
+                <tr>
+                    <td>{{ category.name }}</td>
+                    <td>{{ category.is_private }}</td>
+                    <td>{{ category.description }}</td>
+                    <td>{{ category.items_count }}</td>
+                    <td>
+                        <a href="{% url 'Inventory:category_detail' category.id %}"
+                           class="btn btn-info btn-sm">查看详情</a>
+                        <a href="{% url 'Inventory:edit-category' category.id %}"
+                           class="btn btn-secondary btn-sm">修改信息</a>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ category.id }})">
+                            删除
+                        </button>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 添加库存按钮 -->
+    <a href="#" class="btn btn-primary rounded-circle shadow" id="add-venue-btn"
+       style="position: fixed; bottom: 100px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+       onclick="openAddInventoryModal();"> <!-- 这里改为调用函数 -->
+        +
+    </a>
+
+    {# 添加库存的模态框 #}
+    <div class="modal fade" id="addInventoryModal" tabindex="-1" aria-labelledby="addInventoryModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addInventoryModal">Add Supplies to the Inventory</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addInventory" method="post"
+                          action="{% url 'Exhibition:create_exhib_application' %}" enctype="multipart/form-data"
+                          class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="venue_id" id="venue_id" value="{{ venue.pk }}">
+                        {{ add_inventory_form|crispy }}
+                        <div id="add_inventory-message-container"></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-success">Add</button>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        function confirmDelete(categoryId) {
+            if (confirm('确认删除这个类别及其所有物品吗？')) {
+                window.location.href = "{% url 'Inventory:delete-category' 123 %}".replace('123', categoryId);
+            }
+        }
+
+        function openAddInventoryModal() {
+            const filterModal = new bootstrap.Modal(document.getElementById('addInventoryModal'));
+            filterModal.show();
+        }
+
+        window.openAddInventoryModal = openAddInventoryModal;
+    </script>
+{% endblock %}

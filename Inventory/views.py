@@ -1,37 +1,55 @@
-from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.http import require_POST
-
+from Booth.models import Booth
+from Exhibition.models import Exhibition
+from Inventory.forms import EditInventoryCategoryForm, CreateInventoryCategoryForm
 from Inventory.models import InventoryCategory, Item
 from Venue.models import Venue
-from django import forms
+from django.contrib.contenttypes.models import ContentType
+
 
 @login_required
-def venue_inventory_view(request):
-    # user = request.user
-    # if hasattr(user,'manager'):
-    #     return HttpResponseForbidden("You do not have permission to view this page.")
-    venue_id = 1
-    # 获取当前场馆实例
-    venue = Venue.objects.get(pk=venue_id)
+def inventory(request):
+    user_type = 'Manager' if hasattr(request.user, 'manager') \
+        else 'Organizer' if hasattr(request.user, 'organizer') \
+        else 'Exhibitor' if hasattr(request.user, 'exhibitor') \
+        else 'Guest'  # 根据用户的类型,获取与该用户关联的所有Item
+    add_inventory_form = CreateInventoryCategoryForm()
+    if user_type == 'Manager':
+        venue = Venue.objects.filter(pk=request.session['venue_id']).first()
+        venue_items = Item.objects.filter(content_type=ContentType.objects.get_for_model(venue), object_id=venue.id)
+        all_categories = InventoryCategory.objects.all()  # 获取所有InventoryCategory
+        for category in all_categories:  # 为每个类别计算属于该场馆的Item数量
+            category.items_count = venue_items.filter(category=category).count()
+        return render(request, 'Inventory/inventory.html',
+                      {'venue': venue, 'categories': all_categories, 'user_type': user_type,
+                       'add_inventory_form': add_inventory_form})
+    elif user_type == 'Organizer':
+        exhibition = Exhibition.objects.filter(1).first()  # TODO 假数据,临时写死
+        exhibition_items = Item.objects.filter(content_type=ContentType.objects.get_for_model(exhibition),
+                                               object_id=exhibition.id)
+        all_categories = InventoryCategory.objects.all()  # 获取所有InventoryCategory
+        for category in all_categories:  # 为每个类别计算属于该场馆的Item数量
+            category.items_count = exhibition_items.filter(category=category).count()
+        return render(request, 'Inventory/inventory.html',
+                      {'exhibition': exhibition, 'categories': all_categories, 'user_type': user_type,
+                       'add_inventory_form': add_inventory_form})
+    elif user_type == 'Exhibitor':
+        booth = Booth.objects.filter(1).first()  # TODO 假数据,临时写死
+        booth_items = Item.objects.filter(content_type=ContentType.objects.get_for_model(booth),
+                                          object_id=booth.id)
+        all_categories = InventoryCategory.objects.all()  # 获取所有InventoryCategory
+        for category in all_categories:  # 为每个类别计算属于该场馆的Item数量
+            category.items_count = booth_items.filter(category=category).count()
+        return render(request, 'Inventory/inventory.html',
+                      {'booth': booth, 'categories': all_categories, 'user_type': user_type,
+                       'add_inventory_form': add_inventory_form})
+    else:  # 未登录的游客
+        return JsonResponse({'message': 'Unauthorized'}, status=401)
 
-    # 获取与该场馆关联的所有Item
-    items = Item.objects.filter(object_id=venue_id)
 
-    # 获取所有InventoryCategory
-    categories = InventoryCategory.objects.all()
-
-    # 为每个类别计算属于该场馆的Item数量
-    for category in categories:
-        category.items_count = items.filter(category=category).count()
-
-    context = {'categories': categories}
-    return render(request, 'Inventory/Venue_materials.html', context)
-
-
-
-def category_detail_view(request,category_id):
+def category_detail_view(request, category_id):
     venue_id = 1
     venue = get_object_or_404(Venue, pk=venue_id)
     category = get_object_or_404(InventoryCategory, pk=category_id)
@@ -43,21 +61,18 @@ def category_detail_view(request,category_id):
         'items': items
     })
 
-class InventoryCategoryForm(forms.ModelForm):
-    class Meta:
-        model = InventoryCategory
-        fields = ['name', 'description', 'is_private', 'cost', 'image']
 
 def edit_inventory_category(request, category_id):
     category = get_object_or_404(InventoryCategory, pk=category_id)
     if request.method == 'POST':
-        form = InventoryCategoryForm(request.POST, request.FILES, instance=category)
+        form = EditInventoryCategoryForm(request.POST, request.FILES, instance=category)
         if form.is_valid():
             form.save()
             return redirect('Inventory:venue-inventory')  # 重定向到某个合适的页面
     else:
-        form = InventoryCategoryForm(instance=category)
+        form = EditInventoryCategoryForm(instance=category)
     return render(request, 'Inventory/edit_category.html', {'form': form})
+
 
 @login_required
 def delete_inventory_category(request, category_id):
