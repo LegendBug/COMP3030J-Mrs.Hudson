@@ -30,7 +30,7 @@ First, install all required Python packages by run this command in your terminal
 pip install -r requirements.txt
 ```
 
-Then create a database schema called "hudson" in your RDBMS and run the following conmmands:
+Then create a database schema called "hudson" in your RDBMS and run the following commands:
 
 ``` shell
 # 生成迁移文件:
