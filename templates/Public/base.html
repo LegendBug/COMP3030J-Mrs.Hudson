@@ -46,14 +46,16 @@
 
                 {% endblock %}
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-robot"></i> Assistant</a>
+                    <a class="nav-link" href="{% url 'User:view_message' %}"><i class="fas fa-envelope"></i>
+                        Messages</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:view_message' %}"><i class="fas fa-envelope"></i> Messages</a>
+                    <a class="nav-link" href="#"><i class="fas fa-robot"></i> Assistant</a>
                 </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'User:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        <a class="nav-link" href="{% url 'User:logout' %}"><i class="fas fa-sign-out-alt"></i>
+                            Logout</a>
                     </li>
                 {% else %}
                     <li class="nav-item">
