@@ -1,21 +1,39 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+{% extends 'Public/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+    <title>Statistic</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="{% static 'js/Statistic/statistic.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/Statistic/statistic.css' %}">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="style.css">
-    <title>Chart Generator</title>
-</head>
-<body>
+{% endblock %}
+
+{% block extra_nav_icons %}
+    <!-- 在这里添加导航栏里额外的icon-->
+    {% if user.is_authenticated and user_type == 'Manager' %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-edit"></i> Layout</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
+        </li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <div class="chart-container">
             <div id="canvas-container"></div>
         </div>
 
         <div class="controls">
-            <select id="chartType" calss="select">
+            <select id="chartType" class="select">
                 <option value="bar">Bar</option>
                 <option value="line">Line</option>
                 <option value="pie">Pie</option>
@@ -29,12 +47,11 @@
             <button onclick="updateChartType()" class="btn">Change Chart Type</button>
         </div>
     </div>
+{% endblock %}
 
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-    <script src="script.js"></script>
+{% block scripts %}
     <script>
-       const waterStatistics = {
+        const waterStatistics = {
             "Month 1": 1200,
             "Month 2": 1600,
             "Month 3": 1000,
@@ -78,7 +95,5 @@
             "Month 11": 130,
             "Month 12": 90,
         };
-
     </script>
-</body>
-</html>
+{% endblock %}

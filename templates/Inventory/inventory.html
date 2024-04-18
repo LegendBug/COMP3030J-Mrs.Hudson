@@ -18,7 +18,7 @@
     </li>
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="#"><i class="fas fa-chart-bar"></i> Statistics</a>
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
         </li>
     {% endif %}
 {% endblock %}

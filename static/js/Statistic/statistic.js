@@ -139,6 +139,5 @@ function updateChartData(data) {
         chartData.labels.push(month);
         chartData.datasets[0].data.push(data[month]);
     }
-
     myChart.update();
 }
