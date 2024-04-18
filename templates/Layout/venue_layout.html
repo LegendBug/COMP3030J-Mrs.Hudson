@@ -5,8 +5,11 @@
 
 {% block extra_head %}
     <title>Venue Layout</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/Layout/venue_layout.css' %}">
+    {% comment %}<link rel="stylesheet" href="{% static 'css/Layout/venue_layout.scss' %}">{% endcomment %}
+
 {% endblock %}
 
 {% block extra_nav_icons %}
@@ -26,10 +29,91 @@
 
 
 {% block content %}
+    <!-- Floating Action Button -->
+    <button href="#" class="btn btn-primary rounded shadow" id="add-venue-btn" type="button"
+            data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling"
+            style="position: fixed; bottom: 45vh; left: 10px; z-index: 1040; width: 25px; height: 50px; display: flex; justify-content: center; align-items: center; font-size: 30px;">
+        <i class="fas fa-chevron-right"></i>
+    </button>
 
+    <div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
+         id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasScrollingLabel">Layout Tools</h5>
+            <button class="btn btn-primary mb-3">Save Settings</button>
+        </div>
+        <div class="offcanvas-body">
+            <hr>
+            <div class="container-fluid">
+                <div class="row">
+                    <h5>Common graphics:</h5>
+                    <div class="col-3"><i class="far fa-square fa-2x"></i> Rectangle</div>
+                    <div class="col-3"><i class="far fa-circle fa-2x"></i> Circle</div>
+                    <div class="col-3"><i class="ellipse-icon"></i> Eclipse</div>
+                    <div class="col-3"><i class="fas fa-star fa-2x"></i> Star</div>
+                    <div class="col-3"><i class="far fa-life-ring fa-2x"></i> Ring</div>
+                    <div class="col-3"><i class="fas fa-draw-polygon fa-2x"></i> Polygon</div>
+                </div>
+                <hr>
+                <div class="row mt-3">
+                    <h5>Text Tools:</h5>
+                    <div class="col-3"><i class="fas fa-arrow-up fa-2x"></i> Arrow</div>
+                    <div class="col-3"><i class="fas fa-font fa-2x"></i> Text</div>
+                    <div class="col-3"><i class="fas fa-grip-lines-vertical fa-2x"></i> Line</div>
+                    <div class="col-3"><i class="fas fa-tags fa-2x"></i> Label</div>
+                </div>
+                <hr>
+                <div class="row mt-3">
+                    <h5>Illustrate:</h5>
+                    <div class="col">
+                        <div class="mb-3">
+                            <label for="file-upload" class="form-label">Select the file or drag it here:</label>
+                            <input class="form-control" type="file" id="file-upload">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <button class="btn btn-primary d-lg-none" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasResponsive" aria-controls="offcanvasResponsive">Toggle offcanvas
+    </button>
+
+
+
+    <!-- Konva舞台容器 -->
+    <div id="stage-container"></div>
 {% endblock %}
 
 
 {% block scripts %}
+    <script src="{% static 'js/Layout/venue_layout.js' %}"></script>
+    <script>
+        // 确保文档加载后运行
+        document.addEventListener('DOMContentLoaded', function () {
+            var width = window.innerWidth; // 获取窗口宽度
+            var height = window.innerHeight; // 获取窗口高度
 
+            // 创建舞台并添加到舞台容器
+            var stage = new Konva.Stage({
+                container: 'stage-container', // 容器的ID
+                width: width,
+                height: height
+            });
+
+            // 创建层级
+            var layer = new Konva.Layer();
+            stage.add(layer);
+
+            // 在此添加其他Konva元素...
+
+            // 更新画布尺寸以适应窗口大小变化
+            window.addEventListener('resize', function () {
+                stage.width(window.innerWidth);
+                stage.height(window.innerHeight);
+            });
+        });
+    </script>
 {% endblock %}
