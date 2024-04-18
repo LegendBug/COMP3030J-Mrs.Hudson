@@ -27,8 +27,13 @@ class Venue(models.Model):
     description = models.TextField(blank=True, null=True)
     floor = models.IntegerField()
     area = models.FloatField(blank=True, null=True)
-    sectors = GenericRelation('Layout.SpaceUnit')
-    items = GenericRelation('Inventory.Item')
+    sectors = GenericRelation('Layout.SpaceUnit', content_type_field='affiliation_content_type',
+                              object_id_field='affiliation_object_id')
+    items = GenericRelation('Inventory.Item', content_type_field='affiliation_content_type',
+                            object_id_field='affiliation_object_id')
+    inventory_categories = GenericRelation('Inventory.InventoryCategory',
+                                           content_type_field='origin_content_type',
+                                           object_id_field='origin_object_id')
     # exhibitions : List<Exhibition>, 由Django ORM的反向关系实现
     # exhibition_applications : List<ExhibitionApplication>, 由Django ORM的反向关系实现
     # unresolved_resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现

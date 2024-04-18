@@ -24,10 +24,14 @@ class InventoryCategory(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    is_private = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=True) # 是否公开(即,是否可以被下一级的Exhibition/Booth申请)
     cost = models.FloatField(blank=True, null=True)
     # items : List<Item>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=inventory_category_upload_to, null=True, blank=True)
+    # origin, Django泛型, 表示该Category是在哪个Venue/Exhibition/Booth中被创建的
+    origin_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='inventory_categories')
+    origin_object_id = models.PositiveIntegerField()
+    origin = GenericForeignKey('origin_content_type', 'origin_object_id')
 
 
 # Item Model
@@ -39,11 +43,11 @@ class Item(models.Model):
     water_consumption = models.FloatField(blank=True, null=True)
     last_modified = models.DateTimeField(auto_now=True)
     category = models.ForeignKey("Inventory.InventoryCategory", on_delete=models.CASCADE, related_name='items')
-    location = models.ForeignKey("Layout.SpaceUnit", on_delete=models.SET_NULL, null=True, related_name='items')
+    location = models.ForeignKey("Layout.SpaceUnit", on_delete=models.SET_NULL, null=True, related_name='items') # Item当前正位于哪一个SpaceUnit
     # affiliation : Venue/Exhibition/Booth, Django泛型
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='items')
-    object_id = models.PositiveIntegerField()
-    affiliation = GenericForeignKey('content_type', 'object_id')
+    affiliation_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='items')
+    affiliation_object_id = models.PositiveIntegerField()
+    affiliation = GenericForeignKey('affiliation_content_type', 'affiliation_object_id')
 
 
 class ResourceApplication(models.Model):

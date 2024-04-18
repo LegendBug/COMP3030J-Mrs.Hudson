@@ -26,10 +26,15 @@ class Booth(models.Model):
     description = models.TextField(blank=True, null=True)
     exhibitor = models.ForeignKey("User.Exhibitor", on_delete=models.CASCADE, related_name='booths')
     exhibition = models.ForeignKey("Exhibition.Exhibition", on_delete=models.CASCADE, related_name='booths')
-    sectors = models.ForeignKey("Layout.SpaceUnit", on_delete=models.CASCADE)
+    sectors = GenericRelation('Layout.SpaceUnit', content_type_field='affiliation_content_type',
+                              object_id_field='affiliation_object_id')
     start_at = models.DateField()
     end_at = models.DateField()
-    items = GenericRelation('Inventory.Item') # items = List<Item>, 由Django ORM的反向关系实现
+    items = GenericRelation('Inventory.Item', content_type_field='affiliation_content_type',
+                            object_id_field='affiliation_object_id')  # items = List<Item>, 由Django ORM的反向关系实现
+    inventory_categories = GenericRelation('Inventory.InventoryCategory',
+                                           content_type_field='origin_content_type',
+                                           object_id_field='origin_object_id')
     # resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=booth_upload_to, null=True, blank=True)
 

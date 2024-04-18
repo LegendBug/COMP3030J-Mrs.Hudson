@@ -1,5 +1,7 @@
 {% extends "Public/base.html" %}
 {% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
 
 {% block extra_head %}
     <title>Inventory</title>
@@ -25,18 +27,18 @@
 {% block content %}
     <div class="container mt-3">
         {% if user.is_authenticated and user_type == 'Manager' %}
-            <h2><a href="{% url 'Venue:venue' venue.pk %}">{{ venue.name }}</a>'s Inventory</h2>
+            <h2><a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a>'s Inventory</h2>
         {% elif user.is_authenticated and user_type == 'Organizer' %}
-            <h2><a href="#">{{ exhibition.name }}</a>'s Inventory</h2>
+            <h2><a href="#">{{ current_access.name }}</a>'s Inventory</h2>
         {% elif user.is_authenticated and user_type == 'Exhibitor' %}
-            <h2><a href="#">{{ booth.name }}</a>'s Inventory</h2>
+            <h2><a href="#">{{ current_access.name }}</a>'s Inventory</h2>
         {% endif %}
 
         <table class="table">
             <thead>
             <tr>
                 <th>名称</th>
-                <th>是否私有</th>
+                <th>是否公有</th>
                 <th>描述</th>
                 <th>物品数量</th>
                 <th>操作</th>
@@ -46,9 +48,9 @@
             {% for category in categories %}
                 <tr>
                     <td>{{ category.name }}</td>
-                    <td>{{ category.is_private }}</td>
+                    <td>{{ category.is_public}}</td>
                     <td>{{ category.description }}</td>
-                    <td>{{ category.items_count }}</td>
+                    <td>{{ category.items_quantity }}</td>
                     <td>
                         <a href="{% url 'Inventory:category_detail' category.id %}"
                            class="btn btn-info btn-sm">查看详情</a>
@@ -81,16 +83,16 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addInventory" method="post"
+                    <form id="addInventoryForm" method="post" onsubmit="submitAddInventoryForm(); return false;"
                           action="{% url 'Exhibition:create_exhib_application' %}" enctype="multipart/form-data"
                           class="needs-validation" novalidate>
                         {% csrf_token %}
-                        <input type="hidden" name="venue_id" id="venue_id" value="{{ venue.pk }}">
+                        <input type="hidden" name="venue_id" id="venue_id" value="{{ current_access.pk }}">
                         {{ add_inventory_form|crispy }}
                         <div id="add_inventory-message-container"></div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-success">Add</button>
+                            <button type="submit" class="btn btn-success">Add</button>
 
                         </div>
                     </form>
@@ -114,6 +116,27 @@
             const filterModal = new bootstrap.Modal(document.getElementById('addInventoryModal'));
             filterModal.show();
         }
+
+        function submitAddInventoryForm() {
+            const formElement = document.getElementById('addInventoryForm');
+            const formData = new FormData(formElement);
+
+            axios.post('{% url 'Inventory:inventory' %}', formData)
+                .then(response => {
+                    if (response.data.success) {
+                        alert('Category and items created successfully');
+                        // 处理成功逻辑，如跳转或更新页面等
+                    } else {
+                        alert('An error occurred');
+                        console.error(response.data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('An error occurred');
+                    console.error(error);
+                });
+        }
+
 
         window.openAddInventoryModal = openAddInventoryModal;
     </script>

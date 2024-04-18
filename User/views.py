@@ -182,8 +182,8 @@ def view_message_detail(request, message_id):
             'recipient': message.recipient.username,
             'created_at': message.created_at.strftime('%Y-%m-%d %H:%M'),
             'content': message_detail.content,
-            # 'application_id': message_detail.application_id,
-            # 'application_type': message_detail.application_type.model,
+            # 'application_object_id': message_detail.application_object_id,
+            # 'application_content_type': message_detail.application_content_type.model,
         }
 
         print(1)

@@ -8,45 +8,55 @@ from Inventory.models import InventoryCategory, Item
 from Venue.models import Venue
 from django.contrib.contenttypes.models import ContentType
 
-
 @login_required
 def inventory(request):
     user_type = 'Manager' if hasattr(request.user, 'manager') \
         else 'Organizer' if hasattr(request.user, 'organizer') \
         else 'Exhibitor' if hasattr(request.user, 'exhibitor') \
         else 'Guest'  # 根据用户的类型,获取与该用户关联的所有Item
-    add_inventory_form = CreateInventoryCategoryForm()
+    # 获取current_access, current_access是一个Venue/Exhibition/Booth实例, 它代表着用户当前所访问的Venue/Exhibition/Booth
     if user_type == 'Manager':
-        venue = Venue.objects.filter(pk=request.session['venue_id']).first()
-        venue_items = Item.objects.filter(content_type=ContentType.objects.get_for_model(venue), object_id=venue.id)
-        all_categories = InventoryCategory.objects.all()  # 获取所有InventoryCategory
-        for category in all_categories:  # 为每个类别计算属于该场馆的Item数量
-            category.items_count = venue_items.filter(category=category).count()
-        return render(request, 'Inventory/inventory.html',
-                      {'venue': venue, 'categories': all_categories, 'user_type': user_type,
-                       'add_inventory_form': add_inventory_form})
+        current_access = Venue.objects.filter(pk=request.session['venue_id']).first()
     elif user_type == 'Organizer':
-        exhibition = Exhibition.objects.filter(1).first()  # TODO 假数据,临时写死
-        exhibition_items = Item.objects.filter(content_type=ContentType.objects.get_for_model(exhibition),
-                                               object_id=exhibition.id)
-        all_categories = InventoryCategory.objects.all()  # 获取所有InventoryCategory
-        for category in all_categories:  # 为每个类别计算属于该场馆的Item数量
-            category.items_count = exhibition_items.filter(category=category).count()
-        return render(request, 'Inventory/inventory.html',
-                      {'exhibition': exhibition, 'categories': all_categories, 'user_type': user_type,
-                       'add_inventory_form': add_inventory_form})
+        current_access = Exhibition.objects.filter(pk=1).first()  # TODO 假数据,临时写死
     elif user_type == 'Exhibitor':
-        booth = Booth.objects.filter(1).first()  # TODO 假数据,临时写死
-        booth_items = Item.objects.filter(content_type=ContentType.objects.get_for_model(booth),
-                                          object_id=booth.id)
-        all_categories = InventoryCategory.objects.all()  # 获取所有InventoryCategory
-        for category in all_categories:  # 为每个类别计算属于该场馆的Item数量
-            category.items_count = booth_items.filter(category=category).count()
-        return render(request, 'Inventory/inventory.html',
-                      {'booth': booth, 'categories': all_categories, 'user_type': user_type,
-                       'add_inventory_form': add_inventory_form})
+        current_access = Booth.objects.filter(pk=1).first()  # TODO 假数据,临时写死
     else:  # 未登录的游客
-        return JsonResponse({'message': 'Unauthorized'}, status=401)
+        return redirect('User:login')
+    if request.method == 'POST':
+        submitted_form = CreateInventoryCategoryForm(request.POST, request.FILES, origin=current_access)
+        if submitted_form.is_valid():
+            category = submitted_form.save()
+            if category:
+                return JsonResponse({'success': 'Category and items created'}, status=201)
+            else:
+                return JsonResponse({'error': 'Failed to create category and items'}, status=500)
+        else:
+            return JsonResponse({'error': submitted_form.errors}, status=400)
+    else:  # 如果是 GET 请求，只需返回一个空表单
+        add_inventory_form = CreateInventoryCategoryForm(origin=current_access)
+        # 通过当前访问的Venue/Exhibition/Booth中的所有Item,获取所有的Category并统计每个Category下的Item数量
+        current_items = current_access.items.all()
+        current_categories = {}
+        for current_item in current_items:
+            # 如果current_item.category不在current_categories中,则添加如果current_item.category进入字典,并为其值初始化为1
+            if current_item.category not in current_categories:
+                current_categories[current_item.category] = 1
+            else:
+                current_categories[current_item.category] = current_categories[current_item.category] + 1
+        # 查找那些origin为当前访问的Venue/Exhibition/Booth的InventoryCategory,并统计它们的数量, 以避免这些Category被重复创建
+        existing_categories = current_access.inventory_categories.all()
+        for existing_category in existing_categories:
+            if existing_category not in current_categories:
+                current_categories[existing_category] = 0
+        # 将字典中的Category按照名称排序后存入数组,同时为每个Category添加一个quantity属性来记录该Category下的Item数量
+        categories = []
+        for category, quantity in current_categories.items():
+            category.items_quantity = quantity
+            categories.append(category)
+        return render(request, 'Inventory/inventory.html',
+                      {'user_type': user_type, 'current_access': current_access, 'categories': current_categories,
+                       'add_inventory_form': add_inventory_form})
 
 
 def category_detail_view(request, category_id):

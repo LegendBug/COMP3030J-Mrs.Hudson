@@ -1,7 +1,6 @@
 body {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../../images/User/poster.jpg') no-repeat center center fixed;
     background-size: cover;
-    color: #f6f0f0;
 }
 
 .table {
