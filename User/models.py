@@ -48,7 +48,7 @@ class MessageDetail(models.Model):
     application_object_id = models.PositiveIntegerField(null=True, blank=True)
     application_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True,
                                                  limit_choices_to={
-                                             'model__in': ('exhibition_application')})
+                                                     'model__in': ('exhibition_application')})
     application = GenericForeignKey('application_content_type', 'application_object_id')
 
 

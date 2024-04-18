@@ -1,50 +1,51 @@
 import datetime
 
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
 from django.http import JsonResponse, HttpResponseNotAllowed
-from django.shortcuts import render
 
+from Exhibition.forms import ExhibApplicationForm
 from Exhibition.models import Exhibition, ExhibitionApplication
 from Layout.models import SpaceUnit
 from User.models import Message, MessageDetail, Organizer, Manager
 from Venue.models import Venue
 
 
+# TODO 下一阶段：添加展览申请限制条件
 # 创建展览申请
 def create_exhib_application(request):
     if request.method == 'POST':
         try:
-            venue_id = request.POST.get('venue_id')
+            # 获取POST请求中的数据
+            form = ExhibApplicationForm(request.POST, request.FILES)
+            if not form.is_valid():
+                # 获取第一个错误信息
+                first_error_key, first_error_messages = list(form.errors.items())[0]
+                first_error_message = first_error_key + ': ' + first_error_messages[0]
+                return JsonResponse({'error': first_error_message}, status=400)
+            venue_id = form.cleaned_data.get('venue_id')
+            name = form.cleaned_data.get('exhib_name')
+            description = form.cleaned_data.get('exhib_description')
+            start_at = form.cleaned_data.get('exhib_start_at')
+            end_at = form.cleaned_data.get('exhib_end_at')
+            image = form.cleaned_data.get('exhib_image')
+            sectors = form.cleaned_data.get('exhib_sectors')
+            print(sectors)
+            content = form.cleaned_data.get('message_content')
 
-            name = request.POST.get('name')
-            description = request.POST.get('description')
-            start_at = timezone.make_aware(datetime.datetime.strptime(request.POST.get('start_at'), '%Y-%m-%d'))
-            end_at = timezone.make_aware(datetime.datetime.strptime(request.POST.get('end_at'), '%Y-%m-%d'))
-            image = request.FILES.get('image')
-            sectors = request.POST.get('sectors')
-            content = request.POST.get('content')
-
-            if not all([venue_id, name, description, start_at, end_at, image, sectors]):
-                return JsonResponse({'error': 'Missing required fields'}, status=400)
-
+            # 创建新的展览和展览申请
             venue = Venue.objects.get(pk=venue_id)
             organizer = Organizer.objects.get(detail=request.user)
-            spaceUnit = SpaceUnit.objects.get(id=sectors)  # 确保sectors是正确的SpaceUnit ID
-
             new_exhibition = Exhibition.objects.create(
                 name=name, description=description, start_at=start_at, end_at=end_at,
-                image=image, organizer=organizer, venue=venue, sectors=spaceUnit
+                image=image, organizer=organizer, venue=venue
             )
-            if not new_exhibition:
-                return JsonResponse({'error': 'Failed to create exhibition'}, status=500)
+            new_exhibition.sectors.set(sectors)  # 反向关系需要使用set方法
             new_exhib_application = ExhibitionApplication.objects.create(applicant=request.user,
                                                                          description=description,
                                                                          exhibition=new_exhibition)
-            if not new_exhib_application:
-                return JsonResponse({'error': 'Failed to create exhibition application'}, status=500)
+            print(1)
             new_exhibition.application = new_exhib_application
             new_exhibition.save()
             new_exhib_application.save()
@@ -53,12 +54,13 @@ def create_exhib_application(request):
                                                  recipient=Manager.objects.first().detail)
             application_type = ContentType.objects.get_for_model(new_exhib_application)
             new_message_detail = MessageDetail.objects.create(message=new_message, content=content,
-                                                              application_id=new_exhib_application.id,
-                                                              application_type=application_type)
+                                                              application_object_id=new_exhib_application.id,
+                                                              application_content_type=application_type)
             new_message.detail = new_message_detail
             new_message.save()
             return JsonResponse({'success': 'Exhibition application created successfully!'}, status=200)
         except Exception as e:
+            print(e)
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
     else:
         return HttpResponseNotAllowed(['POST'])

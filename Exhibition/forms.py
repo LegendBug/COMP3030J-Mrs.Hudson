@@ -8,27 +8,29 @@ from django.core.exceptions import ValidationError
 
 
 class ExhibApplicationForm(forms.Form):
+    # 关联的场馆ID
+    venue_id = forms.IntegerField(widget=forms.HiddenInput())
     exhib_name = forms.CharField(widget=forms.TextInput(attrs={'id': 'exhibName'}), max_length=50, required=True)
     exhib_description = forms.CharField(widget=forms.Textarea(attrs={'rows': 3, 'id': 'exhibDescription'}),
                                         max_length=500, required=True)
-    exhib_start_at = forms.DateField(widget=forms.DateInput(attrs={'id': 'exhibStartAt', 'type': 'date'}),
-                                     required=True, label="Start Date")
-    exhib_end_at = forms.DateField(widget=forms.DateInput(attrs={'id': 'exhibEndAt', 'type': 'date'}),
-                                   required=True, label="End Date")
+    # 精确到分钟
+    exhib_start_at = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'id': 'exhibStartAt', 'type': 'datetime-local', 'step': 60}),
+        required=True, label="Start Date")
+    exhib_end_at = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'id': 'exhibEndAt', 'type': 'datetime-local', 'step': 60}),
+        required=True, label="End Date")
     exhib_image = forms.ImageField(widget=forms.FileInput(attrs={'id': 'exhibImage'}), required=True, label="Image")
     # TODO 通过单独的页面选择SpaceUnits
-    # TODO 解决start_at和end_at的问题
-    # TODO 解决表单不关闭的问题
-    exhib_sectors = forms.ModelChoiceField(
+    exhib_sectors = forms.ModelMultipleChoiceField(
         queryset=SpaceUnit.objects.all(),
-        widget=forms.Select(attrs={'id': 'exhibSectors'}),
-        empty_label="Select a sector",
+        widget=forms.SelectMultiple(attrs={'id': 'exhibSectors'}),  # 设置为多选下拉框
         required=True,
-        label="Exhibition Sector"
+        label="Exhibition Sectors"  # 更改标签以表示多个选择
     )
     # 创建展览申请的附加说明
     message_content = forms.CharField(max_length=500,
-                                      required=False,
+                                      required=True,
                                       widget=forms.Textarea(attrs={'rows': 3, 'id': 'messageContent'}),
                                       label="Additional Message")
 
@@ -39,20 +41,25 @@ class ExhibApplicationForm(forms.Form):
         self.fields['exhib_sectors'].label_from_instance = lambda obj: f"{obj.name}"
 
     def clean(self):
-        cleaned_data = super(ExhibApplicationForm, self).clean()
+        cleaned_data = super().clean()
         exhib_start_at = cleaned_data.get('exhib_start_at')
         exhib_end_at = cleaned_data.get('exhib_end_at')
-        if exhib_start_at >= exhib_end_at:
-            self.add_error('exhib_start_at', 'Start date must be earlier than end date.')
-            raise forms.ValidationError("Start date must be earlier than end date.")
+
+        # 检查开始日期和结束日期是否都不为 None
+        if exhib_start_at is not None and exhib_end_at is not None:
+            # 验证开始日期是否早于结束日期
+            if exhib_start_at >= exhib_end_at:
+                self.add_error('exhib_start_at', 'Start date must be earlier than end date.')
         return cleaned_data
 
 
 class FilterExhibitionsForm(forms.Form):
     name = forms.CharField(required=False, label="Exhibition Name")
     venue_id = forms.IntegerField(widget=forms.HiddenInput())
-    start_at = forms.DateTimeField(required=False, label="Start Date", widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
-    end_at = forms.DateTimeField(required=False, label="End Date", widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
+    start_at = forms.DateTimeField(required=False, label="Start Date",
+                                   widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
+    end_at = forms.DateTimeField(required=False, label="End Date",
+                                 widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
     organizer = forms.CharField(required=False, label="Organizer Name")
 
     def clean(self):
@@ -63,7 +70,6 @@ class FilterExhibitionsForm(forms.Form):
         if start_at and end_at:
             if end_at <= start_at:
                 raise ValidationError(_("End date must be after the start date."))
-
         return cleaned_data
 
     def filter(self):
