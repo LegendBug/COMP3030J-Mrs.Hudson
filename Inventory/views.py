@@ -6,7 +6,7 @@ from Exhibition.models import Exhibition
 from Inventory.forms import EditInventoryCategoryForm, CreateInventoryCategoryForm
 from Inventory.models import InventoryCategory, Item
 from Venue.models import Venue
-from django.contrib.contenttypes.models import ContentType
+
 
 @login_required
 def inventory(request):
@@ -30,9 +30,12 @@ def inventory(request):
             if category:
                 return JsonResponse({'success': 'Category and items created'}, status=201)
             else:
-                return JsonResponse({'error': 'Failed to create category and items'}, status=500)
+                return JsonResponse({'errors': 'Failed to create category and items'}, status=500)
         else:
-            return JsonResponse({'error': submitted_form.errors}, status=400)
+            # TODO 存在bug,需要修改  return JsonResponse({'errors': submitted_form.errors.as_json()}, status=400)
+            return JsonResponse(
+                {'errors': "There is an error in the content you filled in, please correct it and submit again!"},
+                status=400)
     else:  # 如果是 GET 请求，只需返回一个空表单
         add_inventory_form = CreateInventoryCategoryForm(origin=current_access)
         # 通过当前访问的Venue/Exhibition/Booth中的所有Item,获取所有的Category并统计每个Category下的Item数量
@@ -88,4 +91,4 @@ def edit_inventory_category(request, category_id):
 def delete_inventory_category(request, category_id):
     category = get_object_or_404(InventoryCategory, pk=category_id)
     category.delete()  # 这会级联删除所有相关的 Item 对象，如果在模型中设置了 `on_delete=models.CASCADE`
-    return redirect('Inventory:venue-inventory')  # 重定向到列表页
+    return redirect('Inventory:inventory')  # 重定向到列表页

@@ -25,7 +25,8 @@ def home(request):
             form.save()
             return JsonResponse({'success': 'Venue created successfully!'})
         else:
-            return JsonResponse({'errors': form.errors}, status=400)
+            # {"name": [{"message": "This field is required.", "code": "required"}], "address": [{"message": "This field is required.", "code": "required"}], "floor": [{"message": "This field is required.", "code": "required"}], "image": [{"message": "This field is required.", "code": "required"}]}
+            return JsonResponse({'errors': form.errors.as_json()}, status=400) #TODO 此处前端没有遍历errors,导致报错消息无法显示
 
 
 def venue(request, venue_id):
