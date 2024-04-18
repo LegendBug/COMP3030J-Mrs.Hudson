@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="style.css">
+    <title>Chart Generator</title>
+</head>
+<body>
+    <div class="container">
+        <div class="chart-container">
+            <div id="canvas-container"></div>
+        </div>
+
+        <div class="controls">
+            <select id="chartType" calss="select">
+                <option value="bar">Bar</option>
+                <option value="line">Line</option>
+                <option value="pie">Pie</option>
+                <option value="doughnut">Doughnut</option>
+                <option value="radar">Radar</option>
+            </select>
+            <input type="text" id="labelInput" class="input" placeholder="Label">
+            <input type="number" id="dataInput" class="input" placeholder="Data">
+            <button onclick="addData()" class="btn">Add Data</button>
+            <button onclick="selectDataSource()" class="btn">Select data resource</button>
+            <button onclick="updateChartType()" class="btn">Change Chart Type</button>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+       const waterStatistics = {
+            "Month 1": 1200,
+            "Month 2": 1600,
+            "Month 3": 1000,
+            "Month 4": 800,
+            "Month 5": 900,
+            "Month 6": 1600,
+            "Month 7": 2100,
+            "Month 8": 2200,
+            "Month 9": 1800,
+            "Month 10": 1500,
+            "Month 11": 1300,
+            "Month 12": 900,
+        };
+
+        const electricStatistics = {
+            "Month 1": 1200,
+            "Month 2": 1600,
+            "Month 3": 1000,
+            "Month 4": 800,
+            "Month 5": 900,
+            "Month 6": 1600,
+            "Month 7": 2100,
+            "Month 8": 2200,
+            "Month 9": 1800,
+            "Month 10": 1500,
+            "Month 11": 1300,
+            "Month 12": 900,
+        };
+
+        const objectStatistics = {
+            "Month 1": 120,
+            "Month 2": 160,
+            "Month 3": 100,
+            "Month 4": 80,
+            "Month 5": 90,
+            "Month 6": 160,
+            "Month 7": 210,
+            "Month 8": 220,
+            "Month 9": 180,
+            "Month 10": 150,
+            "Month 11": 130,
+            "Month 12": 90,
+        };
+
+    </script>
+</body>
+</html>
