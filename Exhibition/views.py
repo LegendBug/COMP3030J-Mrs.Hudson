@@ -31,7 +31,6 @@ def create_exhib_application(request):
             end_at = form.cleaned_data.get('exhib_end_at')
             image = form.cleaned_data.get('exhib_image')
             sectors = form.cleaned_data.get('exhib_sectors')
-            print(sectors)
             content = form.cleaned_data.get('message_content')
 
             # 创建新的展览和展览申请

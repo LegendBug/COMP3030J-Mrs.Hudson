@@ -6,6 +6,8 @@ from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect
+
+from Exhibition.models import ExhibitionApplication
 from .forms import RegisterForm, LoginForm, ReplyMessageForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *
@@ -63,7 +65,7 @@ def login(request):
 
 
 def logout(request):
-    request.session.flush() # 清空session
+    request.session.flush()  # 清空session
     messages.success(request, 'You have been logged out.')
     return redirect('User:login')
 
@@ -119,74 +121,108 @@ def profile(request):
 def view_message(request):
     try:
         # 消息类型默认为 'unread_message'
-        message_type = request.GET.get('type', 'unread')
+        item_type = request.GET.get('type', 'unread')
+        items = []
         # 根据请求的消息类型进行查询
-        if message_type == 'unread':
-            messages = Message.objects.filter(recipient=request.user, is_read=False).order_by('-created_at')
-        elif message_type == 'inbox':
-            messages = Message.objects.filter(recipient=request.user).order_by('-created_at')
-        elif message_type == 'sent':
-            messages = Message.objects.filter(sender=request.user).order_by('-created_at')
+        if item_type == 'unread':
+            items = Message.objects.filter(recipient=request.user, is_read=False).order_by('-created_at')
+        elif item_type == 'inbox':
+            items = Message.objects.filter(recipient=request.user).order_by('-created_at')
+        elif item_type == 'sent':
+            items = Message.objects.filter(sender=request.user).order_by('-created_at')
+        elif item_type == 'exhib_applications':
+            if hasattr(request.user, 'manager'):
+                items = ExhibitionApplication.objects.all().order_by('exhibition__start_at')
+                print(items)
+            elif hasattr(request.user, 'organizer'):
+                items = ExhibitionApplication.objects.filter(applicant=request.user).order_by('exhibition__start_at')
+            else:
+                raise Http404("Permission denied")
         else:
             raise Http404("Message type not found")
-
+            # TODO 添加库存申请
         # 设置分页
-        paginator = Paginator(messages, 10)
+        paginator = Paginator(items, 10)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
         # 自定义侧边栏链接
         custom_items = [
             {'name': '🚨 Unread', 'url': '?type=unread',
-             'active_class': 'active' if message_type == 'unread' else ''},
+             'active_class': 'active' if item_type == 'unread' else ''},
             {'name': '📭 Inbox', 'url': '?type=inbox',
-             'active_class': 'active' if message_type == 'inbox' else ''},
+             'active_class': 'active' if item_type == 'inbox' else ''},
             {'name': '🗳️ Sent', 'url': '?type=sent',
-             'active_class': 'active' if message_type == 'sent' else ''},
+             'active_class': 'active' if item_type == 'sent' else ''},
+            {'name': '📝 Exhib-Apps', 'url': '?type=exhib_applications',
+             'active_class': 'active' if item_type == 'exhib_applications' else ''},
         ]
 
         form = ReplyMessageForm()
 
         return render(request, 'User/message.html',
-                      {'page_obj': page_obj,
-                       'show_sidebar': True,  # 显示侧边栏
-                       'page_title': 'Message Center',  # 侧栏标题
-                       'message_type': message_type,  # 将当前消息类型传递到模板中，用于侧边栏链接
-                       'custom_items': custom_items,  # 传递自定义侧边栏链接
-                       'form': form,  # 传递回复消息表单
-                       })
+                      {
+                          'page_obj': page_obj,  # 传递分页对象
+                          'show_sidebar': True,  # 显示侧边栏
+                          'page_title': 'Message Center',  # 侧栏标题
+                          'message_type': item_type,  # 将当前消息类型传递到模板中，用于侧边栏链接
+                          'custom_items': custom_items,  # 传递自定义侧边栏链接
+                          'form': form,  # 传递回复消息表单
+                      })
     except Exception as e:
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
 
 
 def view_message_detail(request, message_id):
+    print(1)
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
 
     try:
-        print(1)
         message = Message.objects.get(id=message_id)
         message_detail = message.detail
 
-        print(1)
         # 如果消息的接收者是当前用户且消息未读，则将消息标记为已读
         if message.recipient == request.user and not message.is_read:
             message.is_read = True
             message.save()
             # TODO 消息中展示关联申请
-            # TODO 回复消息继承申请
-        print(1)
         data = {
             'title': message.title,
             'sender': message.sender.username,
             'recipient': message.recipient.username,
             'created_at': message.created_at.strftime('%Y-%m-%d %H:%M'),
             'content': message_detail.content,
-            # 'application_object_id': message_detail.application_object_id,
-            # 'application_content_type': message_detail.application_content_type.model,
+            'application_object_id': message_detail.application_object_id
+            if message_detail.application_object_id else '',
+            'application_content_type': message_detail.application_content_type.model
+            if message_detail.application_content_type else '',
         }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
 
-        print(1)
+
+def view_application_detail(request, application_id):
+    print(2)
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    try:
+        application = ExhibitionApplication.objects.get(id=application_id)
+        location = application.exhibition.venue.name + ' >>'
+        for sector in application.exhibition.sectors.all():
+            location += ' ' + sector.name
+        data = {
+            'title': 'Application for ' + application.exhibition.name,
+            'image_url': application.exhibition.image.url if application.exhibition.image else '',
+            'description': application.description,
+            'applicant': application.applicant.username,
+            'start_at': application.exhibition.start_at.strftime('%Y-%m-%d %H:%M'),
+            'end_at': application.exhibition.end_at.strftime('%Y-%m-%d %H:%M'),
+            'location': location,
+            'stage': application.get_stage_display(),
+        }
         return JsonResponse(data)
     except Exception as e:
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
@@ -200,15 +236,26 @@ def reply_message(request, message_id):
             title = data.get('title')
             content = data.get('content')
             if not title or not content:
-                return JsonResponse({'error': 'Cannot be empty.'}, status=400)
+                return JsonResponse({'error': 'You cannot send something without writing it!'}, status=400)
 
-            # 创建新的消息和消息详情
+            # 获取消息关联的申请
             message = Message.objects.get(id=message_id)
-            new_message = Message.objects.create(title=title, sender=request.user, recipient=message.sender)
-            new_message_detail = MessageDetail.objects.create(message=new_message, content=content)
-            new_message.detail = new_message_detail
-            new_message.save()
-
+            message_detail = message.detail
+            # 如果消息关联了申请，则将回复消息也关联到申请
+            if message_detail.application_object_id:
+                application = message_detail.application
+                application_type = ContentType.objects.get_for_model(application)
+                new_message = Message.objects.create(title=title, sender=request.user, recipient=message.sender)
+                new_message_detail = MessageDetail.objects.create(message=new_message, content=content,
+                                                                  application_object_id=application.id,
+                                                                  application_content_type=application_type)
+                new_message.detail = new_message_detail
+                new_message.save()
+            else:  # 无关联申请的消息
+                new_message = Message.objects.create(title=title, sender=request.user, recipient=message.sender)
+                new_message_detail = MessageDetail.objects.create(message=new_message, content=content)
+                new_message.detail = new_message_detail
+                new_message.save()
             return JsonResponse({'success': 'Reply sent successfully.'}, status=200)
         except Exception as e:
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
