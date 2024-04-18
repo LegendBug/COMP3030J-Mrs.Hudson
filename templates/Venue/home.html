@@ -79,7 +79,7 @@
                 e.preventDefault();
                 var formData = new FormData(form);
                 axios.post(' {% url 'Venue:home' %}', formData).then(function (response) {
-                    var messageContainer = document.getElementById('message-container');
+                    const messageContainer = document.getElementById('message-container');
                     if (response.data.success) {
                         messageContainer.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
                         messageContainer.style.display = 'block';  // Make sure the message container is visible

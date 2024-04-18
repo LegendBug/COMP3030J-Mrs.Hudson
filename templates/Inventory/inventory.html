@@ -37,27 +37,32 @@
         <table class="table">
             <thead>
             <tr>
-                <th>名称</th>
-                <th>是否公有</th>
-                <th>描述</th>
-                <th>物品数量</th>
-                <th>操作</th>
+                <th>Name</th>
+                <th>Image</th>
+                <th>Is Public</th>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Operations</th>
             </tr>
             </thead>
             <tbody>
             {% for category in categories %}
                 <tr>
                     <td>{{ category.name }}</td>
-                    <td>{{ category.is_public}}</td>
+                    {% if category.image %}
+                        <td><img src="{{ category.image.url }}" alt="{{ category.name }}"
+                                 style="width:100px; height:auto;"></td>
+                    {% endif %}
+                    <td>{{ category.is_public }}</td>
                     <td>{{ category.description }}</td>
                     <td>{{ category.items_quantity }}</td>
                     <td>
                         <a href="{% url 'Inventory:category_detail' category.id %}"
-                           class="btn btn-info btn-sm">查看详情</a>
+                           class="btn btn-info btn-sm">View Detail</a>
                         <a href="{% url 'Inventory:edit-category' category.id %}"
-                           class="btn btn-secondary btn-sm">修改信息</a>
+                           class="btn btn-secondary btn-sm">Modify</a>
                         <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ category.id }})">
-                            删除
+                            Delete
                         </button>
                     </td>
                 </tr>
@@ -83,17 +88,16 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addInventoryForm" method="post" onsubmit="submitAddInventoryForm(); return false;"
-                          action="{% url 'Exhibition:create_exhib_application' %}" enctype="multipart/form-data"
-                          class="needs-validation" novalidate>
+                    <form id="addInventoryForm" method="post"
+                          enctype="multipart/form-data" class="needs-validation"
+                          novalidate>
                         {% csrf_token %}
-                        <input type="hidden" name="venue_id" id="venue_id" value="{{ current_access.pk }}">
                         {{ add_inventory_form|crispy }}
+                        <input type="hidden" name="venue_id" id="venue_id" value="{{ current_access.pk }}">
                         <div id="add_inventory-message-container"></div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             <button type="submit" class="btn btn-success">Add</button>
-
                         </div>
                     </form>
                 </div>
@@ -107,7 +111,7 @@
 {% block scripts %}
     <script>
         function confirmDelete(categoryId) {
-            if (confirm('确认删除这个类别及其所有物品吗？')) {
+            if (confirm('Are you sure to delete this category and all its items?')) {
                 window.location.href = "{% url 'Inventory:delete-category' 123 %}".replace('123', categoryId);
             }
         }
@@ -117,27 +121,34 @@
             filterModal.show();
         }
 
-        function submitAddInventoryForm() {
-            const formElement = document.getElementById('addInventoryForm');
-            const formData = new FormData(formElement);
-
-            axios.post('{% url 'Inventory:inventory' %}', formData)
-                .then(response => {
-                    if (response.data.success) {
-                        alert('Category and items created successfully');
-                        // 处理成功逻辑，如跳转或更新页面等
-                    } else {
-                        alert('An error occurred');
-                        console.error(response.data.error);
-                    }
-                })
-                .catch(error => {
-                    alert('An error occurred');
-                    console.error(error);
-                });
-        }
-
-
-        window.openAddInventoryModal = openAddInventoryModal;
+        document.addEventListener('DOMContentLoaded', function () {
+            const addInventoryForm = document.getElementById('addInventoryForm');
+            addInventoryForm.addEventListener('submit', function (e) {
+                e.preventDefault();  // 阻止表单的默认提交行为
+                const formData = new FormData(addInventoryForm);
+                axios.post('{% url 'Inventory:inventory' %}', formData)
+                    .then(function (response) {
+                        if (response.data.success) { // 如果提交成功，显示成功消息
+                            const addInventoryModal = new bootstrap.Modal(document.getElementById('addInventoryModal'), {});
+                            const messageContainer = document.getElementById('add_inventory-message-container');
+                            messageContainer.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
+                            messageContainer.style.display = 'block';
+                            // 设置定时器等待1.5秒后关闭模态框并刷新页面
+                            setTimeout(function () {
+                                addInventoryModal.hide(); // 关闭模态框
+                                window.location.reload(); // 刷新页面
+                            }, 1500); // 1500毫秒后执行
+                        }
+                    })
+                    .catch(function (error) {
+                        let errorMessage = error.message;
+                        // 如果错误中有响应并且有数据并且数据中有错误信息，则使用服务器的错误信息
+                        if (error.response && error.response.data && error.response.data.errors) {
+                            errorMessage = error.response.data.errors;
+                        }
+                        document.getElementById('add_inventory-message-container').innerHTML = '<div class="alert alert-danger">Error: ' + errorMessage + '</div>';
+                    });
+            });
+        });
     </script>
 {% endblock %}

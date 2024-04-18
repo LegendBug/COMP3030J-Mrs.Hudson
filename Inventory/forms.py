@@ -23,6 +23,7 @@ class CreateInventoryCategoryForm(forms.ModelForm):
         widgets = {
             'origin_content_type': forms.HiddenInput(),
             'origin_object_id': forms.HiddenInput(),
+            'is_public': forms.CheckboxInput(),  # 确保is_public为必填，并使用复选框
         }
 
     def __init__(self, *args, **kwargs):  # 需要传入user和venue/exhibition/booth作为参数
@@ -31,6 +32,26 @@ class CreateInventoryCategoryForm(forms.ModelForm):
         if self.origin:
             self.fields['origin_content_type'].initial = ContentType.objects.get_for_model(type(self.origin))
             self.fields['origin_object_id'].initial = self.origin.pk
+        self.fields['image'].required = True  # 确保image为必填
+        self.fields['is_public'].required = True  # 确保is_public为必填
+
+    def clean_cost(self):
+        cost = self.cleaned_data.get('cost')
+        if cost is not None and cost < 0:
+            raise forms.ValidationError("Cost must be a non-negative number.")
+        return cost
+
+    def clean_power(self):
+        power = self.cleaned_data.get('power')
+        if power is not None and power < 0:
+            raise forms.ValidationError("Power consumption must be a non-negative number.")
+        return power
+
+    def clean_water_consumption(self):
+        water_consumption = self.cleaned_data.get('water_consumption')
+        if water_consumption is not None and water_consumption < 0:
+            raise forms.ValidationError("Water consumption must be a non-negative number.")
+        return water_consumption
 
     @transaction.atomic
     def save(self, commit=True):
