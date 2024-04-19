@@ -1,0 +1,20 @@
+#menu {
+    display: none;
+    position: absolute;
+    width: 80px; /* 增加宽度以容纳更多文本 */
+    background-color: white;
+    box-shadow: 0 0 5px grey;
+    border-radius: 3px;
+}
+
+#menu button {
+    width: 100%;
+    background-color: white;
+    border: none;
+    padding: 10px;
+    text-align: left; /* 文本居左对齐 */
+}
+
+#menu button:hover {
+    background-color: lightgray;
+}

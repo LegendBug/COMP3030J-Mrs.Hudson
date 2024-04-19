@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/Layout/venue_layout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/Layout/canvas.css' %}">
     {% comment %}<link rel="stylesheet" href="{% static 'css/Layout/venue_layout.scss' %}">{% endcomment %}
 
 {% endblock %}
@@ -47,20 +48,20 @@
             <div class="container-fluid">
                 <div class="row">
                     <h5>Common graphics:</h5>
-                    <div class="col-3"><i class="far fa-square fa-2x"></i> Rectangle</div>
-                    <div class="col-3"><i class="far fa-circle fa-2x"></i> Circle</div>
-                    <div class="col-3"><i class="ellipse-icon"></i> Eclipse</div>
-                    <div class="col-3"><i class="fas fa-star fa-2x"></i> Star</div>
-                    <div class="col-3"><i class="far fa-life-ring fa-2x"></i> Ring</div>
-                    <div class="col-3"><i class="fas fa-draw-polygon fa-2x"></i> Polygon</div>
+                    <div class="col-3"><i class="far fa-square fa-2x" id="add-rectangle"></i> Rectangle</div>
+                    <div class="col-3"><i class="far fa-circle fa-2x" id="add-circle"></i> Circle</div>
+                    <div class="col-3"><i class="ellipse-icon" id="add-eclipse"></i> Eclipse</div>
+                    <div class="col-3"><i class="fas fa-star fa-2x" id="add-star"></i> Star</div>
+                    <div class="col-3"><i class="far fa-life-ring fa-2x" id="add-ring"></i> Ring</div>
+                    <div class="col-3"><i class="fas fa-draw-polygon fa-2x" id="add-polygon"></i> Polygon</div>
                 </div>
                 <hr>
                 <div class="row mt-3">
                     <h5>Text Tools:</h5>
-                    <div class="col-3"><i class="fas fa-arrow-up fa-2x"></i> Arrow</div>
-                    <div class="col-3"><i class="fas fa-font fa-2x"></i> Text</div>
-                    <div class="col-3"><i class="fas fa-grip-lines-vertical fa-2x"></i> Line</div>
-                    <div class="col-3"><i class="fas fa-tags fa-2x"></i> Label</div>
+                    <div class="col-3"><i class="fas fa-arrow-up fa-2x" id="add-arrpw"></i> Arrow</div>
+                    <div class="col-3"><i class="fas fa-font fa-2x" id="add-text"></i> Text</div>
+                    <div class="col-3"><i class="fas fa-grip-lines-vertical fa-2x" id="add-line"></i> Line</div>
+                    <div class="col-3"><i class="fas fa-tags fa-2x" id="add-label"></i> Label</div>
                 </div>
                 <hr>
                 <div class="row mt-3">
@@ -76,44 +77,300 @@
         </div>
     </div>
 
-
-    <button class="btn btn-primary d-lg-none" type="button" data-bs-toggle="offcanvas"
-            data-bs-target="#offcanvasResponsive" aria-controls="offcanvasResponsive">Toggle offcanvas
-    </button>
-
-
-
     <!-- Konva舞台容器 -->
     <div id="stage-container"></div>
+    <!-- Konva舞台元素内的选中弹出选择项 -->
+    <div id="container"></div>
+    <div id="menu">
+        <button id="toggle-drawable-button">Toggle Lock</button>
+        <button id="delete-button">Delete</button>
+    </div>
+
+
+    <!-- 底部滚动框 -->
+    <div class="container mt-4 mb-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex overflow-auto">
+                    {% for item in items %}
+                        <div class="card me-3" style="min-width: 18rem;">
+                            <img src="{{ item.category.image.url }}" class="card-img-top" alt="{{ item.name }}">
+                            <div class="card-body">
+                                <h5 class="card-title">Item Name: {{ item.name }}</h5>
+                                <p class="card-text">Item Category: {{ item.category.name }}</p>
+                                <p class="card-text">Item Using Status: {{ item.is_using }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 {% endblock %}
 
 
 {% block scripts %}
     <script src="{% static 'js/Layout/venue_layout.js' %}"></script>
+    <script src="{% static 'js/Layout/canvas.js' %}"></script>
     <script>
         // 确保文档加载后运行
         document.addEventListener('DOMContentLoaded', function () {
-            var width = window.innerWidth; // 获取窗口宽度
-            var height = window.innerHeight; // 获取窗口高度
+            var width = window.innerWidth * 0.9; // 获取窗口宽度
+            var height = window.innerHeight * 0.9; // 获取窗口高度
 
             // 创建舞台并添加到舞台容器
             var stage = new Konva.Stage({
                 container: 'stage-container', // 容器的ID
                 width: width,
-                height: height
+                height: height,
+                draggable: true
             });
 
             // 创建层级
             var layer = new Konva.Layer();
             stage.add(layer);
 
-            // 在此添加其他Konva元素...
+            // 创建变形器并添加到层
+            var transformer = new Konva.Transformer();
+            layer.add(transformer);
 
-            // 更新画布尺寸以适应窗口大小变化
+            // 添加shapes----------------------
+            var shapes = []; // 创建一个数组来保存所有形状
+
+            const areas = [
+                {x: 100, y: 50, width: 300, height: 200, fill: 'lightblue', name: 'Area 1'},
+                {x: 450, y: 50, width: 300, height: 200, fill: 'lightgreen', name: 'Area 2'},
+                {x: 100, y: 300, width: 300, height: 200, fill: 'lightyellow', name: 'Area 3'},
+                {x: 450, y: 300, width: 300, height: 200, fill: 'lightcoral', name: 'Area 4'},
+            ];
+
+            // 添加每个区域的矩形和文字
+            areas.forEach(area => {
+                const rect = new Konva.Rect({
+                    x: area.x,
+                    y: area.y,
+                    width: area.width,
+                    height: area.height,
+                    fill: area.fill,
+                    stroke: 'black',
+                    strokeWidth: 2
+                });
+
+                const text = new Konva.Text({
+                    x: area.x + area.width / 2,
+                    y: area.y + area.height / 2,
+                    text: area.name,
+                    fontSize: 20,
+                    fontFamily: 'Calibri',
+                    fill: 'black'
+                });
+                text.offsetX(text.width() / 2);
+                text.offsetY(text.height() / 2);
+
+                layer.add(rect);
+                layer.add(text);
+
+                // 把矩形和文本都加入到shapes数组中
+                shapes.push(rect, text);
+            });
+
+            // 添加边缘标签
+            const edgeLabels = [
+                {x: 400, y: 10, text: 'north side'},
+                {x: 800, y: 275, text: 'east side'},
+                {x: 400, y: 550, text: 'south side'},
+                {x: 10, y: 275, text: 'west side'}
+            ];
+
+            edgeLabels.forEach(label => {
+                const text = new Konva.Text({
+                    x: label.x,
+                    y: label.y,
+                    text: label.text,
+                    fontSize: 18,
+                    fontFamily: 'Calibri',
+                    fill: 'black'
+                });
+                layer.add(text);
+
+                // 把标签文本也加入到shapes数组中
+                shapes.push(text);
+            });
+
+            // TODO
+            const centralAisle1 = new Konva.Rect({
+                x: 400,
+                y: 50,
+                width: 50,
+                height: 450,
+                fill: 'darkgrey',
+                stroke: 'black',
+                strokeWidth: 1
+            });
+            const centralAisle2 = new Konva.Rect({
+                x: 180,
+                y: 250,
+                width: 490,
+                height: 50,
+                fill: 'darkgrey',
+                stroke: 'black',
+                strokeWidth: 1
+            });
+            layer.add(centralAisle1);
+            layer.add(centralAisle2);
+            shapes.push(centralAisle1); // 将中央走道加入到shapes数组
+            shapes.push(centralAisle2);
+            // TODO: 添加其他特殊区域如入口、出口等
+            const entrancesExits = [
+                {x: 100, y: 250, width: 80, height: 50, fill: 'brown', text: 'Entrance'},
+                {x: 670, y: 250, width: 80, height: 50, fill: 'brown', text: 'Exit'},
+                // ...添加其他入口和出口...
+            ];
+
+            entrancesExits.forEach((entry) => {
+                const rect = new Konva.Rect({
+                    x: entry.x,
+                    y: entry.y,
+                    width: entry.width,
+                    height: entry.height,
+                    fill: entry.fill,
+                    stroke: 'black',
+                    strokeWidth: 1
+                });
+                const text = new Konva.Text({
+                    x: entry.x + entry.width / 2,
+                    y: entry.y + entry.height / 2,
+                    text: entry.text,
+                    fontSize: 14,
+                    fontFamily: 'Calibri',
+                    fill: 'white'
+                });
+                text.offsetX(text.width() / 2);
+                text.offsetY(text.height() / 2);
+
+                layer.add(rect);
+                layer.add(text);
+
+                shapes.push(rect, text); // 将入口和出口的形状加入到shapes数组
+            });
+
+            shapes.forEach(shape => {
+                shape.x(shape.x() + 400);
+                shape.y(shape.y() + 900);
+            });
+
+            Konva.Image.fromURL('{% static 'images/Layout/venue.jpg' %}', function (darthNode) {
+                darthNode.setAttrs({
+                    x: 400,
+                    y: 100,
+                    scaleX: 1.2,
+                    scaleY: 1.2,
+                    cornerRadius: 20,
+                });
+                layer.add(darthNode);
+            });
+
+            // 添加shapes结束----------------------
+
+
+            shapes.forEach(function (shape) {
+                layer.add(shape);
+                shape.on('click', function (e) {
+                    e.cancelBubble = true; // 阻止事件冒泡
+                    // 选中时绑定变形器
+                    transformer.nodes([this]);
+                    this.shadowColor('black'); // 设置阴影颜色为黑色
+                    this.shadowBlur(2); // 设置阴影模糊度
+                    this.shadowOffset({x: 1, y: 1}); // 设置阴影偏移量
+                    layer.draw();
+                });
+
+            });
+
+            // 全局点击事件，取消选中
+            stage.on('click tap', function (e) {
+                if (e.target === stage) {
+                    transformer.detach(); // 取消变形器
+                    shapes.forEach(shape => {
+                        shape.shadowColor(null); // 移除阴影颜色
+                        shape.shadowBlur(0); // 移除阴影模糊度
+                        shape.shadowOffset({x: 0, y: 0}); // 移除阴影偏移量
+                    });
+                    layer.draw();
+                }
+            });
+
+            // 右键菜单功能----------------------------------------------------------------
+            let currentShape;
+            var menuNode = document.getElementById('menu');
+
+            document.getElementById('delete-button').addEventListener('click', () => {
+                if (currentShape) {
+                    currentShape.destroy();
+                    transformer.detach(); // 取消变形器绑定
+                    menuNode.style.display = 'none'; // 隐藏菜单
+                    layer.draw();
+                }
+            });
+
+            document.getElementById('toggle-drawable-button').addEventListener('click', () => { // 切换当前形状的可拖动状态
+                currentShape.draggable(!currentShape.draggable());
+                menuNode.style.display = 'none';  // 隐藏菜单
+            });
+
+            window.addEventListener('click', () => { // 隐藏菜单
+                menuNode.style.display = 'none';
+            });
+
+            stage.on('contextmenu', function (e) {
+                e.evt.preventDefault();// 阻止默认行为
+                if (e.target !== stage) {
+                    currentShape = e.target;
+                    menuNode.style.display = 'initial';
+                    var containerRect = stage.container().getBoundingClientRect();
+                    menuNode.style.top = containerRect.top + e.evt.clientY + 'px';
+                    menuNode.style.left = containerRect.left + e.evt.clientX + 'px';
+                }
+            });
+            // ----------------------------------------------------------------------
+
+            // 实现了ctrl+鼠标滚轮能够放缩舞台的效果--------------------------------------
+            var scaleBy = 1.2;  // 定义缩放比例
+            stage.on('wheel', function (e) {
+                e.evt.preventDefault();  // 阻止默认的滚动行为
+                if (e.evt.ctrlKey) {  // 只有当Ctrl键被按下时才进行缩放
+                    var oldScale = stage.scaleX();  // 获取当前舞台的缩放比例
+                    var pointer = stage.getPointerPosition();  // 获取鼠标指针的位置
+
+                    var mousePointTo = {
+                        x: (pointer.x - stage.x()) / oldScale,
+                        y: (pointer.y - stage.y()) / oldScale,
+                    };
+
+                    var direction = e.evt.deltaY > 0 ? 1 : -1;  // 判断滚动方向
+                    var newScale = direction > 0 ? oldScale / scaleBy : oldScale * scaleBy;  // 计算新的缩放比例
+
+                    stage.scale({x: newScale, y: newScale});  // 设置新的缩放比例
+
+                    var newPos = {
+                        x: pointer.x - mousePointTo.x * newScale,
+                        y: pointer.y - mousePointTo.y * newScale,
+                    };
+                    stage.position(newPos);  // 更新舞台的位置以适应新的缩放
+                    layer.batchDraw();  // 重新绘制层
+                }
+            });
+            // ----------------------------------------------------------------------
+
+
+            // 更新画布尺寸以适应窗口大小变化---------------------------------------------
             window.addEventListener('resize', function () {
                 stage.width(window.innerWidth);
                 stage.height(window.innerHeight);
             });
+            // ----------------------------------------------------------------------
         });
     </script>
 {% endblock %}
