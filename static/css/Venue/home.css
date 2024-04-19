@@ -1,9 +1,7 @@
-/*
 body {
-    background: url('../../images/User/poster.jpg') no-repeat center center fixed;
+    background: linear-gradient(rgba(224, 224, 224, 0.7), rgba(0, 0, 0, 0.7)), url('../../images/User/poster.jpg') no-repeat center center fixed;
     background-size: cover;
-    color: #f6f0f0;
-}*/
+}
 
 .card h5 {
     color: #333;
@@ -16,17 +14,30 @@ body {
 }
 
 #add-venue-btn {
-    background-color: #007bff;
+    background-color: #009631;
     color: white;
     box-shadow: 0 4px 8px rgba(0, 123, 255, 0.5);
 }
 
 .btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
+    background-color: #009631;
+    border-color: #008129;
 }
 
 .btn-secondary {
     background-color: #6c757d;
     border-color: #6c757d;
 }
+
+/* 调整 message-info 类样式 */
+.message-info {
+    font-size: 3rem; /* 设置较大的字体大小 */
+    color: #f0f0f0; /* 使用较亮的字体颜色 */
+    padding: 2rem; /* 设置较大的内边距 */
+    text-align: center; /* 内容居中对齐 */
+    border-radius: 0.5rem; /* 边框圆角 */
+    background-color: rgba(155, 155, 155, 0.1); /* 背景半透明 */
+    width: 90%; /* 设置宽度，几乎要沾满全屏 */
+    margin: 2rem auto; /* 设置外边距，使其在页面上垂直居中 */
+}
+

@@ -29,7 +29,7 @@
 
     <!-- Floating Action Button -->
     {% if user.is_authenticated and user_type == 'Organizer' %}
-        <a onclick="createExhibApply()" class="btn btn-primary rounded-circle shadow" id="createExhibApply"
+        <a onclick="createExhibApply()" class="btn btn-success rounded-circle shadow" id="createExhibApply"
            style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
         >
             +
@@ -117,7 +117,7 @@
                         <div id="filter-exhitbions-message-container"></div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Filter Exhibitions</button>
+                            <button type="submit" class="btn btn-success">Filter Exhibitions</button>
                         </div>
                     </form>
                 </div>
