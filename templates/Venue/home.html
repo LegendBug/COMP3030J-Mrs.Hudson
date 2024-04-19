@@ -27,13 +27,13 @@
                     <p class="card-text">Area: {{ venue.area }} m²</p>
                     <p class="card-text">Floor: {{ venue.floor }}</p>
                     {% if user.is_authenticated and user_type == 'Manager' %}
-                    <a href="#" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#venueInfoModal"
-                    data-venue-id="{{ venue.id }}" data-venue-name="{{ venue.name }}"
-                    data-venue-address="{{ venue.address }}" data-venue-area="{{ venue.area }}"
-                    data-venue-floor="{{ venue.floor }}" data-venue-image="{{ venue.image.url }}"
-                    data-venue-description="{{ venue.description }}">Info</a>
-                    <a href="#" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#venueModifyModal" data-venue-id="{{ venue.id }}">Modify</a>
-                    <a href="#" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#venueDeleteModal" data-venue-id="{{ venue.id }}">Delete</a>
+                        <a href="#" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#venueInfoModal"
+                            data-venue-id="{{ venue.id }}" data-venue-name="{{ venue.name }}"
+                            data-venue-address="{{ venue.address }}" data-venue-area="{{ venue.area }}"
+                            data-venue-floor="{{ venue.floor }}" data-venue-image="{{ venue.image.url }}"
+                            data-venue-description="{{ venue.description }}">Info</a>
+                        <a href="#" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#venueModifyModal" data-venue-id="{{ venue.id }}">Modify</a>
+                        <a href="#" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#venueDeleteModal" data-venue-id="{{ venue.id }}">Delete</a>
                     {% endif %}
                 </div>
             </div>
@@ -41,6 +41,15 @@
         {% endfor %}
     </div>
 </div>
+
+<!-- Floating Action Button -->
+{% if user.is_authenticated and user_type == 'Manager' %}
+<a href="#" class="btn btn-primary rounded-circle shadow" id="add-venue-btn"
+   style="position: fixed; bottom: 100px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+   data-bs-toggle="modal" data-bs-target="#venueModal">
+   +
+</a>
+{% endif %}
 
 <!-- Modal for displaying the info of a venue -->
 <div class="modal fade" id="venueInfoModal" tabindex="-1" aria-labelledby="venueInfoModalLabel" aria-hidden="true">
