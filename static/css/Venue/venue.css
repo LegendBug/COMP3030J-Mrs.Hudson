@@ -13,15 +13,15 @@ body {
 
 /* 表格头部样式 */
 .table thead {
-    background-color: rgba(49, 49, 49, 0.6); /* 表头背景半透明 */
-    color: #484848; /* 表头字体颜色，使用纯白色 */
+    background-color: rgba(183, 183, 183, 0.8); /* 表头背景半透明 */
+    color: #9d9d9d; /* 表头字体颜色，使用纯白色 */
     border-radius: 0.5rem;
 }
 
 /* 表格单元格样式 */
 .table th, .table td {
     color: #ffffff; /* 使用纯白色字体颜色 */
-    background-color: transparent; /* 单元格背景透明 */
+    background-color: rgba(183, 183, 183, 0.8); /* 单元格背景透明 */
     border: none; /* 无边框 */
     padding: 0.75rem; /* 内边距 */
 }
