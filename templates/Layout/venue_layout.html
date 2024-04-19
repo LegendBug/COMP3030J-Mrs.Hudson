@@ -166,8 +166,8 @@
                     fontFamily: 'Calibri',
                     fill: 'black'
                 });
-                text.offsetX(text.width() / 2);
-                text.offsetY(text.height() / 2);
+                text.offsetX(text.width / 2);
+                text.offsetY(text.height / 2);
 
                 layer.add(rect);
                 layer.add(text);
@@ -247,8 +247,8 @@
                     fontFamily: 'Calibri',
                     fill: 'white'
                 });
-                text.offsetX(text.width() / 2);
-                text.offsetY(text.height() / 2);
+                text.offsetX(text.width / 2);
+                text.offsetY(text.height / 2);
 
                 layer.add(rect);
                 layer.add(text);
@@ -263,10 +263,10 @@
 
             Konva.Image.fromURL('{% static 'images/Layout/venue.jpg' %}', function (darthNode) {
                 darthNode.setAttrs({
-                    x: 400,
-                    y: 100,
-                    scaleX: 1.2,
-                    scaleY: 1.2,
+                    x: 450,
+                    y: 70,
+                    scaleX: 0.8,
+                    scaleY: 0.8,
                     cornerRadius: 20,
                 });
                 layer.add(darthNode);
@@ -345,8 +345,8 @@
                     var pointer = stage.getPointerPosition();  // 获取鼠标指针的位置
 
                     var mousePointTo = {
-                        x: (pointer.x - stage.x()) / oldScale,
-                        y: (pointer.y - stage.y()) / oldScale,
+                        x: (pointer.x - stage.x) / oldScale,
+                        y: (pointer.y - stage.y) / oldScale,
                     };
 
                     var direction = e.evt.deltaY > 0 ? 1 : -1;  // 判断滚动方向
