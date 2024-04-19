@@ -92,3 +92,9 @@ def delete_inventory_category(request, category_id):
     category = get_object_or_404(InventoryCategory, pk=category_id)
     category.delete()  # 这会级联删除所有相关的 Item 对象，如果在模型中设置了 `on_delete=models.CASCADE`
     return redirect('Inventory:inventory')  # 重定向到列表页
+
+
+# TODO 在展会详情界面完成后，添加库存申请功能
+def create_res_application(request):
+    if request.method == 'POST':
+        pass

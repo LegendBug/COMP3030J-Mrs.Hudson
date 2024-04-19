@@ -66,4 +66,3 @@ class Application(models.Model):
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='applications')
     description = models.TextField()
     stage = models.CharField(max_length=2, choices=Stage.choices, default=Stage.INITIAL_SUBMISSION)
-    # details : List<ApplicationDetail>, 由Django ORM的反向关系实现，需要在子类中定义

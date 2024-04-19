@@ -22,6 +22,12 @@
                         Exhibition
                     </button>
                 </div>
+{#                <div class="col-auto">#}
+{#                    <button class="btn btn-success mt-2"#}
+{#                            onclick="window.location.href='?item_type=applications&applications_type=Resource'">#}
+{#                        Resource#}
+{#                    </button>#}
+{#                </div>#}
             </div>
         {% endif %}
 
@@ -144,6 +150,33 @@
                             if (currentMessageType !== 'sent') {  // 不是sent messages界面，显示回复按钮
                                 replyButtonHtml = `<button onclick="replyMessage()" class="btn btn-success mt-3">Reply</button>`;
                             }
+                            // 关联申请
+                            let application_url = '{% url 'User:view_application_detail' 999 %}'.replace('999', data.application_id);
+                            // 关联消息板块
+                            let relatedMessageHtml = '';
+                            if (data.related_messages.length > 0) {
+                                console.log(data.related_messages);
+                                relatedMessageHtml = `
+<div class="mt-4">
+    <h5><strong>RE</strong></h5>
+    <blockquote class="blockquote text-muted" style="font-size: 0.9rem;">
+        <ul class="list-group">
+            ${data.related_messages.map((msg) => `
+            <li class="list-group-item mb-2 cursor-pointer">
+                <strong class="d-block mb-1">${msg.title}</strong>
+                <p class="mb-2">${msg.content}</p>
+                <small class="text-muted">
+                    <i class="bi bi-person-fill"></i> Sent by ${msg.sender} 
+                    <i class="bi bi-calendar-event-fill"></i> on ${msg.created_at}
+                </small>
+            </li>
+            `).join('')}
+        </ul>
+    </blockquote>
+</div>
+`;
+                            }
+                            
                             document.getElementById('content').innerHTML = `
 <div class="mb-4 px-4">
     <div class="row">
@@ -170,31 +203,14 @@
     </div>
 
     <!-- Related Messages -->
-    <div class="mt-4">
-        <h5><strong>RE</strong></h5>
-        <blockquote class="blockquote text-muted" style="font-size: 0.9rem;">
-            <ul class="list-group">
-                ${data.related_messages.map((msg, index) => `
-                    <li class="list-group-item">
-                        <strong>${msg.title}</strong><br>
-                        <p>${msg.content}</p>
-                        <small class="text-muted">
-                            <i class="bi bi-person-fill"></i> Sent by ${msg.sender} 
-                            <i class="bi bi-calendar-event-fill"></i> on ${msg.created_at}
-                        </small>
-                    </li>
-                `).join('')}
-            </ul>
-        </blockquote>
-    </div>
+    ${relatedMessageHtml}
 
-    <!-- Application Details (Attachment) -->
+    <!-- 关联的Application -->
     <div class="mt-4">
         <h5><strong>Application</strong></h5>
-        <div class="card shadow-sm border">
+        <div class="card shadow-sm border cursor-pointer" onclick="loadApplicationDetail('${data.application_id}', '${application_url}')">
             <div class="card-body">
-                <p class="card-text"><strong>Object ID:</strong> ${data.application_object_id}</p>
-                <p class="card-text"><strong>Content Type:</strong> ${data.application_content_type}</p>
+                <p class="card-text"><strong>Application Type:</strong> ${data.application_content_type}</p>
             </div>
         </div>
     </div>

@@ -1,12 +1,32 @@
 body {
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../../images/User/poster.jpg') no-repeat center center fixed;
+    background: linear-gradient(rgba(224, 224, 224, 0.7), rgba(0, 0, 0, 0.7)), url('../../images/User/poster.jpg') no-repeat center center fixed;
     background-size: cover;
 }
 
+/* 表格全局样式 */
 .table {
-    color: white;
+    color: #f0f0f0; /* 使用较亮的字体颜色，如浅灰色或纯白色 */
+    background-color: rgba(255, 255, 255, 0.1); /* 表格背景半透明，稍微调整透明度 */
+    border: 1px solid #444; /* 边框颜色 */
+    border-radius: 0.5rem; /* 边框圆角 */
 }
 
-.modal {
-    color: black;
+/* 表格头部样式 */
+.table thead {
+    background-color: rgba(49, 49, 49, 0.6); /* 表头背景半透明 */
+    color: #484848; /* 表头字体颜色，使用纯白色 */
+    border-radius: 0.5rem;
+}
+
+/* 表格单元格样式 */
+.table th, .table td {
+    color: #ffffff; /* 使用纯白色字体颜色 */
+    background-color: transparent; /* 单元格背景透明 */
+    border: none; /* 无边框 */
+    padding: 0.75rem; /* 内边距 */
+}
+
+/* 表格行悬停时的样式 */
+.table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* 行背景变亮且半透明 */
 }

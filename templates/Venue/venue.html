@@ -38,15 +38,16 @@
         <i class="fas fa-filter"></i> <!-- 假设使用 Font Awesome 的筛选图标 -->
     </a>
 
-    <table class="table">
-        <thead>
+    <table class="table table-hover table-striped text-white">
+        <thead class="table-light">
         <tr>
             <th>Name</th>
             <th>Description</th>
             <th>Organizer</th>
             <th>Sector</th>
-            <th>From</th>
-            <th>To</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Stage</th>
         </tr>
         </thead>
         <tbody>
@@ -56,16 +57,18 @@
                 <td>{{ exhibition.description }}</td>
                 <td>{{ exhibition.organizer }}</td>
                 <td>{{ exhibition.sectors }}</td>
-                <td>{{ exhibition.start_at }}</td>
-                <td>{{ exhibition.end_at }}</td>
+                <td>{{ exhibition.start_at| date:"Y-m-d H:i" }}</td>
+                <td>{{ exhibition.end_at| date:"Y-m-d H:i" }}</td>
+                <td>{{ exhibition.stage }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6">No events found.</td>
+                <td colspan="7" class="text-center text-white">No events found.</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+
 
     {# 申请新展览模态框 #}
     <div class="modal fade" id="createExhibApplyModal" tabindex="-1" aria-labelledby="createExhibApplyModalLabel"
@@ -140,9 +143,9 @@
                 const formData = new FormData(formElement);
                 const url = formElement.action;  // 直接从表单元素获取action
                 const container = document.getElementById('application-form-container');
-                
+
                 formData.set('venue_id', {{ venue.pk }}); // 添加场馆ID
-                for (let [key, value] of formData.entries()) 
+                for (let [key, value] of formData.entries())
                     console.log(key, value);
 
                 axios.post(url, formData, {

@@ -142,7 +142,6 @@ def view_message(request):
                 raise Http404("Application type not found")
         else:
             raise Http404("Message type not found")
-            # TODO 添加库存申请
         # 设置分页
         paginator = Paginator(items, 10)
         page_number = request.GET.get('page')
@@ -218,6 +217,7 @@ def view_message_detail(request, message_id):
             'recipient': message.recipient.username,
             'created_at': message.created_at.strftime('%Y-%m-%d %H:%M'),
             'content': message_detail.content,
+            'application_id': application_id,
             'application_content_type': message_detail.application_content_type.model
             if message_detail.application_content_type else '',
             'related_messages': related_messages_data,
@@ -227,6 +227,7 @@ def view_message_detail(request, message_id):
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
 
 
+# TODO 将查看申请函数适配到新的模型
 def view_application_detail(request, application_id):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)

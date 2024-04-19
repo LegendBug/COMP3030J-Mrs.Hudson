@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.utils import timezone
 
 from Exhibition.forms import ExhibApplicationForm, FilterExhibitionsForm
 from Venue.forms import CreateVenueForm
@@ -26,7 +27,7 @@ def home(request):
             return JsonResponse({'success': 'Venue created successfully!'})
         else:
             # {"name": [{"message": "This field is required.", "code": "required"}], "address": [{"message": "This field is required.", "code": "required"}], "floor": [{"message": "This field is required.", "code": "required"}], "image": [{"message": "This field is required.", "code": "required"}]}
-            return JsonResponse({'errors': form.errors.as_json()}, status=400) #TODO 此处前端没有遍历errors,导致报错消息无法显示
+            return JsonResponse({'errors': form.errors.as_json()}, status=400)  # TODO 此处前端没有遍历errors,导致报错消息无法显示
 
 
 def venue(request, venue_id):
@@ -46,6 +47,7 @@ def venue(request, venue_id):
         elif user not in [None, ''] and hasattr(user, 'organizer'):
             exhibitions = current_venue.exhibitions.filter(organizer=user.organizer)
         elif user not in [None, ''] and hasattr(user, 'exhibitor'):
+            # TODO 展台不是在新页面显示吗?(RHS)
             current_exhibitions = current_venue.exhibitions.all()
             booths = user.exhibitor.booths
             exhibitions = []
@@ -62,10 +64,38 @@ def venue(request, venue_id):
         else:
             exhibitions = Exhibition.objects.none()
             # messages.error(request, 'Filter exhibitions failed! Please check the form.')
+    # 将展览信息转换为字典
+    exhibitions_data = []
+    for exhibition in exhibitions:
+        sectors = ''
+        for sector in exhibition.sectors.all():
+            sectors += sector.name + ' '
+        stage = exhibition.exhibition_application.get_stage_display()
+        if stage == 'REJECTED':  # 展览申请被拒绝
+            continue
+        elif stage == 'ACCEPTED':
+            stage = '✅ACCEPTED'
+        elif exhibition.end_at < timezone.now():  # 展览已结束
+            stage = '🔴OUTDATED'
+        elif exhibition.start_at < timezone.now() < exhibition.end_at:  # 展览进行中
+            stage = '🟢UNDERWAY'
+        else:
+            stage = '🟠PENDING'
+        exhibitions_data.append({
+            'id': exhibition.id,
+            'name': exhibition.name,
+            'description': exhibition.description,
+            'sectors': sectors,
+            'start_at': exhibition.start_at,
+            'end_at': exhibition.end_at,
+            'image': exhibition.image.url if exhibition.image else None,
+            'organizer': exhibition.organizer.detail.username,
+            'stage': stage
+        })
     application_form = ExhibApplicationForm()
     filter_form = FilterExhibitionsForm()
     return render(request, 'Venue/venue.html', {
-        'exhibitions': exhibitions,
+        'exhibitions': exhibitions_data,
         'venue': current_venue,
         'user_type': user_type,
         'application_form': application_form,

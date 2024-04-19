@@ -1,5 +1,7 @@
 import os
 import uuid
+
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from User.models import Application
@@ -23,7 +25,7 @@ class Exhibition(models.Model):
         # 保存图片到新的路径
         super().save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs): # 重写了delete方法,使得删除前能够移除图片文件
+    def delete(self, *args, **kwargs):  # 重写了delete方法,使得删除前能够移除图片文件
         # 删除相关图片文件
         if self.image:
             if os.path.isfile(self.image.path):
@@ -51,6 +53,9 @@ class Exhibition(models.Model):
 
 
 class ExhibitionApplication(Application):
+    # 更改related_name，避免与其它application冲突
+    applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                  related_name='exhibition_applications')
     # 某个展览被删除后，申请不会被删除
     exhibition = models.OneToOneField("Exhibition", on_delete=models.SET_NULL, null=True,
                                       related_name='exhibition_application')
