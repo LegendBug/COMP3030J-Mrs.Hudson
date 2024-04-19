@@ -16,7 +16,7 @@
         </li>
     {% endif %}
     <li class="nav-item">
-        <a class="nav-link" href="#"><i class="fas fa-edit"></i> Layout</a>
+        <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="fas fa-edit"></i> Layout</a>
     </li>
     <li class="nav-item">
         <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
@@ -57,9 +57,9 @@
                     <td>{{ category.description }}</td>
                     <td>{{ category.items_quantity }}</td>
                     <td>
-                        <a href="{% url 'Inventory:category_detail' category.id %}"
+                        <a href="{% url 'Inventory:category_detail' category.pk %}"
                            class="btn btn-info btn-sm">View Detail</a>
-                        <a href="{% url 'Inventory:edit-category' category.id %}"
+                        <a href="{% url 'Inventory:edit-category' category.pk %}"
                            class="btn btn-secondary btn-sm">Modify</a>
                         <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ category.id }})">
                             Delete

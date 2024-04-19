@@ -58,5 +58,6 @@ def create_exhib_application(request):
         except Exception as e:
             print(e)
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
+            #return JsonResponse({'success': 'Exhibition application created successfully!'}, status=200)
     else:
         return HttpResponseNotAllowed(['POST'])

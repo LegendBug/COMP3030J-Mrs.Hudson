@@ -63,15 +63,19 @@ def inventory(request):
 
 
 def category_detail_view(request, category_id):
-    venue_id = 1
-    venue = get_object_or_404(Venue, pk=venue_id)
-    category = get_object_or_404(InventoryCategory, pk=category_id)
-    items = Item.objects.filter(object_id=venue_id, category=category)
+    user_type = 'Manager' if hasattr(request.user, 'manager') \
+        else 'Organizer' if hasattr(request.user, 'organizer') \
+        else 'Exhibitor' if hasattr(request.user, 'exhibitor') \
+        else 'Guest'  # 根据用户的类型,获取与该用户关联的所有Item
+    current_access = Venue.objects.filter(pk=request.session['venue_id']).first()
+    category = InventoryCategory.objects.filter(pk=category_id).first()
+    items = category.items.all()
 
     return render(request, 'Inventory/category_detail.html', {
-        'venue': venue,
+        'current_access': current_access,
         'category': category,
-        'items': items
+        'items': items,
+        'user_type': user_type
     })
 
 

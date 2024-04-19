@@ -17,13 +17,13 @@
     <!-- 在这里添加导航栏里额外的icon-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="#"><i class="fas fa-chart-bar"></i> Statistics</a>
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="fas fa-edit"></i> Layout</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Inventory:venue-inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
+            <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
         </li>
     {% endif %}
 {% endblock %}

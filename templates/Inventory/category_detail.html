@@ -1,27 +1,49 @@
 {% extends "Public/base.html" %}
+{% load static %}
+
+{% block extra_head %}
+    <title>Category Detail</title>
+    <link rel="stylesheet" href="{% static 'css/Inventory/category_detail.css' %}">
+{% endblock %}
+
+{% block extra_nav_icons %}
+    <!-- 在这里添加导航栏里额外的icon-->
+    {% if user.is_authenticated and user_type == 'Manager' %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
+        </li>
+    {% endif %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="fas fa-edit"></i> Layout</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
+    </li>
+{% endblock %}
+
 
 {% block content %}
-    <div class="container mt-3">
-        <h2>物品详情 - {{ category.name }}</h2>
-        <table class="table">
-            <thead>
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+            <th>Category</th>
+            <th>Whether in Use</th>
+            <th>Whether is Damaged</th>
+            <th>Last Modified Time</th>
+            <th>Location</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in items %}
             <tr>
-                <th>物品名称</th>
-                <th>是否在使用</th>
-                <th>是否损坏</th>
-                <th>最后修改时间</th>
+                <td>{{ item.category.name }}</td>
+                <td>{{ item.is_using | yesno:"True,False" }}</td>
+                <td>{{ item.is_damaged | yesno:"True,False" }}</td>
+                <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>
+                <td>{{ item.location }}</td>
             </tr>
-            </thead>
-            <tbody>
-            {% for item in items %}
-                <tr>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.is_using | yesno:"是,否" }}</td>
-                    <td>{{ item.is_damaged | yesno:"是,否" }}</td>
-                    <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        {% endfor %}
+        </tbody>
+    </table>
+
 {% endblock %}
