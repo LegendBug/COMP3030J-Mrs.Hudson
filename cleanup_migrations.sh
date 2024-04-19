@@ -16,7 +16,7 @@ echo "$pyc_files_to_delete"
 echo "$pyc_files_to_delete_2"
 
 # Ask for confirmation
-read -p "Are you **really** sure you want to delete these files? (y/N)" confirm
+read -p "Are you **really** sure you want to delete these files? (y/N) " confirm
 if [[ "$confirm" == [yY] ]]
 then
     echo "-----------------------------------------"
