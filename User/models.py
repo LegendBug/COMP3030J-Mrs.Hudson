@@ -61,7 +61,7 @@ class Application(models.Model):
         INITIAL_SUBMISSION = 'IS', 'INITIAL_SUBMISSION'  # 初始提交
         REFINED_SUBMISSION = 'RS', 'REFINED_SUBMISSION'  # 完善提交
         REJECTED = 'RJ', 'REJECTED'  # 拒绝申请
-        FINALIZED = 'FI', 'FINALIZED'  # 完成申请
+        ACCEPTED = 'AC', 'ACCEPTED'  # 完成申请
 
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='applications')
     description = models.TextField()

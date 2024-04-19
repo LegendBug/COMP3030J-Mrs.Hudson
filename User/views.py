@@ -120,9 +120,9 @@ def profile(request):
 
 def view_message(request):
     try:
-        # 消息类型默认为 'unread_message'
-        item_type = request.GET.get('type', 'unread')
-        items = []
+        # 消息类型默认为 'unread', 申请类型默认为 'exhibition'
+        item_type = request.GET.get('item_type', 'unread')
+        applications_type = request.GET.get('applications_type', 'exhibition')
         # 根据请求的消息类型进行查询
         if item_type == 'unread':
             items = Message.objects.filter(recipient=request.user, is_read=False).order_by('-created_at')
@@ -130,14 +130,16 @@ def view_message(request):
             items = Message.objects.filter(recipient=request.user).order_by('-created_at')
         elif item_type == 'sent':
             items = Message.objects.filter(sender=request.user).order_by('-created_at')
-        elif item_type == 'exhib_applications':
-            if hasattr(request.user, 'manager'):
-                items = ExhibitionApplication.objects.all().order_by('exhibition__start_at')
-                print(items)
-            elif hasattr(request.user, 'organizer'):
-                items = ExhibitionApplication.objects.filter(applicant=request.user).order_by('exhibition__start_at')
+        elif item_type == 'applications':
+            if applications_type == 'exhibition':
+                if hasattr(request.user, 'manager'):
+                    items = ExhibitionApplication.objects.all().order_by('exhibition__start_at')
+                elif hasattr(request.user, 'organizer'):
+                    items = ExhibitionApplication.objects.filter(applicant=request.user).order_by('exhibition__start_at')
+                else:
+                    raise Http404("Permission denied")
             else:
-                raise Http404("Permission denied")
+                raise Http404("Application type not found")
         else:
             raise Http404("Message type not found")
             # TODO 添加库存申请
@@ -148,33 +150,35 @@ def view_message(request):
 
         # 自定义侧边栏链接
         custom_items = [
-            {'name': '🚨 Unread', 'url': '?type=unread',
+            {'name': '🚨 Unread', 'url': '?item_type=unread',
              'active_class': 'active' if item_type == 'unread' else ''},
-            {'name': '📭 Inbox', 'url': '?type=inbox',
+            {'name': '📭 Inbox', 'url': '?item_type=inbox',
              'active_class': 'active' if item_type == 'inbox' else ''},
-            {'name': '🗳️ Sent', 'url': '?type=sent',
+            {'name': '🗳️ Sent', 'url': '?item_type=sent',
              'active_class': 'active' if item_type == 'sent' else ''},
-            {'name': '📝 Exhib-Apps', 'url': '?type=exhib_applications',
-             'active_class': 'active' if item_type == 'exhib_applications' else ''},
+            {'name': '📝 Applications', 'url': '?item_type=applications',
+             'active_class': 'active' if item_type == 'applications' else ''},
         ]
 
         form = ReplyMessageForm()
+        user_type = request.session.get('user_type')
 
         return render(request, 'User/message.html',
                       {
                           'page_obj': page_obj,  # 传递分页对象
                           'show_sidebar': True,  # 显示侧边栏
                           'page_title': 'Message Center',  # 侧栏标题
-                          'message_type': item_type,  # 将当前消息类型传递到模板中，用于侧边栏链接
+                          'item_type': item_type,  # 将当前消息类型传递到模板中，用于侧边栏链接
+                          'applications_type': applications_type,  # 传递申请类型
                           'custom_items': custom_items,  # 传递自定义侧边栏链接
                           'form': form,  # 传递回复消息表单
+                          'user_type': user_type  # 传递用户类型
                       })
     except Exception as e:
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
 
 
 def view_message_detail(request, message_id):
-    print(1)
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
 
@@ -186,17 +190,37 @@ def view_message_detail(request, message_id):
         if message.recipient == request.user and not message.is_read:
             message.is_read = True
             message.save()
-            # TODO 消息中展示关联申请
+
+        # 添加关联申请
+        application_id = message_detail.application_object_id
+        related_messages_data = []
+        if application_id:
+            # 获取与应用程序关联的所有消息详细信息，并按消息创建时间降序排序
+            related_messages_detail = MessageDetail.objects.filter(
+                application_object_id=application_id,
+                message__created_at__lt=message.created_at  # 只返回创建时间在当前消息之前的消息
+            ).order_by('-message__created_at')
+
+            # 将关联消息转换为 JSON 数据
+            for related_message_detail in related_messages_detail:
+                related_message = related_message_detail.message
+                related_messages_data.append({
+                    'title': related_message.title,
+                    'sender': related_message.sender.username,
+                    'recipient': related_message.recipient.username,
+                    'created_at': related_message.created_at.strftime('%Y-%m-%d %H:%M'),
+                    'content': related_message_detail.content,
+                })
+
         data = {
             'title': message.title,
             'sender': message.sender.username,
             'recipient': message.recipient.username,
             'created_at': message.created_at.strftime('%Y-%m-%d %H:%M'),
             'content': message_detail.content,
-            'application_object_id': message_detail.application_object_id
-            if message_detail.application_object_id else '',
             'application_content_type': message_detail.application_content_type.model
             if message_detail.application_content_type else '',
+            'related_messages': related_messages_data,
         }
         return JsonResponse(data)
     except Exception as e:
@@ -204,10 +228,8 @@ def view_message_detail(request, message_id):
 
 
 def view_application_detail(request, application_id):
-    print(2)
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
-
     try:
         application = ExhibitionApplication.objects.get(id=application_id)
         location = application.exhibition.venue.name + ' >>'
@@ -244,6 +266,8 @@ def reply_message(request, message_id):
             # 如果消息关联了申请，则将回复消息也关联到申请
             if message_detail.application_object_id:
                 application = message_detail.application
+                if application.stage != ExhibitionApplication.Stage.INITIAL_SUBMISSION:
+                    return JsonResponse({'error': 'Application has been processed.'}, status=200)
                 application_type = ContentType.objects.get_for_model(application)
                 new_message = Message.objects.create(title=title, sender=request.user, recipient=message.sender)
                 new_message_detail = MessageDetail.objects.create(message=new_message, content=content,
@@ -257,6 +281,66 @@ def reply_message(request, message_id):
                 new_message.detail = new_message_detail
                 new_message.save()
             return JsonResponse({'success': 'Reply sent successfully.'}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
+    else:
+        return HttpResponseNotAllowed(['POST'])
+
+
+def reject_application(request, application_id):
+    if request.method == 'POST':
+        if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+        try:
+            # 获取申请实例
+            application = ExhibitionApplication.objects.get(id=application_id)
+            if application.stage != ExhibitionApplication.Stage.INITIAL_SUBMISSION:
+                return JsonResponse({'error': 'Application has been processed.'}, status=200)
+            application.stage = ExhibitionApplication.Stage.REJECTED
+            application.save()
+
+            # 发送拒绝消息
+            application_type = ContentType.objects.get_for_model(application)
+            content = 'Sorry, your application ' + application.exhibition.name + ' has been rejected.'
+            new_message = Message.objects.create(title='Exhibition Application Rejected',
+                                                 sender=request.user, recipient=application.applicant)
+            new_message_detail = MessageDetail.objects.create(message=new_message,
+                                                              content=content,
+                                                              application_object_id=application.id,
+                                                              application_content_type=application_type)
+            new_message.detail = new_message_detail
+            new_message.save()
+            return JsonResponse({'success': 'Application rejected successfully.'}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
+    else:
+        return HttpResponseNotAllowed(['POST'])
+
+
+def accept_application(request, application_id):
+    if request.method == 'POST':
+        if not hasattr(request.user, 'manager'):
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+        try:
+            # 获取申请实例
+            application = ExhibitionApplication.objects.get(id=application_id)
+            if application.stage != ExhibitionApplication.Stage.INITIAL_SUBMISSION:
+                return JsonResponse({'error': 'Application has been processed.'}, status=200)
+            application.stage = ExhibitionApplication.Stage.ACCEPTED
+            application.save()
+
+            # 发送接受消息
+            application_type = ContentType.objects.get_for_model(application)
+            content = 'Congratulations! Your application ' + application.exhibition.name + ' has been accepted.'
+            new_message = Message.objects.create(title='Exhibition Application Accepted',
+                                                 sender=request.user, recipient=application.applicant)
+            new_message_detail = MessageDetail.objects.create(message=new_message,
+                                                              content=content,
+                                                              application_object_id=application.id,
+                                                              application_content_type=application_type)
+            new_message.detail = new_message_detail
+            new_message.save()
+            return JsonResponse({'success': 'Application accepted successfully.'}, status=200)
         except Exception as e:
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
     else:

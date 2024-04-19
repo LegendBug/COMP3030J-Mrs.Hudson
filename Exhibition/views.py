@@ -1,13 +1,11 @@
 import datetime
 
 from django.contrib.contenttypes.models import ContentType
-from django.utils import timezone
 
 from django.http import JsonResponse, HttpResponseNotAllowed
 
 from Exhibition.forms import ExhibApplicationForm
 from Exhibition.models import Exhibition, ExhibitionApplication
-from Layout.models import SpaceUnit
 from User.models import Message, MessageDetail, Organizer, Manager
 from Venue.models import Venue
 
@@ -44,7 +42,6 @@ def create_exhib_application(request):
             new_exhib_application = ExhibitionApplication.objects.create(applicant=request.user,
                                                                          description=description,
                                                                          exhibition=new_exhibition)
-            print(1)
             new_exhibition.application = new_exhib_application
             new_exhibition.save()
             new_exhib_application.save()

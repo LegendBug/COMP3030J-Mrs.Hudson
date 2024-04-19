@@ -36,10 +36,7 @@ def venue(request, venue_id):
     request.session['venue_id'] = venue_id  # 将venue_id存入session
 
     user = request.user
-    user_type = 'Manager' if hasattr(request.user, 'manager') \
-        else 'Organizer' if hasattr(request.user, 'organizer') \
-        else 'Exhibitor' if hasattr(request.user, 'exhibitor') \
-        else 'Guest'
+    user_type = request.session.get('user_type', 'Manager')
     exhibitions = None
 
     if request.method == 'GET':
