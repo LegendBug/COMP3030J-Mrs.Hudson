@@ -24,6 +24,9 @@
 {% endblock %}
 
 {% block content %}
+    <!-- Konva舞台容器 -->
+    <div id="stage-container"></div>
+
     <!-- Floating Action Button -->
     {% if user.is_authenticated and user_type == 'Organizer' %}
         <a onclick="createExhibApply()" class="btn btn-primary rounded-circle shadow" id="createExhibApply"
@@ -126,17 +129,17 @@
 {% block scripts %}
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
-            function createExhibApply() {
-                const myModal = new bootstrap.Modal(document.getElementById('createExhibApplyModal'), {
-                    keyboard: false
-                });
-                myModal.show(); // 显示模态框
-            }
+                function createExhibApply() {
+                    const myModal = new bootstrap.Modal(document.getElementById('createExhibApplyModal'), {
+                        keyboard: false
+                    });
+                    myModal.show(); // 显示模态框
+                }
 
-            function openFilterModal() {
-                var filterModal = new bootstrap.Modal(document.getElementById('filterExhibitionsModal'));
-                filterModal.show();
-            }
+                function openFilterModal() {
+                    var filterModal = new bootstrap.Modal(document.getElementById('filterExhibitionsModal'));
+                    filterModal.show();
+                }
 
             function submitApplication() {
                 const formElement = document.getElementById('application-form');
@@ -170,9 +173,81 @@
                 });
             }
 
-            window.createExhibApply = createExhibApply;
-            window.submitApplication = submitApplication;
-            window.openFilterModal = openFilterModal;
-        });
+                window.createExhibApply = createExhibApply;
+                window.submitApplication = submitApplication;
+                window.openFilterModal = openFilterModal;
+
+
+                // konva.js-----------------------------------------------------------------------------------------------
+                var width = window.innerWidth * 0.8; // 获取窗口宽度
+                var height = window.innerHeight * 0.8; // 获取窗口高度
+
+                // 创建舞台并添加到舞台容器
+                var stage = new Konva.Stage({
+                    container: 'stage-container', // 容器的ID
+                    width: width,
+                    height: height,
+                    draggable: true
+                });
+
+                // 创建层级
+                var layer = new Konva.Layer();
+                stage.add(layer);
+
+                // 创建变形器并添加到层
+                var transformer = new Konva.Transformer();
+                layer.add(transformer);
+
+                // 添加shapes----------------------
+                Konva.Image.fromURL('{% static 'images/Layout/venue.jpg' %}', function (darthNode) {
+                    darthNode.setAttrs({
+                        x: 400,
+                        y: 50,
+                        scaleX: 1.2,
+                        scaleY: 1.2,
+                        cornerRadius: 20,
+                    });
+                    layer.add(darthNode);
+                });
+                // 添加shapes结束----------------------
+
+                // 实现了ctrl+鼠标滚轮能够放缩舞台的效果--------------------------------------
+                var scaleBy = 1.2;  // 定义缩放比例
+                stage.on('wheel', function (e) {
+                    e.evt.preventDefault();  // 阻止默认的滚动行为
+                    if (e.evt.ctrlKey) {  // 只有当Ctrl键被按下时才进行缩放
+                        var oldScale = stage.scaleX();  // 获取当前舞台的缩放比例
+                        var pointer = stage.getPointerPosition();  // 获取鼠标指针的位置
+
+                        var mousePointTo = {
+                            x: (pointer.x - stage.x()) / oldScale,
+                            y: (pointer.y - stage.y()) / oldScale,
+                        };
+
+                        var direction = e.evt.deltaY > 0 ? 1 : -1;  // 判断滚动方向
+                        var newScale = direction > 0 ? oldScale / scaleBy : oldScale * scaleBy;  // 计算新的缩放比例
+
+                        stage.scale({x: newScale, y: newScale});  // 设置新的缩放比例
+
+                        var newPos = {
+                            x: pointer.x - mousePointTo.x * newScale,
+                            y: pointer.y - mousePointTo.y * newScale,
+                        };
+                        stage.position(newPos);  // 更新舞台的位置以适应新的缩放
+                        layer.batchDraw();  // 重新绘制层
+                    }
+                });
+                // ----------------------------------------------------------------------
+
+
+                // 更新画布尺寸以适应窗口大小变化---------------------------------------------
+                window.addEventListener('resize', function () {
+                    stage.width(window.innerWidth);
+                    stage.height(window.innerHeight);
+                });
+                // ----------------------------------------------------------------------
+            }
+        )
+        ;
     </script>
 {% endblock %}
