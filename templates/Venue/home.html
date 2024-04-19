@@ -4,99 +4,228 @@
 {% load crispy_forms_tags %}
 
 {% block extra_head %}
-    <title>Homepage</title>
-    <link rel="stylesheet" href="{% static 'css/Venue/home.css' %}">
+<title>Venue Homepage</title>
+<link rel="stylesheet" href="{% static 'css/Venue/home.css' %}">
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-4">
-        <div class="row row-cols-1 row-cols-md-2 g-4">
-            {% for venue in venues %}
-                <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        {% if venue.image %}
-                            <a href="{% url 'Venue:venue' venue.id %}">
-                                <img src="{{ venue.image.url }}" class="card-img-top" alt="{{ venue.name }}">
-                            </a>
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a href="{% url 'Venue:venue' venue.id %}" class="text-decoration-none">{{ venue.name }}</a>
-                            </h5>
-                            <p class="card-text">{{ venue.address }}</p>
-                            <p class="card-text">Area: {{ venue.area }} m²</p>
-                            <p class="card-text">Floor: {{ venue.floor }}</p>
-                        </div>
-                    </div>
+<div class="container mt-4">
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for venue in venues %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                {% if venue.image %}
+                <a href="{% url 'Venue:venue' venue.id %}">
+                    <img src="{{ venue.image.url }}" class="card-img-top" alt="{{ venue.name }}">
+                </a>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{% url 'Venue:venue' venue.id %}" class="text-decoration-none">{{ venue.name }}</a>
+                    </h5>
+                    <p class="card-text">{{ venue.address }}</p>
+                    <p class="card-text">Area: {{ venue.area }} m²</p>
+                    <p class="card-text">Floor: {{ venue.floor }}</p>
+                    {% if user.is_authenticated and user_type == 'Manager' %}
+                    <a href="#" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#venueInfoModal"
+                    data-venue-id="{{ venue.id }}" data-venue-name="{{ venue.name }}"
+                    data-venue-address="{{ venue.address }}" data-venue-area="{{ venue.area }}"
+                    data-venue-floor="{{ venue.floor }}" data-venue-image="{{ venue.image.url }}"
+                    data-venue-description="{{ venue.description }}">Info</a>
+                    <a href="#" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#venueModifyModal" data-venue-id="{{ venue.id }}">Modify</a>
+                    <a href="#" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#venueDeleteModal" data-venue-id="{{ venue.id }}">Delete</a>
+                    {% endif %}
                 </div>
-            {% endfor %}
+            </div>
         </div>
+        {% endfor %}
     </div>
+</div>
 
-    <!-- Floating Action Button -->
-    {% if user.is_authenticated and user_type == 'Manager' %}
-        <a href="#" class="btn btn-primary rounded-circle shadow" id="add-venue-btn"
-           style="position: fixed; bottom: 100px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-           data-bs-toggle="modal" data-bs-target="#venueModal">
-            +
-        </a>
-    {% endif %}
-    <!-- Modal for creating a new venue -->
-    <div class="modal fade" id="venueModal" tabindex="-1" aria-labelledby="venueModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Create a Venue</h5>
-                </div>
-                <div class="modal-body">
-                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        {{ form|crispy }}
-                        <div id="message-container"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Create Venue</button>
-                        </div>
-                    </form>
+<!-- Modal for displaying the info of a venue -->
+<div class="modal fade" id="venueInfoModal" tabindex="-1" aria-labelledby="venueInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="venueInfoModalLabel">Venue Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-4" id="venueImageContainer">
+                        <!-- Venue image will be displayed here -->
+                    </div>
+                    <div class="col-8">
+                        <p><strong>Name:</strong> <span id="venueName"></span></p>
+                        <p><strong>Address:</strong> <span id="venueAddress"></span></p>
+                        <p><strong>Area:</strong> <span id="venueArea"></span> m²</p>
+                        <p><strong>Floor:</strong> <span id="venueFloor"></span></p>
+                        <p><strong>Description:</strong> <span id="venueDescription"></span></p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+
+<!-- Modal for modifying a venue -->
+<div class="modal fade" id="venueModifyModal" tabindex="-1" aria-labelledby="venueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Modify the Venue</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div id="message-container"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Modify Venue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for deleting a venue -->
+<div class="modal fade" id="venueDeleteModal" tabindex="-1" aria-labelledby="venueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Delete the Venue</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <p>Are you sure you want to delete this venue?</p>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-danger">Delete!</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for creating a new venue -->
+<div class="modal fade" id="venueModal" tabindex="-1" aria-labelledby="venueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Create a Venue</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div id="message-container"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Create Venue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var myModal = new bootstrap.Modal(document.getElementById('venueModal'), {});
-            // 监听悬浮按钮点击事件，显示模态框
-            document.getElementById('add-venue-btn').addEventListener('click', function () {
-                myModal.show();
-            });
+<script>
+    // TODO I don't know why but the loading of the page is very slow...
+    document.addEventListener('DOMContentLoaded', function () {
+        const infoButtons = document.querySelectorAll('[data-bs-target="#venueInfoModal"]');
 
-            // 表单提交处理
-            var form = document.querySelector('form');
+        infoButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const venueId = this.getAttribute('data-venue-id');
+
+                // Fetch venue details from the server or from embedded data attributes
+                const venueName = this.getAttribute('data-venue-name');
+                const venueAddress = this.getAttribute('data-venue-address');
+                const venueArea = this.getAttribute('data-venue-area');
+                const venueFloor = this.getAttribute('data-venue-floor');
+                const venueImage = this.getAttribute('data-venue-image');
+                const venueDescription = this.getAttribute('data-venue-description');
+
+                // Populate modal with fetched data
+                document.getElementById('venueName').textContent = venueName;
+                document.getElementById('venueAddress').textContent = venueAddress;
+                document.getElementById('venueArea').textContent = venueArea;
+                document.getElementById('venueFloor').textContent = venueFloor;
+                document.getElementById('venueDescription').textContent = venueDescription;
+
+                const imageContainer = document.getElementById('venueImageContainer');
+                imageContainer.innerHTML = ''; // Clear previous images if any
+                if (venueImage) {
+                    const img = document.createElement('img');
+                    img.src = venueImage;
+                    img.className = 'img-fluid rounded';
+                    img.alt = venueName;
+                    imageContainer.appendChild(img);
+                }
+            });
+        });
+
+
+        // Update form actions based on the clicked modify/delete buttons
+        const modifyButtons = document.querySelectorAll('[data-bs-target="#venueModifyModal"]');
+        const deleteButtons = document.querySelectorAll('[data-bs-target="#venueDeleteModal"]');
+
+        modifyButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const venueId = this.getAttribute('data-venue-id');
+                const form = document.querySelector('#venueModifyModal form');
+                form.action = `{% url 'Venue:modify_venue' 0 %}`.replace('0', venueId);
+            });
+        });
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const venueId = this.getAttribute('data-venue-id');
+                const form = document.querySelector('#venueDeleteModal form');
+                form.action = `{% url 'Venue:delete_venue' 0 %}`.replace('0', venueId);
+            });
+        });
+
+        // Handle form submissions for adding, modifying, and deleting venues
+        document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                var formData = new FormData(form);
-                axios.post(' {% url 'Venue:home' %}', formData).then(function (response) {
+                const formData = new FormData(form);
+                axios.post(form.action, formData).then(function (response) {
                     const messageContainer = document.getElementById('message-container');
                     if (response.data.success) {
                         messageContainer.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
-                        messageContainer.style.display = 'block';  // Make sure the message container is visible
-                        // 设置定时器等待1.5秒后关闭模态框并刷新页面
+                        messageContainer.style.display = 'block';  // Ensure the message container is visible
                         setTimeout(function () {
-                            myModal.hide(); // 关闭模态框
-                            window.location.reload(); // 刷新页面
-                        }, 1500); // 1500毫秒后执行
-                    }
-                    if (response.data.errors) {
+                            $('.modal').modal('hide'); // Close all modals
+                            window.location.reload(); // Refresh page
+                        }, 1500);
+                    } else if (response.data.errors) {
                         messageContainer.innerHTML = `<div class="alert alert-danger">${response.data.errors}</div>`;
-                        messageContainer.style.display = 'block';  // Make sure the message container is visible
+                        messageContainer.style.display = 'block';
                     }
                 }).catch(function (error) {
                     console.log('An error occurred:', error);
                 });
             });
         });
-    </script>
+    });
+</script>
 {% endblock %}

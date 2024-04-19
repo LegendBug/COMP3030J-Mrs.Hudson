@@ -71,3 +71,34 @@ def venue(request, venue_id):
         'application_form': application_form,
         'filter_form': filter_form
     })
+
+
+def modify_venue(request, venue_id):
+    if request.method == 'GET':
+        venue = Venue.objects.filter(id=venue_id).first()
+        if venue is None:
+            return redirect('Venue:home')
+        form = CreateVenueForm(instance=venue)
+        return render(request, 'Venue/modify_venue.html', {'form': form})
+    else:
+        if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
+            return JsonResponse({'errors': 'Permission denied!'}, status=403)
+        venue = Venue.objects.filter(id=venue_id).first()
+        if venue is None:
+            return JsonResponse({'errors': 'Venue not found!'}, status=404)
+        form = CreateVenueForm(request.POST, request.FILES, instance=venue)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': 'Venue modified successfully!'})
+        else:
+            return JsonResponse({'errors': form.errors.as_json()}, status=400)
+
+
+def delete_venue(request, venue_id):
+    if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
+        return JsonResponse({'errors': 'Permission denied!'}, status=403)
+    venue = Venue.objects.filter(id=venue_id).first()
+    if venue is None:
+        return JsonResponse({'errors': 'Venue not found!'}, status=404)
+    venue.delete()
+    return JsonResponse({'success': 'Venue deleted successfully!'})
