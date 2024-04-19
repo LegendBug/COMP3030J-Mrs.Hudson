@@ -13,21 +13,20 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container px-10 mt-2">
-{#        <div class="row">#}
-{#            <div class="col-auto">#}
-{#                <button onclick="backToList()" class="btn btn-success mt-3">Exhibition</button>#}
-{#            </div>#}
-{#            <div class="col-auto">#}
-{#                ${rejectButtonHtml}#}
-{#            </div>#}
-{#            <div class="col-auto">#}
-{#                ${acceptButtonHtml}#}
-{#            </div>#}
-{#        </div>#}
+    <div class="container px-10">
+        {% if item_type == 'applications' %}
+            <div class="row">
+                <div class="col-auto">
+                    <button class="btn btn-success mt-2"
+                            onclick="window.location.href='?item_type=applications&applications_type=exhibition'">
+                        Exhibition
+                    </button>
+                </div>
+            </div>
+        {% endif %}
 
         {% if page_obj %}
-            <div class="list-group shadow-sm mb-4">
+            <div class="list-group shadow-sm mb-4 mt-2">
                 {% if item_type == 'unread' or item_type == 'inbox' or item_type == 'sent' %}
                     {#消息列表#}
                     {% for message in page_obj %}
