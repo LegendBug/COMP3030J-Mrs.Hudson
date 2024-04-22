@@ -100,13 +100,13 @@
         {% else %}
             <div class="message-info mt-4">
             {% if item_type == 'unread' %}
-                <p class="message-info">Great job, all messages have been addressed!👍</p>
+                <p class="message-info">Great job. All messages have been addressed! 👍</p>
             {% elif item_type == 'inbox' %}
-                <p class="message-info">No message received yet.</p>
+                <p class="message-info">No message received yet. 😌</p>
             {% elif item_type == 'sent' %}
-                <p class="message-info">No sent messages.</p>
+                <p class="message-info">No sent messages. 😲</p>
             {% elif item_type == 'applications' %}
-                <p class="message-info">No Applications.</p>
+                <p class="message-info">No Applications. 😇</p>
             {% endif %}
             </div>
         {% endif %}
@@ -336,7 +336,7 @@
                     const container = document.getElementById('application-container');
 
                     // 显示确认对话框
-                    const confirmed = window.confirm("Are you sure you want to accept the application?🐱");
+                    const confirmed = window.confirm("Are you sure you want to accept the application? 🐱");
 
                     // 如果用户确认执行拒绝操作
                     if (confirmed) {
