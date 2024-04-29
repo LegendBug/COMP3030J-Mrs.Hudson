@@ -18,11 +18,11 @@ To address the outlined issues, we’re developing a resource management system 
 
 ### Recommended Environment
 
-+ Python 3.11
-+ Django 5.x
-+ MySQL 8.x
++ **Python 3.11**
++ **Django 5.x**
++ **MySQL 8.x**
 
-### Project Set-up
+### Project Setup
 
 First, install all required Python packages by run this command in your terminal:
 
@@ -30,14 +30,14 @@ First, install all required Python packages by run this command in your terminal
 pip install -r requirements.txt
 ```
 
-Then create a database schema called "hudson" in your RDBMS and run the following commands:
+Then create a database schema called `hudson` in your RDBMS and run the following commands:
 
 ``` shell
-# 生成迁移文件:
+# Generate migration files:
 python manage.py makemigrations
-# 执行迁移:
+# Execute migration:
 python manage.py migrate
-# 启动服务:
+# Run the service:
 python manage.py runserver
 ```
 
@@ -54,8 +54,8 @@ MYSQL_DATABASE='hudson'
 ### Additional Commands
 Using these commands to create superusers and new Django apps:
 ``` shell
-# 创建超级管理员:
+# Create a superuser:
 python manage.py createsuperuser
-# 创建新的模块/应用:
+# Create a new app:
 python manage.py startapp <app_name>
 ```
