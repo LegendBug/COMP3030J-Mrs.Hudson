@@ -37,7 +37,7 @@ Then create a database schema called `hudson` in your RDBMS and run the followin
 python manage.py makemigrations
 # Execute migration:
 python manage.py migrate
-# Run the service:
+# Run the server:
 python manage.py runserver
 ```
 
