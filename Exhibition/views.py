@@ -12,7 +12,7 @@ from Venue.models import Venue
 
 # TODO 下一阶段：添加展览申请限制条件
 # 创建展览申请
-def create_exhib_application(request):
+def create_exhibit_application(request):
     if request.method == 'POST':
         try:
             # 获取POST请求中的数据

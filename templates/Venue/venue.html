@@ -84,7 +84,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="application-form" method="post"
-                          action="{% url 'Exhibition:create_exhib_application' %}" enctype="multipart/form-data"
+                          action="{% url 'Exhibition:create_exhibit_application' %}" enctype="multipart/form-data"
                           class="needs-validation" novalidate>
                         {% csrf_token %}
                         {{ application_form|crispy }}

@@ -71,12 +71,21 @@
         </table>
     </div>
 
+    {#TODO 根据用户类型显示不同的按钮#}
+    <!-- 申请库存按钮 -->
+    <a href="#" class="btn btn-success rounded-circle shadow" id="add-venue-btn"
+       style="position: fixed; bottom: 170px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+       onclick="openAddInventoryModal();"> <!-- 这里改为调用函数 -->
+        📝
+    </a>
     <!-- 添加库存按钮 -->
-    <a href="#" class="btn btn-primary rounded-circle shadow" id="add-venue-btn"
+    <a href="#" class="btn btn-success rounded-circle shadow" id="add-venue-btn"
        style="position: fixed; bottom: 100px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
        onclick="openAddInventoryModal();"> <!-- 这里改为调用函数 -->
-        +
+        📦
     </a>
+
+
 
     {# 添加库存的模态框 #}
     <div class="modal fade" id="addInventoryModal" tabindex="-1" aria-labelledby="addInventoryModalLabel"
@@ -84,7 +93,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addInventoryModal">Add Supplies to the Inventory</h5>
+                    <h5 class="modal-title" id="addInventoryModal">Add new resource to the Inventory</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
