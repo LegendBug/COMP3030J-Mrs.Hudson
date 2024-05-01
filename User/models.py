@@ -30,7 +30,7 @@ class Exhibitor(models.Model):
 
 
 class Message(models.Model):
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=100)
     created_at = models.DateTimeField(default=timezone.now)
     # sender/recipient : Manager/Organizer/Exhibitor, Django泛型
     # 注意这里的settings不是settings.py，而是django.conf.settings
@@ -57,7 +57,6 @@ class Application(models.Model):
 
     class Stage(models.TextChoices):
         INITIAL_SUBMISSION = 'IS', 'INITIAL_SUBMISSION'  # 初始提交
-        REFINED_SUBMISSION = 'RS', 'REFINED_SUBMISSION'  # 完善提交
         REJECTED = 'RJ', 'REJECTED'  # 拒绝申请
         ACCEPTED = 'AC', 'ACCEPTED'  # 完成申请
 

@@ -10,12 +10,12 @@ from User.models import Message, MessageDetail, Organizer, Manager
 from Venue.models import Venue
 
 
-# TODO 下一阶段：添加展览申请限制条件
 # 创建展览申请
 def create_exhibit_application(request):
     if request.method == 'POST':
         try:
             # 获取POST请求中的数据
+            print('create')
             form = ExhibApplicationForm(request.POST, request.FILES)
             if not form.is_valid():
                 # 获取第一个错误信息
@@ -30,6 +30,14 @@ def create_exhibit_application(request):
             image = form.cleaned_data.get('exhib_image')
             sectors = form.cleaned_data.get('exhib_sectors')
             content = form.cleaned_data.get('message_content')
+
+            print(len(sectors))
+            for sector in sectors:
+                print(sector.name)
+                print(sector.affiliation_object_id)
+                print(sector.affiliation_content_type)
+
+            print('end')
 
             # 创建新的展览和展览申请
             venue = Venue.objects.get(pk=venue_id)
@@ -58,6 +66,5 @@ def create_exhibit_application(request):
         except Exception as e:
             print(e)
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
-            #return JsonResponse({'success': 'Exhibition application created successfully!'}, status=200)
     else:
         return HttpResponseNotAllowed(['POST'])

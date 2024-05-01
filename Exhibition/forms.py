@@ -21,9 +21,8 @@ class ExhibApplicationForm(forms.Form):
         widget=forms.DateTimeInput(attrs={'id': 'exhibEndAt', 'type': 'datetime-local', 'step': 60}),
         required=True, label="End Date")
     exhib_image = forms.ImageField(widget=forms.FileInput(attrs={'id': 'exhibImage'}), required=True, label="Image")
-    # TODO 通过单独的页面选择SpaceUnits
     exhib_sectors = forms.ModelMultipleChoiceField(
-        queryset=SpaceUnit.objects.all(),
+        queryset=SpaceUnit.objects.none(),
         widget=forms.SelectMultiple(attrs={'id': 'exhibSectors'}),  # 设置为多选下拉框
         required=True,
         label="Exhibition Sectors"  # 更改标签以表示多个选择
@@ -39,6 +38,19 @@ class ExhibApplicationForm(forms.Form):
         # 设置默认日期为今天
         self.fields['exhib_start_at'].initial = datetime.date.today()
         self.fields['exhib_sectors'].label_from_instance = lambda obj: f"{obj.name}"
+        # 设置Sectors为某一场馆的SpaceUnits
+        affiliation_object_id = self.initial.get('affiliation_object_id')
+        affiliation_content_type = self.initial.get('affiliation_content_type')
+        print(affiliation_object_id)
+        print(affiliation_content_type)
+        if affiliation_object_id and affiliation_content_type:
+            self.fields['exhib_sectors'].queryset = SpaceUnit.objects.filter(
+                affiliation_object_id=affiliation_object_id,
+                affiliation_content_type=affiliation_content_type)
+            print("Set exhib_sectors queryset.")
+        else:
+            self.fields['exhib_sectors'].queryset = SpaceUnit.objects.all()
+            print("No affiliation_object_id or affiliation_content_type in initial data.")
 
     def clean(self):
         cleaned_data = super().clean()
