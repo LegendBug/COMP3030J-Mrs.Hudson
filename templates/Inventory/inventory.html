@@ -112,7 +112,7 @@
     <script>
         function confirmDelete(categoryId) {
             if (confirm('Are you sure to delete this category and all its items?')) {
-                window.location.href = "{% url 'Inventory:delete-category' 123 %}".replace('123', categoryId);
+                window.location.href = `{% url 'Inventory:delete-category' 0 %}`.replace('/0/', '/' + categoryId + '/');
             }
         }
 

@@ -2,48 +2,64 @@
 {% load static %}
 
 {% block extra_head %}
-    <title>Category Detail</title>
-    <link rel="stylesheet" href="{% static 'css/Inventory/category_detail.css' %}">
+<title>Category Detail</title>
+<link rel="stylesheet" href="{% static 'css/Inventory/category_detail.css' %}">
 {% endblock %}
 
 {% block extra_nav_icons %}
-    <!-- 在这里添加导航栏里额外的icon-->
-    {% if user.is_authenticated and user_type == 'Manager' %}
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
-        </li>
-    {% endif %}
+<!-- 在这里添加导航栏里额外的icon-->
+{% if user.is_authenticated and user_type == 'Manager' %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="fas fa-edit"></i> Layout</a>
+        <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
     </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
-    </li>
+{% endif %}
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="fas fa-edit"></i> Layout</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
+</li>
 {% endblock %}
 
-
 {% block content %}
-    <table class="table table-striped table-hover">
-        <thead>
-        <tr>
-            <th>Category</th>
-            <th>Whether in Use</th>
-            <th>Whether is Damaged</th>
-            <th>Last Modified Time</th>
-            <th>Location</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for item in items %}
-            <tr>
-                <td>{{ item.category.name }}</td>
-                <td>{{ item.is_using | yesno:"True,False" }}</td>
-                <td>{{ item.is_damaged | yesno:"True,False" }}</td>
-                <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>
-                <td>{{ item.location }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th>Category</th>
+        <th>Whether in Use</th>
+        <th>Whether is Damaged</th>
+        <th>Last Modified Time</th>
+        <th>Location</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in items %}
+    <tr>
+        <td>{{ item.category.name }}</td>
+        <td>{{ item.is_using | yesno:"Yes,No" }}</td>
+        <td>{{ item.is_damaged | yesno:"Yes,No" }}</td>
+        <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>
+        <td>{{ item.location }}</td>
+        <td>
+            <a href="{% url 'Inventory:item_detail' item.id %}">View Detail</a>
+            <a href="{% url 'Inventory:edit_item' item.id %}">Modify</a>
+            {% if item.affiliation != item.category.origin %}
+            <!-- 显示 Return 按钮 -->
+            <form method="post" action="{% url 'Inventory:return_item' item.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning btn-sm">Return</button>
+            </form>
+            {% else %}
+            <!-- 显示 Delete 按钮 -->
+            <form method="post" action="{% url 'Inventory:delete_item' item.id %}" style="display: inline;" onsubmit="return confirm('Are you sure?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

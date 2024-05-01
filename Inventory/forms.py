@@ -4,7 +4,8 @@ from Booth.models import Booth
 from Exhibition.models import Exhibition
 from Inventory.models import InventoryCategory, Item
 from django.contrib.contenttypes.models import ContentType
-
+from django import forms
+from .models import Item
 
 class EditInventoryCategoryForm(forms.ModelForm):
     class Meta:
@@ -81,3 +82,16 @@ class CreateInventoryCategoryForm(forms.ModelForm):
         if commit:
             Item.objects.bulk_create(items)
         return category
+
+class EditItemForm(forms.ModelForm):
+    class Meta:
+        model = Item
+        fields = ['name', 'is_using', 'is_damaged', 'power', 'water_consumption', 'location']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'is_using': forms.CheckboxInput(),
+            'is_damaged': forms.CheckboxInput(),
+            'power': forms.NumberInput(attrs={'class': 'form-control'}),
+            'water_consumption': forms.NumberInput(attrs={'class': 'form-control'}),
+            'location': forms.Select(attrs={'class': 'form-control'}),
+        }
