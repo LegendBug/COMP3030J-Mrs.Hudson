@@ -1,0 +1,18 @@
+{% extends "Public/base.html" %}
+
+{% block content %}
+<h2>Item Details</h2>
+<div class="detail-view">
+    <p><strong>Name:</strong> {{ item.name }}</p>
+    <p><strong>Is Using:</strong> {{ item.is_using | yesno:"Yes,No" }}</p>
+    <p><strong>Is Damaged:</strong> {{ item.is_damaged | yesno:"Yes,No" }}</p>
+    <p><strong>Last Modified:</strong> {{ item.last_modified | date:"Y-m-d H:i" }}</p>
+    <p><strong>Power:</strong> {{ item.power }} Watts</p>
+    <p><strong>Water Consumption:</strong> {{ item.water_consumption }} Liters</p>
+    <p><strong>Location:</strong> {{ item.location }}</p>
+    <div class="actions">
+        <a href="{% url 'Inventory:edit_item' item.id %}" class="btn btn-primary">Edit</a>
+        <a href="{% url 'Inventory:delete_item' item.id %}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this item?');">Delete</a>
+    </div>
+</div>
+{% endblock %}

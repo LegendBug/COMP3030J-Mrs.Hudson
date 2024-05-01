@@ -74,13 +74,13 @@ def venue(request, venue_id):
         if stage == 'REJECTED':  # 展览申请被拒绝
             continue
         elif stage == 'ACCEPTED':
-            stage = '✅ACCEPTED'
+            stage = '✅ ACCEPTED'
         elif exhibition.end_at < timezone.now():  # 展览已结束
-            stage = '🔴OUTDATED'
+            stage = '🔴 OUTDATED'
         elif exhibition.start_at < timezone.now() < exhibition.end_at:  # 展览进行中
-            stage = '🟢UNDERWAY'
+            stage = '🟢 UNDERWAY'
         else:
-            stage = '🟠PENDING'
+            stage = '🟠 PENDING'
         exhibitions_data.append({
             'id': exhibition.id,
             'name': exhibition.name,

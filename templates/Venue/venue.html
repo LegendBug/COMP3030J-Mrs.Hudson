@@ -2,7 +2,7 @@
 {% load crispy_forms_filters %}
 {% load static %}
 {% load crispy_forms_tags %}
-
+{#TODO 改进意见: Canvas画板太丑陋了, 最好加上类似于飞书的画框; 展会的展示框太丑了,最好换成Card的展示方式, 同home页面#}
 {% block extra_head %}
     <title>Venue</title>
     <link rel="stylesheet" href="{% static 'css/Venue/venue.css' %}">
@@ -15,7 +15,7 @@
             <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="fas fa-edit"></i> Layout</a>
+            <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>

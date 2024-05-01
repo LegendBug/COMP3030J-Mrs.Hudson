@@ -1,9 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+
 from Booth.models import Booth
 from Exhibition.models import Exhibition
-from Inventory.forms import EditInventoryCategoryForm, CreateInventoryCategoryForm
+from Inventory.forms import EditInventoryCategoryForm, CreateInventoryCategoryForm, EditItemForm
 from Inventory.models import InventoryCategory, Item
 from Venue.models import Venue
 
@@ -85,7 +87,7 @@ def edit_inventory_category(request, category_id):
         form = EditInventoryCategoryForm(request.POST, request.FILES, instance=category)
         if form.is_valid():
             form.save()
-            return redirect('Inventory:venue-inventory')  # 重定向到某个合适的页面
+            return redirect('Inventory:inventory')  # 重定向到某个合适的页面
     else:
         form = EditInventoryCategoryForm(instance=category)
     return render(request, 'Inventory/edit_category.html', {'form': form})
@@ -94,11 +96,67 @@ def edit_inventory_category(request, category_id):
 @login_required
 def delete_inventory_category(request, category_id):
     category = get_object_or_404(InventoryCategory, pk=category_id)
-    category.delete()  # 这会级联删除所有相关的 Item 对象，如果在模型中设置了 `on_delete=models.CASCADE`
-    return redirect('Inventory:inventory')  # 重定向到列表页
+    user_type = request.session.get('user_type', 'Guest')  # 从会话中获取用户类型
 
+    # 检查 category 下是否有正在使用的 item
+    if category.items.filter(is_using=True).exists():
+        messages.error(request, "Some items are currently in use and cannot be deleted.")
+        return redirect('Inventory:inventory')
+
+    # 处理不同用户类型的权限和逻辑
+    if user_type == 'Manager' or (user_type in ['Organizer', 'Exhibitor'] and not category.is_public):
+        category.delete()
+        messages.success(request, "Category deleted successfully.")
+    else:
+        messages.error(request,
+                       "Cannot delete a public category. Please go to category details to return or delete items.")
+
+    return redirect('Inventory:inventory')
 
 # TODO 在展会详情界面完成后，添加库存申请功能
 def create_res_application(request):
     if request.method == 'POST':
         pass
+
+
+@login_required
+def item_detail_view(request, item_id):
+    item = get_object_or_404(Item, pk=item_id)
+    return render(request, 'Inventory/item_detail.html', {'item': item})
+
+@login_required
+def edit_item(request, item_id):
+    item = get_object_or_404(Item, pk=item_id)
+    if request.method == 'POST':
+        form = EditItemForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            return redirect('Inventory:inventory')
+    else:
+        form = EditItemForm(instance=item)
+    return render(request, 'Inventory/edit_item.html', {'form': form})
+
+# @login_required
+# def delete_item(request, item_id):
+#     item = get_object_or_404(Item, pk=item_id)
+#     item.delete()
+#     return redirect('Inventory:inventory')
+
+
+@login_required
+def return_item(request, item_id):
+    if request.method == 'POST':
+        item = get_object_or_404(Item, pk=item_id)
+        # 修改 affiliation 至 origin
+        item.affiliation = item.category.origin
+        item.save()
+        messages.success(request, "Item returned successfully.")
+        return redirect('Inventory:category_detail', category_id=item.category.id)
+
+@login_required
+def delete_item(request, item_id):
+    if request.method == 'POST':
+        item = get_object_or_404(Item, pk=item_id)
+        item.delete()
+        messages.success(request, "Item deleted successfully.")
+        return redirect('Inventory:category_detail', category_id=item.category.id)

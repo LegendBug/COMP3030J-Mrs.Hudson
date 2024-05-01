@@ -16,7 +16,7 @@
         </li>
     {% endif %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="fas fa-edit"></i> Layout</a>
+        <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
     </li>
     <li class="nav-item">
         <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
@@ -121,7 +121,7 @@
     <script>
         function confirmDelete(categoryId) {
             if (confirm('Are you sure to delete this category and all its items?')) {
-                window.location.href = "{% url 'Inventory:delete-category' 123 %}".replace('123', categoryId);
+                window.location.href = `{% url 'Inventory:delete-category' 0 %}`.replace('/0/', '/' + categoryId + '/');
             }
         }
 
