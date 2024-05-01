@@ -1,7 +1,10 @@
-#contextMenu {
-    z-index: 1050; /* 确保菜单显示在最前面 */
+#contextMenu, #elementMenu {
+    position: absolute;
+    display: none;
     width: 200px; /* 菜单宽度 */
+    z-index: 3000;  /* 设置较高的z-index值 */
 }
+
 
 .accordion-item {
     margin-bottom: 10px; /* 添加10px的间隙在accordion项之间 */

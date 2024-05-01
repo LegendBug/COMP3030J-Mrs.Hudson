@@ -74,9 +74,7 @@
                          data-bs-parent="#subLayersAccordion1">
                         <div class="accordion-body">
 
-                            
-                            
-                            
+
                         </div>
                     </div>
                 </div>
@@ -94,10 +92,37 @@
         <a href="#" class="list-group-item list-group-item-action" onclick="addBackground()">添加背景图</a>
     </div>
 
+    <div id="elementMenu" class="list-group" style="position: absolute; display: none;">
+        <a href="#" class="list-group-item list-group-item-action" onclick="renameElement()">重命名</a>
+        <a href="#" class="list-group-item list-group-item-action" onclick="deleteElement()">删除</a>
+    </div>
+
+
 {% endblock %}
 
 
 {% block scripts %}
     <script src="{% static 'js/Layout/layout.js' %}"></script>
     <script src="{% static 'js/Layout/canvas.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 绑定Layer管风琴的右键菜单
+            document.querySelectorAll('.accordion-button').forEach(item => {
+                item.addEventListener('contextmenu', function (event) {
+                    event.preventDefault(); // Prevent default right-click menu
+                    showContextMenu(event, item);
+                });
+            });
+            
+            // 绑定Element按钮的右键菜单
+            document.querySelectorAll('.element-btn').forEach(btn => {
+                btn.addEventListener('contextmenu', function (event) {
+                    event.preventDefault();
+                    showElementContextMenu(event, btn);
+                });
+            });
+        });
+
+
+    </script>
 {% endblock %}

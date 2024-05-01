@@ -44,21 +44,7 @@ floatingActionButton.addEventListener('click', function () {
     }
 });
 // ----------------------------------------------------------------------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', function () {
-    initializeContextMenu();
-});
-
-function initializeContextMenu() {
-    const contextMenu = document.getElementById('contextMenu');
-
-    document.querySelectorAll('.accordion-button').forEach(item => {
-        item.addEventListener('contextmenu', function (event) {
-            event.preventDefault(); // Prevent default right-click menu
-            showContextMenu(event, item);
-        });
-    });
-}
-
+/*Layer Item的Context Menu 控制逻辑*/
 function showContextMenu(event, item) {
     const contextMenu = document.getElementById('contextMenu');
     contextMenu.style.top = `${event.pageY}px`;
@@ -84,6 +70,10 @@ function createFabricElement() {
         const newButton = document.createElement('button');
         newButton.textContent = 'New Element';
         newButton.className = 'btn element-btn mt-2';
+        newButton.addEventListener('contextmenu', function (event) {
+            event.preventDefault();
+            showElementContextMenu(event, newButton);
+        });
         accordionBody.appendChild(newButton);
     } else {
         console.error('Accordion body not found!');
@@ -116,6 +106,25 @@ function addBackground() {
             accordionBody.style.backgroundImage = 'url(https://example.com/new-background.jpg)';
         }
     }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+/*Element Item的Context Menu 控制逻辑*/
+function showElementContextMenu(event, btn) {
+    const elementMenu = document.getElementById('elementMenu'); // 获取Element的右键菜单
+    if (!elementMenu) {
+        console.error('Element menu not found!');
+        return;
+    }
+    elementMenu.style.top = `${event.pageY}px`;
+    elementMenu.style.left = `${event.pageX}px`;
+    elementMenu.style.display = 'block';
+    elementMenu.relatedTarget = btn;  // 将目标按钮设置为相关目标
+
+    // 点击其他地方时隐藏菜单
+    document.addEventListener('click', function () {
+        elementMenu.style.display = 'none';
+    }, {once: true});
 }
 
 
