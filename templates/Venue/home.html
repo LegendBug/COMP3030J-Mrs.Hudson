@@ -2,7 +2,7 @@
 {% load crispy_forms_filters %}
 {% load static %}
 {% load crispy_forms_tags %}
-
+{#TODO 改进意见: 按钮太丑了, 得换一种样式(比如悬浮按钮?下拉框式的按钮?); css可能存在bug, 当上传的图片宽高不一致时Card会变形; 可以加一些动画效果#}
 {% block extra_head %}
     <title>Venue Homepage</title>
     <link rel="stylesheet" href="{% static 'css/Venue/home.css' %}">

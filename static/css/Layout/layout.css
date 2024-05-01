@@ -1,0 +1,21 @@
+#contextMenu {
+    z-index: 1050; /* 确保菜单显示在最前面 */
+    width: 200px; /* 菜单宽度 */
+}
+
+.accordion-item {
+    margin-bottom: 10px; /* 添加10px的间隙在accordion项之间 */
+}
+
+.element-btn {
+    width: 90%; /* 宽度是父容器的80% */
+    height: auto; /* 高度自动，根据内容调整 */
+    padding: 10px 0; /* 提供一些内边距，可根据需要调整 */
+    background-color: #7cbfee; /* 设置背景颜色 */
+    margin: 1px auto; /* 上下边距为5px，左右自动（居中） */
+    display: block; /* 使元素以块级显示 */
+    border: none; /* 无边框 */
+    color: white; /* 文字颜色为白色 */
+}
+
+
