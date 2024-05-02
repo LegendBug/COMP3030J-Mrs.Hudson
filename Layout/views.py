@@ -28,3 +28,22 @@ def layout(request):
     # 获取当前场馆的items
     items = venue.items.all()
     return render(request, 'Layout/layout.html', {'venue': venue, 'items': items, 'user_type': user_type})
+
+def add_layer(request):
+    pass
+
+def delete_layer(request):
+    pass
+
+def add_element(request):
+    pass
+
+def delete_element(request):
+    pass
+
+def save_layout(request):
+    pass
+
+
+
+

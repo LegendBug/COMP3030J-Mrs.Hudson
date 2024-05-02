@@ -31,101 +31,195 @@
 
 
 {% block content %}
+    <div id="app">
+        <!-- Floating Action Button -->
+        <button @click="toggleOffcanvas" class="btn btn-primary rounded shadow" id="toggle-offcanvas-btn"
+                :style="buttonStyle">
+            <i :class="offcanvasOpen ? 'fas fa-chevron-left' : 'fas fa-chevron-right'"></i>
+        </button>
 
-    <!-- Floating Action Button -->
-    <button href="#" class="btn btn-primary rounded shadow" id="toggle-offcanvas-btn" type="button"
-            data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling"
-            style="position: fixed; bottom: 45vh; left: 10px; z-index: 1040; width: 25px; height: 50px; display: flex; justify-content: center; align-items: center; font-size: 30px;">
-        <i class="fas fa-chevron-right"></i>
-    </button>
 
-    <div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
-         id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
+        <!-- Offcanvas -->
+        <div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" id="offcanvasScrolling"
+             tabindex="-1"
+             aria-labelledby="offcanvasScrollingLabel"
+             :class="{'show': offcanvasOpen}" style="visibility: visible;">
 
-        <div class="offcanvas-header">
-            {# 按钮: Return#}
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="offcanvas">Return</button>
-            {# Dropdown: Floor#}
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    Select Floor
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
-                    <li><a class="dropdown-item" href="#">Floor 1</a></li>
-                    <li><a class="dropdown-item" href="#">Floor 2</a></li>
-                    <li><a class="dropdown-item" href="#">Floor 3</a></li>
-                </ul>
+            <div class="offcanvas-header">
+                {# 按钮: Return#}
+                <button type="button" class="btn btn-secondary" @click="toggleOffcanvas">Return</button>
+                {# Dropdown: Floor#}
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        Select Floor
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
+                        <li><a class="dropdown-item" href="#">Floor 1</a></li>
+                        <li><a class="dropdown-item" href="#">Floor 2</a></li>
+                        <li><a class="dropdown-item" href="#">Floor 3</a></li>
+                    </ul>
+                </div>
+                {# 按钮: Save#}
+                <button type="button" class="btn btn-primary" onclick="saveLayout()">Save</button>
             </div>
-            {# 按钮: Save#}
-            <button type="button" class="btn btn-primary" onclick="saveLayout()">Save</button>
-        </div>
 
-        <div class="accordion-body">
-            <!-- Top层级Accordion -->
-            <div class="accordion" id="topLayerAccordion">
-                <div class="accordion-item">
-                    
-                    {% comment %}accordion-header{% endcomment %}
-                    <h2 class="accordion-header" id="subHeadingOne">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#subCollapseOne" aria-expanded="false" aria-controls="subCollapseOne">
-                            Top Layer
-                        </button>
-                    </h2>
-                    
-                    <div id="subCollapseOne" class="accordion-collapse collapse" aria-labelledby="subHeadingOne"
-                         data-bs-parent="#topLayerAccordion">
-                        {% comment %}accordion-body{% endcomment %}
-                        <div class="accordion-body">
-
-
+            <div class="offcanvas-body">
+                <!-- Top层级Accordion -->
+                <div v-for="(layer, index) in layers" :key="index" class="accordion" id="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button"
+                                    :class="{'collapsed': !layer.open}"
+                                    @click="toggleLayer(index)"
+                                    @contextmenu.prevent="showContextMenu($event, index)">
+                                {{ layer.name }}
+                            </button>
+                        </h2>
+                        <div v-if="layer.open" class="accordion-collapse">
+                            <div class="accordion-body">
+                                <!-- Recursively display child layers -->
+                                <layer-component v-for="(subLayer, subIndex) in layer.layers" :key="subIndex"
+                                                 :layer="subLayer" @toggle="toggleLayer"></layer-component>
+                            </div>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
-    </div>
 
-    {% comment %}在右键侧边栏中某个Layer时弹出{% endcomment %}
-    <div id="contextMenu" class="list-group" style="position: absolute; display: none;">
-        <a href="#" class="list-group-item list-group-item-action" onclick="renameLayer()">重命名</a>
-        <a href="#" class="list-group-item list-group-item-action" onclick="deleteLayer()">删除</a>
-        <a href="#" class="list-group-item list-group-item-action" onclick="createFabricElement()">创建元素</a>
-        <a href="#" class="list-group-item list-group-item-action" onclick="createLayer()">创建Layer</a>
-        <a href="#" class="list-group-item list-group-item-action">复制</a>
-        <a href="#" class="list-group-item list-group-item-action" onclick="addBackground()">添加背景图</a>
-    </div>
+        <!-- 上下文菜单 -->
+        <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
+             class="list-group context-menu">
+            <a class="list-group-item list-group-item-action" @click="addSubLayer(currentLayer); hideContextMenu()">Add
+                Sub-Layer</a>
+            <a class="list-group-item list-group-item-action" @click="addElement(currentLayer); hideContextMenu()">Add
+                Element </a>
+            <a class="list-group-item list-group-item-action" @click="removeLayer(currentLayer); hideContextMenu()">Remove
+                Layer</a>
+            <a class="list-group-item list-group-item-action" @click="renameLayer(currentLayer); hideContextMenu()">Rename </a>
+        </div>
 
-    <div id="elementMenu" class="list-group" style="position: absolute; display: none;">
-        <a href="#" class="list-group-item list-group-item-action" onclick="renameElement()">重命名</a>
-        <a href="#" class="list-group-item list-group-item-action" onclick="deleteElement()">删除</a>
-    </div>
 
+    </div>
 
 {% endblock %}
 
 
 {% block scripts %}
-    <script src="{% static 'js/Layout/layout.js' %}"></script>
+    {% comment %}<script src="{% static 'js/Layout/layout.js' %}"></script>{% endcomment %}
     <script src="{% static 'js/Layout/canvas.js' %}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // 绑定Layer管风琴的右键菜单
-            document.querySelectorAll('.accordion-button').forEach(item => {
-                item.addEventListener('contextmenu', function (event) {
-                    event.preventDefault(); // Prevent default right-click menu
-                    showContextMenu(event, item);
-                });
-            });
-            
-            // 绑定Element按钮的右键菜单
-            document.querySelectorAll('.element-btn').forEach(btn => {
-                btn.addEventListener('contextmenu', function (event) {
+        Vue.component('layer-component', {
+            props: ['layer'],
+            template: `
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button"
+                            :class="{'collapsed': !layer.open}"
+                            @click="layer.open = !layer.open">
+                        {{ layer.name }}
+                    </button>
+                </h2>
+                <div v-if="layer.open" class="accordion-collapse">
+                    <div class="accordion-body">
+                        <layer-component v-for="(child, index) in layer.layers" :key="index" :layer="child"></layer-component>
+                    </div>
+                </div>
+            </div>
+          `
+        });
+
+        new Vue({
+            el: '#app',
+            data: {
+                layers: [{name: 'Top Layer', open: false, layers: []}],
+                offcanvasOpen: false,
+                isContextMenuVisible: false,
+                contextMenuY: 0,
+                contextMenuX: 0,
+                currentLayer: null,
+            },
+            mounted() {
+                // 监听全局点击事件，用于隐藏上下文菜单
+                document.addEventListener('click', this.handleOutsideClick);
+            },
+            beforeDestroy() {
+                // 组件销毁前移除事件监听
+                document.removeEventListener('click', this.handleOutsideClick);
+            },
+            computed: {
+                buttonStyle() {
+                    return {
+                        position: 'fixed',
+                        bottom: '45vh',
+                        left: this.offcanvasOpen ? '400px' : '10px', // Adjust '400px' as needed
+                        zIndex: '1040',
+                        width: '25px',
+                        height: '50px',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        fontSize: '30px'
+                    };
+                }
+            },
+            methods: {
+                // 处理全局点击事件
+                handleOutsideClick(e) {
+                    // 如果点击的不是上下文菜单,则隐藏菜单
+                    if (!e.target.closest('.context-menu')) {
+                        this.hideContextMenu();
+                    }
+                },
+                // 控制 Offcanvas 的显示与隐藏
+                toggleOffcanvas() {
+                    this.offcanvasOpen = !this.offcanvasOpen;
+                    this.hideContextMenu(); // 当开启或关闭 Offcanvas 时隐藏上下文菜单
+                    let offcanvasElement = document.getElementById('offcanvasScrolling');
+                    offcanvasElement.style.visibility = this.offcanvasOpen ? 'visible' : 'hidden';
+                },
+                // 控制 Layer 的展开与折叠
+                toggleLayer(index) {
+                    this.layers[index].open = !this.layers[index].open;
+                },
+                // ----------------- Context Menu -----------------
+                showContextMenu(event, index) {
                     event.preventDefault();
-                    showElementContextMenu(event, btn);
-                });
-            });
+                    this.currentLayer = index;
+                    this.contextMenuX = event.clientX + 'px'; // 确保使用 px 为单位
+                    this.contextMenuY = event.clientY + 'px';
+                    this.isContextMenuVisible = true;
+                },
+                hideContextMenu() {
+                    this.isContextMenuVisible = false;
+                },
+                // ----------------- Layer Group List Menu -----------------
+                addSubLayer(index) {
+                    const newName = 'New Sub-Layer ' + (this.layers[index].layers.length + 1);
+                    this.layers[index].layers.push({name: newName, open: false, layers: []});
+                },
+                removeLayer(index) {
+                    if (index > 0) { // 防止删除顶级层
+                        this.layers.splice(index, 1);
+                        console.log("Layer removed at index: ", index);
+                    } else {
+                        console.log("Top Layer cannot be removed.");
+                    }
+                },
+
+                addElement(index) {
+                    console.log("Add element to layer: ", index);
+                },
+                renameLayer(index) {
+                    const newName = prompt("Enter new name for the layer:", this.layers[index].name);
+                    if (newName !== null && newName.trim() !== "") {
+                        this.layers[index].name = newName;
+                        console.log("Layer renamed to: ", newName);
+                    }
+                },
+            }
         });
     </script>
 {% endblock %}
