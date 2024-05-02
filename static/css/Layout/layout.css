@@ -11,7 +11,7 @@
 }
 
 .element-btn {
-    width: 90%; /* 宽度是父容器的80% */
+    width: 90%;
     height: auto; /* 高度自动，根据内容调整 */
     padding: 10px 0; /* 提供一些内边距，可根据需要调整 */
     background-color: #7cbfee; /* 设置背景颜色 */
@@ -21,4 +21,7 @@
     color: white; /* 文字颜色为白色 */
 }
 
+.accordion-collapse.collapse {
+    overflow: hidden;
+}
 

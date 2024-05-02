@@ -52,6 +52,8 @@ function showContextMenu(event, item) {
     contextMenu.style.display = 'block';
     contextMenu.relatedTarget = item.closest('.accordion-item');
 
+    console.log("Right-clicked on: ", item.closest('.accordion-item')); // Debug: 查看右键点击的元素
+
     // Hide context menu on any other click
     document.addEventListener('click', function () {
         contextMenu.style.display = 'none';
@@ -59,26 +61,83 @@ function showContextMenu(event, item) {
 }
 
 function createFabricElement() {
+    // 正确获取当前Accordion项的body部分
     const contextMenu = document.getElementById('contextMenu');
     if (!contextMenu.relatedTarget) {
         console.error('No target layer found!');
         return;
     }
-
-    const accordionBody = contextMenu.relatedTarget.querySelector('.accordion-collapse');
-    if (accordionBody) {
-        const newButton = document.createElement('button');
-        newButton.textContent = 'New Element';
-        newButton.className = 'btn element-btn mt-2';
-        newButton.addEventListener('contextmenu', function (event) {
-            event.preventDefault();
-            showElementContextMenu(event, newButton);
-        });
-        accordionBody.appendChild(newButton);
-    } else {
+    const accordionBody = contextMenu.relatedTarget.querySelector('.accordion-body');
+    if (!accordionBody) {
         console.error('Accordion body not found!');
+        return;
     }
+
+    // 创建新的Element按钮
+    const newButton = document.createElement('button');
+    newButton.textContent = 'New Element';
+    newButton.className = 'btn element-btn mt-2';
+    newButton.style.width = '100%'; // 确保按钮宽度适配其容器
+    // 为新按钮添加右键菜单的事件监听
+    newButton.addEventListener('contextmenu', function (event) {
+        event.preventDefault();
+        showElementContextMenu(event, newButton);
+    });
+
+    // 将新创建的按钮添加到正确的Accordion层级的body中
+    accordionBody.appendChild(newButton);
 }
+
+
+function createLayer() {
+    // 获取当前激活的Accordion的Body部分
+    const contextMenu = document.getElementById('contextMenu');
+    if (!contextMenu.relatedTarget) {
+        console.error('No target layer for creating new layer');
+        return;
+    }
+    const parentAccordionItem = contextMenu.relatedTarget; // 直接获取手风琴项
+    const parentAccordionBody = parentAccordionItem.querySelector('.accordion-body');
+    if (!parentAccordionBody) {
+        console.error('Parent accordion body not found!');
+        return;
+    }
+
+    console.log("Creating a new layer inside: ", parentAccordionBody); // Debug: 查看当前操作的父级元素
+
+
+    // 确保每个新的手风琴项都包含自己的折叠区域
+    const newAccordionItem = document.createElement('div');
+    newAccordionItem.className = 'accordion-item';
+    const newAccordionHeader = document.createElement('h2');
+    newAccordionHeader.className = 'accordion-header';
+    const uniqueId = `subHeading-${Math.random().toString(36).substr(2, 9)}`;
+    const newCollapseButton = document.createElement('button');
+    newCollapseButton.className = 'accordion-button collapsed';
+    newCollapseButton.setAttribute('data-bs-toggle', 'collapse');
+    newCollapseButton.setAttribute('data-bs-target', `#${uniqueId}`);
+    newCollapseButton.textContent = 'New Layer';
+    newAccordionHeader.appendChild(newCollapseButton);
+    const newAccordionCollapse = document.createElement('div');
+    newAccordionCollapse.id = uniqueId;
+    newAccordionCollapse.className = 'accordion-collapse collapse';
+    const newAccordionBody = document.createElement('div');
+    newAccordionBody.className = 'accordion-body';
+
+    newAccordionCollapse.appendChild(newAccordionBody);
+    newAccordionItem.appendChild(newAccordionHeader);
+    newAccordionItem.appendChild(newAccordionCollapse);
+
+    // 确保新手风琴项作为一个独立项添加
+    parentAccordionBody.appendChild(newAccordionItem);
+
+    // 确保新创建的子Accordion能够响应右键菜单
+    newAccordionItem.addEventListener('contextmenu', function (event) {
+        event.preventDefault();
+        showContextMenu(event, newAccordionItem);
+    });
+}
+
 
 function deleteLayer() {
     const contextMenu = document.getElementById('contextMenu');

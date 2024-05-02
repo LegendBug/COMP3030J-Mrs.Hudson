@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/fabric"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/Layout/layout.css' %}">
     <link rel="stylesheet" href="{% static 'css/Layout/canvas.css' %}">
 
@@ -61,17 +62,21 @@
         </div>
 
         <div class="accordion-body">
-            <!-- 一级子层级Accordion -->
-            <div class="accordion" id="subLayersAccordion1">
+            <!-- Top层级Accordion -->
+            <div class="accordion" id="topLayerAccordion">
                 <div class="accordion-item">
+                    
+                    {% comment %}accordion-header{% endcomment %}
                     <h2 class="accordion-header" id="subHeadingOne">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#subCollapseOne" aria-expanded="false" aria-controls="subCollapseOne">
                             Top Layer
                         </button>
                     </h2>
+                    
                     <div id="subCollapseOne" class="accordion-collapse collapse" aria-labelledby="subHeadingOne"
-                         data-bs-parent="#subLayersAccordion1">
+                         data-bs-parent="#topLayerAccordion">
+                        {% comment %}accordion-body{% endcomment %}
                         <div class="accordion-body">
 
 
@@ -122,7 +127,5 @@
                 });
             });
         });
-
-
     </script>
 {% endblock %}
