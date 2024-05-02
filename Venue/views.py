@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
@@ -30,6 +31,7 @@ def home(request):
             return JsonResponse({'errors': form.errors.as_json()}, status=400)  # TODO 此处前端没有遍历errors,导致报错消息无法显示
 
 
+# TODO 在展览过期后，将绑定的SpaceUnit的affiliation字段置空
 def venue(request, venue_id):
     current_venue = Venue.objects.filter(id=venue_id).first()
     if current_venue is None:
@@ -71,6 +73,7 @@ def venue(request, venue_id):
         for sector in exhibition.sectors.all():
             sectors += sector.name + ' '
         stage = exhibition.exhibition_application.get_stage_display()
+        # TODO 修复展览状态不对的问题
         if stage == 'REJECTED':  # 展览申请被拒绝
             continue
         elif stage == 'ACCEPTED':
@@ -92,7 +95,9 @@ def venue(request, venue_id):
             'organizer': exhibition.organizer.detail.username,
             'stage': stage
         })
-    application_form = ExhibApplicationForm()
+    affiliation_type = ContentType.objects.get_for_model(current_venue)  # 获取场馆的ContentType
+    application_form = ExhibApplicationForm(
+        initial={'affiliation_content_type': affiliation_type, 'affiliation_object_id': venue_id})  # 传入当前Type和场馆的id
     filter_form = FilterExhibitionsForm()
     return render(request, 'Venue/venue.html', {
         'exhibitions': exhibitions_data,

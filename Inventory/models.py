@@ -2,7 +2,7 @@ import os
 import uuid
 from django.conf import settings
 from django.db import models
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from User.models import Application
 
@@ -24,7 +24,7 @@ class InventoryCategory(models.Model):
         # 保存图片到新的路径
         super().save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs): # 重写了delete方法,使得删除前能够移除图片文件
+    def delete(self, *args, **kwargs):  # 重写了delete方法,使得删除前能够移除图片文件
         # 删除相关图片文件
         if self.image:
             if os.path.isfile(self.image.path):
@@ -33,7 +33,7 @@ class InventoryCategory(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    is_public = models.BooleanField(default=True) # 是否公开(即,是否可以被下一级的Exhibition/Booth申请)
+    is_public = models.BooleanField(default=True)  # 是否公开(即,是否可以被下一级的Exhibition/Booth申请)
     cost = models.FloatField(blank=True, null=True)
     # items : List<Item>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=inventory_category_upload_to, null=True, blank=True)
@@ -52,7 +52,8 @@ class Item(models.Model):
     water_consumption = models.FloatField(blank=True, null=True)
     last_modified = models.DateTimeField(auto_now=True)
     category = models.ForeignKey("Inventory.InventoryCategory", on_delete=models.CASCADE, related_name='items')
-    location = models.ForeignKey("Layout.SpaceUnit", on_delete=models.SET_NULL, null=True, related_name='items') # Item当前正位于哪一个SpaceUnit
+    location = models.ForeignKey("Layout.SpaceUnit", on_delete=models.SET_NULL, null=True,
+                                 related_name='items')  # Item当前正位于哪一个SpaceUnit
     # affiliation : Venue/Exhibition/Booth, Django泛型
     affiliation_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='items')
     affiliation_object_id = models.PositiveIntegerField()
@@ -62,20 +63,13 @@ class Item(models.Model):
 class ResourceApplication(Application):
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                   related_name='resource_applications')
-
-    content = models.TextField(blank=True, null=True)
-    category = models.ForeignKey("Inventory.InventoryCategory", on_delete=models.CASCADE, related_name='applications')
+    # 某个类型的资源被删除后，申请
+    category = models.OneToOneField("InventoryCategory", on_delete=models.CASCADE, null=True,
+                                    related_name='resource_application')
     quantity = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    # sent_from : Exhibition/Booth, Django泛型
-    sent_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='resource_applications')
-    sent_object_id = models.PositiveIntegerField()
-    sent_from = GenericForeignKey('sent_content_type', 'sent_object_id')
-    # sent_to : Exhibition/Venue, Django泛型
-    received_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE,
-                                              related_name='unresolved_resource_applications')
-    received_object_id = models.PositiveIntegerField()
-    sent_to = GenericForeignKey('received_content_type', 'received_object_id')
+    message_details = GenericRelation("User.MessageDetail", related_query_name='resource_application', null=True,
+                                      content_type_field='application_content_type',
+                                      object_id_field='application_object_id')
 
 
 class BreakageAlert(models.Model):
