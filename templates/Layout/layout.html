@@ -11,7 +11,6 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/Layout/layout.css' %}">
     <link rel="stylesheet" href="{% static 'css/Layout/canvas.css' %}">
-
 {% endblock %}
 
 {% block extra_nav_icons %}
@@ -140,6 +139,7 @@
                 contextMenuY: 0,
                 contextMenuX: 0,
                 currentLayer: null,
+                
             },
             mounted() {
                 // 监听全局点击事件，用于隐藏上下文菜单
@@ -167,12 +167,14 @@
             },
             methods: {
                 // 处理全局点击事件
+                // ----------------- 全局事件 -----------------
                 handleOutsideClick(e) {
                     // 如果点击的不是上下文菜单,则隐藏菜单
                     if (!e.target.closest('.context-menu')) {
                         this.hideContextMenu();
                     }
                 },
+                // ----------------- Offcanvas -----------------
                 // 控制 Offcanvas 的显示与隐藏
                 toggleOffcanvas() {
                     this.offcanvasOpen = !this.offcanvasOpen;
@@ -180,6 +182,7 @@
                     let offcanvasElement = document.getElementById('offcanvasScrolling');
                     offcanvasElement.style.visibility = this.offcanvasOpen ? 'visible' : 'hidden';
                 },
+                // ----------------- Accordions(Layers) -----------------
                 // 控制 Layer 的展开与折叠
                 toggleLayer(index) {
                     this.layers[index].open = !this.layers[index].open;
@@ -197,27 +200,16 @@
                 },
                 // ----------------- Layer Group List Menu -----------------
                 addSubLayer(index) {
-                    const newName = 'New Sub-Layer ' + (this.layers[index].layers.length + 1);
-                    this.layers[index].layers.push({name: newName, open: false, layers: []});
+                    
+                },
+                addElement(index) {
+                    
                 },
                 removeLayer(index) {
-                    if (index > 0) { // 防止删除顶级层
-                        this.layers.splice(index, 1);
-                        console.log("Layer removed at index: ", index);
-                    } else {
-                        console.log("Top Layer cannot be removed.");
-                    }
-                },
-
-                addElement(index) {
-                    console.log("Add element to layer: ", index);
+                    
                 },
                 renameLayer(index) {
-                    const newName = prompt("Enter new name for the layer:", this.layers[index].name);
-                    if (newName !== null && newName.trim() !== "") {
-                        this.layers[index].name = newName;
-                        console.log("Layer renamed to: ", newName);
-                    }
+                    
                 },
             }
         });
