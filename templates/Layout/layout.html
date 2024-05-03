@@ -55,6 +55,7 @@
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
                         {% for floor_number in floor_range %}
+                            {% comment %}我知道你想debug,但这个错误不影响程序的正常运行,单纯是IDE对Django模板渲染的错误提示,你可以忽略它{% endcomment %}
                             <li><a class="dropdown-item" href="#" @click="changeFloor({{ floor_number }})">Floor {{ floor_number }}</a></li>
                         {% endfor %}
                     </ul>
@@ -64,9 +65,9 @@
             </div>
 
             <div class="offcanvas-body">
-                
+
                 <!-- Top层级Accordion -->
-                <div v-for="(layer, index) in layers" :key="index" class="accordion" id="accordion">
+                <div v-for="(layer, index) in layers" :key="layer.id" class="accordion" id="accordion">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button" type="button"
@@ -79,29 +80,51 @@
                         <div v-if="layer.open" class="accordion-collapse">
                             <div class="accordion-body">
                                 <!-- Recursively display child layers -->
-                                <layer-component v-for="(subLayer, subIndex) in layer.layers" :key="subIndex"
+                                <layer-component v-for="(subLayer, subIndex) in layer.child_units" :key="subLayer.id"
                                                  :layer="subLayer" @toggle="toggleLayer"></layer-component>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
+
             </div>
         </div>
 
         <!-- 上下文菜单 -->
         <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
              class="list-group context-menu">
-            <a class="list-group-item list-group-item-action" @click="addSubLayer(currentLayer); hideContextMenu()">Add
+            <a class="list-group-item list-group-item-action" @click="openAddSubLayerModal(currentLayer); hideContextMenu()">Add
                 Sub-Layer</a>
             <a class="list-group-item list-group-item-action" @click="addElement(currentLayer); hideContextMenu()">Add
                 Element </a>
             <a class="list-group-item list-group-item-action" @click="removeLayer(currentLayer); hideContextMenu()">Remove
                 Layer</a>
-            <a class="list-group-item list-group-item-action" @click="renameLayer(currentLayer); hideContextMenu()">Rename </a>
+            <a class="list-group-item list-group-item-action" @click="editLayer(currentLayer); hideContextMenu()">Edit </a>
         </div>
-
-
+        
+         <!-- Add SubLayer Modal -->
+        <div class="modal fade" id="addSubLayerModal" tabindex="-1" aria-labelledby="addSubLayerModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addSubLayerModalLabel">Add New SubLayer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addSubLayerForm" @submit.prevent="addSubLayer(currentLayer)">
+                            {% csrf_token %}
+                            {{ add_sublayer_form|crispy }}
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Add Sublayer</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
     </div>
 
 {% endblock %}
@@ -144,11 +167,11 @@
             data: {
                 floor: 1, // 当前楼层,默认为1
                 layers: null,
+                currentLayer: null,
                 offcanvasOpen: false,
                 isContextMenuVisible: false,
                 contextMenuY: 0,
                 contextMenuX: 0,
-                currentLayer: null,
             },
             mounted() {
                 // 监听全局点击事件，用于隐藏上下文菜单
@@ -190,9 +213,7 @@
                         params: { floor: this.floor }
                     }).then(response => {
                         if (response.data && response.data.id) {
-                            this.layers = [];  // 清空当前层数据
-                            this.layers = [response.data]; // 将root对象包装在数组中
-                            this.processData(this.layers);
+                            this.renderData(response.data); // 调用renderData来处理这个单一节点
                         } else {
                             console.error('Unexpected response data:', response.data);
                         }
@@ -200,19 +221,19 @@
                         console.error('Failed to synchronize data:', error);
                     });
                 },
-                processData(layers) {
-                    layers.forEach(layer => {
-                        Vue.set(layer, 'open', false);  // 确保每个层都有`open`属性
-                        if (layer.child_units) {
-                            this.processData(layer.child_units);  // 递归处理子层
+                renderData(root) {
+                    let queue = [root]; // 初始化队列，起始为根节点
+                    this.layers = []; // 确保 layers 是空的
+                    while (queue.length > 0) {
+                        let currentLayer = queue.shift();  // 获取并移除队列的第一个元素
+                        this.layers.push(currentLayer); // 将当前层添加到Vue实例的layers数组中
+                        Vue.set(currentLayer, 'open', false); // 初始化当前层的展开状态为关闭
+                        if (currentLayer.child_units && currentLayer.child_units.length > 0) { // 如果当前层有子层且不为空
+                            currentLayer.child_units.forEach(child => {
+                                Vue.set(child, 'open', false); // 同样设置子层的初始状态
+                                queue.push(child); // 将子层添加到队列中，以便后续处理
+                            });
                         }
-                    });
-                },
-                // ----------------- 切换Floor -----------------
-                changeFloor(floor) {
-                    if (this.floor !== floor) {
-                        this.floor = floor;
-                        this.synchronizeData();
                     }
                 },
                 // ----------------- Offcanvas -----------------
@@ -223,35 +244,73 @@
                     let offcanvasElement = document.getElementById('offcanvasScrolling');
                     offcanvasElement.style.visibility = this.offcanvasOpen ? 'visible' : 'hidden';
                 },
+                // 切换楼层
+                changeFloor(floor) {
+                    if (this.floor !== floor) {
+                        this.floor = floor;
+                        this.synchronizeData();
+                    }
+                },
                 // ----------------- Accordions(Layers) -----------------
                 // 控制 Layer 的展开与折叠
                 toggleLayer(index) {
                     this.layers[index].open = !this.layers[index].open;
                 },
-                // ----------------- Context Menu -----------------
+                // 控制上下文菜单的显示与隐藏
                 showContextMenu(event, index) {
                     event.preventDefault();
-                    this.currentLayer = index;
+                    console.log('Show Context Menu:', index);
+                    this.currentLayer = this.layers[index]; // 设置为具体的层对象
                     this.contextMenuX = event.clientX + 'px'; // 确保使用 px 为单位
                     this.contextMenuY = event.clientY + 'px';
                     this.isContextMenuVisible = true;
                 },
+                // 隐藏上下文菜单
                 hideContextMenu() {
                     this.isContextMenuVisible = false;
                 },
-                // ----------------- Layer Group List Menu -----------------
-                addSubLayer(index) {
-                    
+                // 打开添加子层模态框
+                openAddSubLayerModal(layer) {
+                    this.currentLayer = layer;
+                    $('#addSubLayerModal').modal('show');
                 },
+                // 添加子层
+                addSubLayer() {
+                    let formData = new FormData(document.getElementById('addSubLayerForm'));
+                    formData.append('floor', this.floor); // 确保floor字段被添加
+                    formData.append('parent_unit', this.currentLayer.id); // 添加parent_unit_id字段
+                    formData.append('user_type', '{{ user_type }}'); // 添加user_type字段
+                    formData.append('affiliation_object_id', {{ venue.id }}); // 添加user_type字段
+                    console.log('Current Layer ID:', this.currentLayer);
+                    axios.post('{% url "Layout:add_sublayer" %}', formData).then(response => {
+                        this.layers = [];  // 清空当前层数据
+                        this.layers = [response.data];
+                        this.renderData(this.layers);
+                        $('#addSubLayerModal').modal('hide');
+                        this.hideContextMenu();
+                    }).catch(error => {
+                        console.error('Error adding sub-layer:', error);
+                        alert('Failed to add sub-layer.');
+                    });
+                },
+                // 添加元素
                 addElement(index) {
 
                 },
+                // 移除层
                 removeLayer(index) {
 
                 },
-                renameLayer(index) {
+                // 编辑层
+                editLayer(index) {
 
                 },
+                
+            
+                
+                // ----------------- FabricElements -----------------
+                
+                
             }
         });
     </script>
