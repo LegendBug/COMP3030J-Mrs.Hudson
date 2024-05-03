@@ -32,8 +32,8 @@
                                        style="color: #333;">{{ venue.name }}</a>
                                 </h5>
                                 <p class="card-text">{{ venue.address }}</p>
-{#                                <p class="card-text">Area: {{ venue.area }} m²</p>#}
-{#                                <p class="card-text">Floor: {{ venue.floor }}</p>#}
+                                {#                                <p class="card-text">Area: {{ venue.area }} m²</p>#}
+                                {#                                <p class="card-text">Floor: {{ venue.floor }}</p>#}
                                 {% if user.is_authenticated and user_type == 'Manager' %}
                                     <div class="d-flex justify-content-between mt-3">
                                         <a href="#" class="btn btn-secondary" data-bs-toggle="modal"

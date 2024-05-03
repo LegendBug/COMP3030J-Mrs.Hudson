@@ -24,25 +24,26 @@
 {% endblock %}
 
 {% block content %}
-    <!-- Konva舞台容器 -->
-    <div id="stage-container"></div>
+    <!-- TODO 优化Konva舞台容器显示 -->
+    <div class="container-fluid" id="stage-container"></div>
 
     <!-- Floating Action Button -->
     {% if user.is_authenticated and user_type == 'Organizer' %}
         <a onclick="createExhibApply()" class="btn btn-success rounded-circle shadow" id="createExhibApply"
-           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-        >
+           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; 
+           justify-content: center; align-items: center; font-size: 30px;">
             +
         </a>
     {% endif %}
+
     <a class="btn btn-primary rounded-circle shadow" id="filter-exhibitions-btn"
        style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
        onclick="openFilterModal();">
         <i class="fas fa-filter"></i> <!-- 假设使用 Font Awesome 的筛选图标 -->
     </a>
 
-    <table class="table table-hover table-striped text-white">
-        <thead class="table-light">
+    <table class="table table-hover table-striped text-white shadow-sm">
+        <thead class="table-dark">
         <tr>
             <th>Name</th>
             <th>Description</th>
@@ -55,7 +56,8 @@
         </thead>
         <tbody>
         {% for exhibition in exhibitions %}
-            <tr>
+            <tr onclick="window.location.href='{% url 'Exhibition:exhibition' exhibition.id %}';"
+                style="cursor: pointer;">
                 <td>{{ exhibition.name }}</td>
                 <td>{{ exhibition.description }}</td>
                 <td>{{ exhibition.organizer }}</td>
@@ -64,13 +66,14 @@
                 <td>{{ exhibition.end_at| date:"Y-m-d H:i" }}</td>
                 <td>{{ exhibition.stage }}</td>
             </tr>
-            {% empty %}
+        {% empty %}
             <tr>
                 <td colspan="7" class="text-center text-white">No events found.</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+
 
 
     {# 申请新展览模态框 #}
@@ -141,37 +144,37 @@
                     filterModal.show();
                 }
 
-            function submitApplication() {
-                const formElement = document.getElementById('application-form');
-                const formData = new FormData(formElement);
-                const url = formElement.action;  // 直接从表单元素获取action
-                const container = document.getElementById('application-form-container');
+                function submitApplication() {
+                    const formElement = document.getElementById('application-form');
+                    const formData = new FormData(formElement);
+                    const url = formElement.action;  // 直接从表单元素获取action
+                    const container = document.getElementById('application-form-container');
 
-                formData.set('venue_id', {{ venue.pk }}); // 添加场馆ID
-                for (let [key, value] of formData.entries())
-                    console.log(key, value);
+                    formData.set('venue_id', {{ venue.pk }}); // 添加场馆ID
+                    for (let [key, value] of formData.entries())
+                        console.log(key, value);
 
-                axios.post(url, formData, {
-                    headers: {
-                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,  // 在请求头中包含CSRF令牌
-                        'Content-Type': 'multipart/form-data'  // 发送文件时很重要
-                    }
-                }).then(response => {
-                    if (response.data.success) {  // 检查响应中是否包含“success”
-                        container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('createExhibApplyModal'));
-                        setTimeout(() => {
-                            modal.hide();  // 隐藏模态框
-                            window.location.reload();  // 重新加载页面以更新消息列表
-                        }, 1500);
-                    }
-                }).catch(error => {
-                    // 记录或处理错误
-                    console.error(error);
-                    container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
-                    container.style.display = 'block';  // Make sure the message container is visible
-                });
-            }
+                    axios.post(url, formData, {
+                        headers: {
+                            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,  // 在请求头中包含CSRF令牌
+                            'Content-Type': 'multipart/form-data'  // 发送文件时很重要
+                        }
+                    }).then(response => {
+                        if (response.data.success) {  // 检查响应中是否包含“success”
+                            container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('createExhibApplyModal'));
+                            setTimeout(() => {
+                                modal.hide();  // 隐藏模态框
+                                window.location.reload();  // 重新加载页面以更新消息列表
+                            }, 1500);
+                        }
+                    }).catch(error => {
+                        // 记录或处理错误
+                        console.error(error);
+                        container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                        container.style.display = 'block';  // Make sure the message container is visible
+                    });
+                }
 
                 window.createExhibApply = createExhibApply;
                 window.submitApplication = submitApplication;

@@ -60,8 +60,12 @@ def inventory(request):
             category.items_quantity = quantity
             categories.append(category)
         return render(request, 'Inventory/inventory.html',
-                      {'user_type': user_type, 'current_access': current_access, 'categories': current_categories,
-                       'add_inventory_form': add_inventory_form})
+                      {
+                          'user_type': user_type,
+                          'current_access': current_access,
+                          'categories': current_categories,
+                          'add_inventory_form': add_inventory_form
+                      })
 
 
 def category_detail_view(request, category_id):
@@ -160,46 +164,46 @@ def delete_item(request, item_id):
         return redirect('Inventory:category_detail', category_id=item.category.id)
 
 
-def create_res_application(request):
-    if request.method == 'POST':
-        try:
-            form = ResourceApplicationForm(request.POST, request.FILES)
-            if not form.is_valid():
-                first_error_key, first_error_messages = list(form.errors.items())[0]
-                first_error_message = first_error_key + ': ' + first_error_messages[0]
-                return JsonResponse({'error': first_error_message}, status=400)
-            venue_id = form.cleaned_data.get('venue_id')
-            name = form.cleaned_data.get('res_name')
-            description = form.cleaned_data.get('res_description')
-            start_at = form.cleaned_data.get('res_start_at')
-            end_at = form.cleaned_data.get('res_end_at')
-            image = form.cleaned_data.get('res_image')
-            sectors = form.cleaned_data.get('res_sectors')
-            content = form.cleaned_data.get('message_content')
-            venue = Venue.objects.get(pk=venue_id)
-            organizer = Organizer.objects.get(detail=request.user)
-            new_resource = Resource.objects.create(
-                name=name, description=description, start_at=start_at, end_at=end_at,
-                image=image, organizer=organizer, venue=venue
-            )
-            new_resource.sectors.set(sectors)
-            new_res_application = ResourceApplication.objects.create(applicant=request.user,
-                                                                     description=description,
-                                                                     resource=new_resource)
-            new_resource.application = new_res_application
-            new_resource.save()
-            new_res_application.save()
-            new_message = Message.objects.create(title='New Resource Application for ' + name, sender=request.user,
-                                                 recipient=Manager.objects.first().detail)
-            application_type = ContentType.objects.get_for_model(new_res_application)
-            new_message_detail = MessageDetail.objects.create(message=new_message, content=content,
-                                                              application_object_id=new_res_application.id,
-                                                              application_content_type=application_type)
-            new_message.detail = new_message_detail
-            new_message.save()
-            return JsonResponse({'success': 'Resource application created successfully!'}, status=200)
-        except Exception as e:
-            print(e)
-            return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
-    else:
-        return HttpResponseNotAllowed(['POST'])
+# def create_res_application(request):
+#     if request.method == 'POST':
+#         try:
+#             form = ResourceApplicationForm(request.POST, request.FILES)
+#             if not form.is_valid():
+#                 first_error_key, first_error_messages = list(form.errors.items())[0]
+#                 first_error_message = first_error_key + ': ' + first_error_messages[0]
+#                 return JsonResponse({'error': first_error_message}, status=400)
+#             venue_id = form.cleaned_data.get('venue_id')
+#             name = form.cleaned_data.get('res_name')
+#             description = form.cleaned_data.get('res_description')
+#             start_at = form.cleaned_data.get('res_start_at')
+#             end_at = form.cleaned_data.get('res_end_at')
+#             image = form.cleaned_data.get('res_image')
+#             sectors = form.cleaned_data.get('res_sectors')
+#             content = form.cleaned_data.get('message_content')
+#             venue = Venue.objects.get(pk=venue_id)
+#             organizer = Organizer.objects.get(detail=request.user)
+#             new_resource = Resource.objects.create(
+#                 name=name, description=description, start_at=start_at, end_at=end_at,
+#                 image=image, organizer=organizer, venue=venue
+#             )
+#             new_resource.sectors.set(sectors)
+#             new_res_application = ResourceApplication.objects.create(applicant=request.user,
+#                                                                      description=description,
+#                                                                      resource=new_resource)
+#             new_resource.application = new_res_application
+#             new_resource.save()
+#             new_res_application.save()
+#             new_message = Message.objects.create(title='New Resource Application for ' + name, sender=request.user,
+#                                                  recipient=Manager.objects.first().detail)
+#             application_type = ContentType.objects.get_for_model(new_res_application)
+#             new_message_detail = MessageDetail.objects.create(message=new_message, content=content,
+#                                                               application_object_id=new_res_application.id,
+#                                                               application_content_type=application_type)
+#             new_message.detail = new_message_detail
+#             new_message.save()
+#             return JsonResponse({'success': 'Resource application created successfully!'}, status=200)
+#         except Exception as e:
+#             print(e)
+#             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
+#     else:
+#         return HttpResponseNotAllowed(['POST'])

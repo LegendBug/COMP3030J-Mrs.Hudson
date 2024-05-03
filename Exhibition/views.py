@@ -3,11 +3,38 @@ import datetime
 from django.contrib.contenttypes.models import ContentType
 
 from django.http import JsonResponse, HttpResponseNotAllowed
+from django.shortcuts import redirect, render
 
+from Booth.models import Booth
 from Exhibition.forms import ExhibApplicationForm
 from Exhibition.models import Exhibition, ExhibitionApplication
-from User.models import Message, MessageDetail, Organizer, Manager
+from User.models import Message, MessageDetail, Organizer, Manager, Exhibitor
 from Venue.models import Venue
+
+
+def exhibition(request, exhibition_id):
+    current_exhibition = Exhibition.objects.filter(id=exhibition_id).first()
+    if current_exhibition is None:
+        venue_id = request.session.get('venue_id', None)
+        if venue_id:
+            return redirect('Venue:venue', venue_id=venue_id)
+        else:
+            return redirect('Venue:home')
+    request.session['exhibition_id'] = exhibition_id  # 将exhibition_id存入session
+
+    user = request.user
+    user_type = request.session.get('user_type', 'Manager')
+    items = None
+
+    if request.method == 'GET':
+        # 根据用户类型筛选展览信息
+        if user not in [None, ''] and not hasattr(user, 'exhibitor'):
+            booths = current_exhibition.booths.all()
+        else:  # 参展方
+            booths = Exhibitor.objects.filter(detail_id=user.id).first().booths
+        return render(request, 'Exhibition/exhibition.html', {'exhibition': current_exhibition, 'booths': booths})
+    else:
+        return HttpResponseNotAllowed(['GET'])
 
 
 # 创建展览申请

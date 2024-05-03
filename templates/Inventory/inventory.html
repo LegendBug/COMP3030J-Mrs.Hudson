@@ -71,13 +71,15 @@
         </table>
     </div>
 
-    {#TODO 根据用户类型显示不同的按钮#}
     <!-- 申请库存按钮 -->
-    <a href="#" class="btn btn-success rounded-circle shadow" id="add-venue-btn"
-       style="position: fixed; bottom: 170px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-       onclick="openAddInventoryModal();"> <!-- 这里改为调用函数 -->
-        📝
-    </a>
+    {% if user.is_authenticated and user_type != 'Manager' %}
+        <a href="#" class="btn btn-success rounded-circle shadow" id="add-venue-btn"
+           style="position: fixed; bottom: 170px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+           onclick="openAddInventoryModal();"> <!-- 这里改为调用函数 -->
+            📝
+        </a>
+    {% endif %}
+
     <!-- 添加库存按钮 -->
     <a href="#" class="btn btn-success rounded-circle shadow" id="add-venue-btn"
        style="position: fixed; bottom: 100px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"

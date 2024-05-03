@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 
 from Exhibition.forms import ExhibApplicationForm, FilterExhibitionsForm
+from User.models import Exhibitor
 from Venue.forms import CreateVenueForm
 from Venue.models import Venue
 from Exhibition.models import Exhibition
@@ -48,16 +49,14 @@ def venue(request, venue_id):
             exhibitions = current_venue.exhibitions.all()
         elif user not in [None, ''] and hasattr(user, 'organizer'):
             exhibitions = current_venue.exhibitions.filter(organizer=user.organizer)
-        elif user not in [None, ''] and hasattr(user, 'exhibitor'):
-            # TODO 展台不是在新页面显示吗?(RHS)
+        else:  # 参展方
             current_exhibitions = current_venue.exhibitions.all()
-            booths = user.exhibitor.booths
+            booths = Exhibitor.objects.filter(detail=user).first().booths.all()
             exhibitions = []
             for booth in booths:
                 if booth.exhibition in current_exhibitions:
                     exhibitions.append(booth.exhibition)
-        else:  # 游客
-            exhibitions = current_venue.exhibitions.all()
+
     elif request.method == 'POST':
         submitted_filter_form = FilterExhibitionsForm(request.POST)
         if submitted_filter_form.is_valid():

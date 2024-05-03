@@ -1,0 +1,32 @@
+{% extends 'Public/base.html' %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block extra_head %}
+    <title>Exhibition</title>
+    <link rel="stylesheet" href="{% static 'css/Venue/venue.css' %}">
+{% endblock %}
+
+{% block extra_nav_icons %}
+    <!-- 导航栏额外按键-->
+    {% if user.is_authenticated and user_type != 'Exhibitor' %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
+        </li>
+        {% if user_type == 'Manager' %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i>
+                    Statistics</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
+            </li>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+    {# TODO 完善展会界面 #}
+    <div>{{ exhibition.name }}</div>
+{% endblock %}
