@@ -3,6 +3,13 @@ html, body {
     margin: 0;
     display: flex;
     flex-direction: column; /* 设定主轴为垂直方向 */
+    background: linear-gradient(rgba(224, 224, 224, 0.7), rgba(0, 0, 0, 0.7)), url('../../images/User/poster.jpg') no-repeat center center fixed;
+    background-size: cover;
+}
+
+body, p, h1, h2, h3, h4, h5, h6, div {
+    cursor: default; /* 设置默认光标 */
+    user-select: none; /* 防止文本被选中 */
 }
 
 /*导航栏样式: */
@@ -132,5 +139,61 @@ html, body {
 /* 错误消息样式 */
 .toast-error {
     border-left: 4px solid #dc3545; /* 红色边框 */
+}
+
+/* 表格全局样式 */
+.table {
+    color: #f0f0f0; /* 使用较亮的字体颜色，如浅灰色或纯白色 */
+    background-color: rgba(255, 255, 255, 0.1); /* 表格背景半透明，稍微调整透明度 */
+    border: 1px solid #444; /* 边框颜色 */
+    border-radius: 0.5rem; /* 边框圆角 */
+    width: 100%; /* Ensures the table spans the full width */
+    margin-bottom: 0; /* Removes bottom margin */
+}
+
+/* 表格头部样式 */
+.table thead {
+    background-color: rgba(183, 183, 183, 0.8); /* 表头背景半透明 */
+    color: #9d9d9d; /* 表头字体颜色，使用纯白色 */
+    border-radius: 0.5rem;
+}
+
+/* 表格单元格样式 */
+.table th, .table td {
+    color: #ffffff; /* 使用纯白色字体颜色 */
+    background-color: rgba(183, 183, 183, 0.8); /* 单元格背景透明 */
+    border: none; /* 无边框 */
+    padding: 0.75rem; /* 内边距 */
+    text-align: center; /* Centers text in all cells */
+}
+
+/* 表格行悬停时的样式 */
+.table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* 行背景变亮且半透明 */
+}
+
+.table tbody td {
+    vertical-align: middle; /* Aligns content of table cells vertically centered */
+}
+
+.table img {
+    width: auto; /* 自动调整宽度以保持图片比例 */
+    max-height: 100px; /* 限制图片最大高度 */
+    margin: auto; /* 居中显示 */
+    display: block; /* 块级显示 */
+}
+
+h2 {
+    font-family: 'Arial', sans-serif; /* Cleaner, more modern font */
+    font-size: 36px; /* Suitable font size */
+    font-weight: bold; /* Bold for better visibility */
+    color: #f8f9fa; /* Light color for better contrast */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Soft shadow for depth */
+    margin: 20px 0; /* Adequate spacing around the title */
+}
+
+h2 a {
+    text-decoration: none; /* Removes underline */
+    color: inherit; /* Inherits color from parent element */
 }
 

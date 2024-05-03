@@ -5,7 +5,7 @@
 
 {% block extra_head %}
     <title>Inventory</title>
-    {% comment %} <link rel="stylesheet" href="{% static 'css/Inventory/inventory.css' %}">{% endcomment %}
+    {#    <link rel="stylesheet" href="{% static 'css/Inventory/inventory.css' %}">#}
 {% endblock %}
 
 {% block extra_nav_icons %}
@@ -27,15 +27,15 @@
 {% block content %}
     <div class="container mt-3">
         {% if user.is_authenticated and user_type == 'Manager' %}
-            <h2><a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a>'s Inventory</h2>
+            <h2><a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a> Inventory</h2>
         {% elif user.is_authenticated and user_type == 'Organizer' %}
-            <h2><a href="#">{{ current_access.name }}</a>'s Inventory</h2>
+            <h2><a href="#">{{ current_access.name }}</a> Inventory</h2>
         {% elif user.is_authenticated and user_type == 'Exhibitor' %}
-            <h2><a href="#">{{ current_access.name }}</a>'s Inventory</h2>
+            <h2><a href="#">{{ current_access.name }}</a> Inventory</h2>
         {% endif %}
 
-        <table class="table">
-            <thead>
+        <table class="table table-hover table-striped text-white shadow-sm">
+            <thead class="table-dark">
             <tr>
                 <th>Name</th>
                 <th>Image</th>
@@ -52,23 +52,28 @@
                     {% if category.image %}
                         <td><img src="{{ category.image.url }}" alt="{{ category.name }}"
                                  style="width:100px; height:auto;"></td>
+                    {% else %}
+                        <td>No Image</td>
                     {% endif %}
                     <td>{{ category.is_public }}</td>
                     <td>{{ category.description }}</td>
                     <td>{{ category.items_quantity }}</td>
                     <td>
-                        <a href="{% url 'Inventory:category_detail' category.pk %}"
-                           class="btn btn-info btn-sm">View Detail</a>
-                        <a href="{% url 'Inventory:edit-category' category.pk %}"
-                           class="btn btn-secondary btn-sm">Modify</a>
+                        <a href="{% url 'Inventory:category_detail' category.pk %}" class="btn btn-secondary btn-sm">Detail</a>
+                        <a href="{% url 'Inventory:edit-category' category.pk %}" class="btn btn-success btn-sm">Modify</a>
                         <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ category.id }})">
                             Delete
                         </button>
                     </td>
                 </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-white">No resource found.</td>
+                </tr>
             {% endfor %}
             </tbody>
         </table>
+
     </div>
 
     <!-- 申请库存按钮 -->
