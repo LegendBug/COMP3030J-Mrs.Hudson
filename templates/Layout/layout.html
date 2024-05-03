@@ -54,9 +54,9 @@
                         Select Floor
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
-                        <li><a class="dropdown-item" href="#">Floor 1</a></li>
-                        <li><a class="dropdown-item" href="#">Floor 2</a></li>
-                        <li><a class="dropdown-item" href="#">Floor 3</a></li>
+                        {% for floor_number in floor_range %}
+                            <li><a class="dropdown-item" href="#" @click="changeFloor({{ floor_number }})">Floor {{ floor_number }}</a></li>
+                        {% endfor %}
                     </ul>
                 </div>
                 {# 按钮: Save#}
@@ -190,8 +190,9 @@
                         params: { floor: this.floor }
                     }).then(response => {
                         if (response.data && response.data.id) {
+                            this.layers = [];  // 清空当前层数据
                             this.layers = [response.data]; // 将root对象包装在数组中
-                            this.prepareData(this.layers);
+                            this.processData(this.layers);
                         } else {
                             console.error('Unexpected response data:', response.data);
                         }
@@ -199,13 +200,20 @@
                         console.error('Failed to synchronize data:', error);
                     });
                 },
-                prepareData(layers) {
+                processData(layers) {
                     layers.forEach(layer => {
                         Vue.set(layer, 'open', false);  // 确保每个层都有`open`属性
                         if (layer.child_units) {
-                            this.prepareData(layer.child_units);  // 递归处理子层
+                            this.processData(layer.child_units);  // 递归处理子层
                         }
                     });
+                },
+                // ----------------- 切换Floor -----------------
+                changeFloor(floor) {
+                    if (this.floor !== floor) {
+                        this.floor = floor;
+                        this.synchronizeData();
+                    }
                 },
                 // ----------------- Offcanvas -----------------
                 // 控制 Offcanvas 的显示与隐藏

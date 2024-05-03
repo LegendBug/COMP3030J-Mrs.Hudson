@@ -28,7 +28,7 @@ class CreateVenueForm(forms.ModelForm):
             # 创建SpaceUnit实例并与Venue实例关联
             for floor_number in range(1, venue.floor + 1):
                 SpaceUnit.objects.create(
-                    name=f"{floor_number}",
+                    name=f"Floor {floor_number} Root Layer",
                     description=f"{venue.name}'s Floor {floor_number}, this is one of the root SpaceUnits",
                     floor=floor_number,
                     parent_unit=None,  # 假设这是顶级单位
