@@ -64,7 +64,7 @@
             </div>
 
             <div class="offcanvas-body">
-            
+                
                 <!-- Top层级Accordion -->
                 <div v-for="(layer, index) in layers" :key="index" class="accordion" id="accordion">
                     <div class="accordion-item">
@@ -73,7 +73,7 @@
                                     :class="{'collapsed': !layer.open}"
                                     @click="toggleLayer(index)"
                                     @contextmenu.prevent="showContextMenu($event, index)">
-                                {{ layer.name }}
+                                [[ layer.name ]]
                             </button>
                         </h2>
                         <div v-if="layer.open" class="accordion-collapse">
@@ -85,7 +85,7 @@
                         </div>
                     </div>
                 </div>
-
+                
             </div>
         </div>
 
