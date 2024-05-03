@@ -64,6 +64,7 @@
             </div>
 
             <div class="offcanvas-body">
+            
                 <!-- Top层级Accordion -->
                 <div v-for="(layer, index) in layers" :key="index" class="accordion" id="accordion">
                     <div class="accordion-item">
@@ -113,36 +114,45 @@
         Vue.component('layer-component', {
             props: ['layer'],
             template: `
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button" type="button"
-                            :class="{'collapsed': !layer.open}"
-                            @click="layer.open = !layer.open">
-                        {{ layer.name }}
-                    </button>
-                </h2>
-                <div v-if="layer.open" class="accordion-collapse">
-                    <div class="accordion-body">
-                        <layer-component v-for="(child, index) in layer.layers" :key="index" :layer="child"></layer-component>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button"
+                                :class="{'collapsed': !layer.open}"
+                                @click="toggleLayer"
+                                @contextmenu.prevent="$emit('contextmenu', layer)">
+                            [[ layer.name ]]
+                        </button>
+                    </h2>
+                    <div v-if="layer.open" class="accordion-collapse">
+                        <div class="accordion-body">
+                            <layer-component v-for="(child, index) in layer.layers" :key="index"
+                                             :layer="child" @toggle="toggleLayer" @contextmenu="$emit('contextmenu', child)"></layer-component>
+                        </div>
                     </div>
                 </div>
-            </div>
-          `
+            `,
+            methods: {
+                toggleLayer() {
+                    this.layer.open = !this.layer.open;
+                }
+            }
         });
 
         new Vue({
             el: '#app',
+            delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
-                layers: [{name: 'Top Layer', open: false, layers: []}],
+                floor: 1, // 当前楼层,默认为1
+                layers: null,
                 offcanvasOpen: false,
                 isContextMenuVisible: false,
                 contextMenuY: 0,
                 contextMenuX: 0,
                 currentLayer: null,
-                
             },
             mounted() {
                 // 监听全局点击事件，用于隐藏上下文菜单
+                this.synchronizeData();  // 同步数据当组件挂载
                 document.addEventListener('click', this.handleOutsideClick);
             },
             beforeDestroy() {
@@ -174,6 +184,29 @@
                         this.hideContextMenu();
                     }
                 },
+                // ----------------- 数据加载 -----------------
+                 synchronizeData() {
+                    axios.get('{% url "Layout:synchronize_data" %}', {
+                        params: { floor: this.floor }
+                    }).then(response => {
+                        if (response.data && response.data.id) {
+                            this.layers = [response.data]; // 将root对象包装在数组中
+                            this.prepareData(this.layers);
+                        } else {
+                            console.error('Unexpected response data:', response.data);
+                        }
+                    }).catch(error => {
+                        console.error('Failed to synchronize data:', error);
+                    });
+                },
+                prepareData(layers) {
+                    layers.forEach(layer => {
+                        Vue.set(layer, 'open', false);  // 确保每个层都有`open`属性
+                        if (layer.child_units) {
+                            this.prepareData(layer.child_units);  // 递归处理子层
+                        }
+                    });
+                },
                 // ----------------- Offcanvas -----------------
                 // 控制 Offcanvas 的显示与隐藏
                 toggleOffcanvas() {
@@ -203,13 +236,13 @@
                     
                 },
                 addElement(index) {
-                    
+
                 },
                 removeLayer(index) {
-                    
+
                 },
                 renameLayer(index) {
-                    
+
                 },
             }
         });

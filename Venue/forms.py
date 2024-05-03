@@ -35,5 +35,4 @@ class CreateVenueForm(forms.ModelForm):
                     affiliation_content_type=ContentType.objects.get_for_model(Venue),
                     affiliation_object_id=venue.pk,
                 )
-                # 注意：这里我们不需要手动添加SpaceUnit到Venue的sectors，因为GenericRelation会自动处理反向关系
         return venue

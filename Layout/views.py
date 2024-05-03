@@ -1,6 +1,10 @@
 from django.shortcuts import render
+from rest_framework import status
+
 from Venue.models import Venue
 from django.http import JsonResponse
+from .serializers import *
+
 
 def venue_layout(request):
     user_type = 'Manager' if hasattr(request.user, 'manager') \
@@ -30,7 +34,7 @@ def layout(request):
                   {'venue': venue, 'user_type': user_type, 'items': items})
 
 
-def get_floor_data(request): # {url (Layout:get_floor_data)}
+def synchronize_data(request):  # {url (Layout:get_floor_data)}
     # 从GET请求中获取当前的floor
     floor = int(request.GET.get('floor', "1"))
     # 从session中获取venue_id
@@ -39,7 +43,12 @@ def get_floor_data(request): # {url (Layout:get_floor_data)}
     # 获取当前场馆的当前楼层的Root SpaceUnit节点(parent_unit=None 且创建时间最早)
     root = venue.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
     # 返回JSON化的root数据
-    return JsonResponse(root.to_dict())
+    if root is not None:
+        # 使用Serializer序列化root
+        serializer = SpaceUnitSerializer(root)
+        return JsonResponse(serializer.data)  # 使用Django的JsonResponse返回数据
+    else:
+        return JsonResponse({'error': 'No root SpaceUnit found for the specified floor'}, status=status.HTTP_404_NOT_FOUND)
 
 
 def add_layer(request):
