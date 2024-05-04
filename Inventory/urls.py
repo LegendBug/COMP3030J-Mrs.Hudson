@@ -6,6 +6,7 @@ from .views import (category_detail_view, edit_inventory_category, delete_invent
 urlpatterns = [
     # path('inventory/', views.inventory, name='inventory'),
     path('inventory/<str:space_type>/<int:space_id>/', views.inventory, name='inventory'),
+    path('create_res_application', views.create_res_application, name='create_res_application'),
     path('category/<int:category_id>/details/', category_detail_view, name='category_detail'),
     path('edit-category/<int:category_id>/', edit_inventory_category, name='edit-category'),
     path('delete-category/<int:category_id>/', delete_inventory_category, name='delete-category'),

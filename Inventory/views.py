@@ -28,7 +28,7 @@ def inventory(request, space_type, space_id):
             return JsonResponse({'error': 'Permission denied!'}, status=403)
         current_access = Exhibition.objects.filter(pk=space_id).first()
     elif space_type == 'booth':
-        current_access = Booth.objects.filter(pk=2).first()
+        current_access = Booth.objects.filter(pk=space_id).first()
     else:
         return JsonResponse({'error': 'Invalid space type!'}, status=400)
     request.session['space_type'] = space_type
@@ -68,6 +68,16 @@ def inventory(request, space_type, space_id):
         for category, quantity in current_categories.items():
             category.items_quantity = quantity
             categories.append(category)
+
+        # 申请库存表单
+        if space_type == 'booth':
+            # 获取当前展区可见的全部Category
+            current_venue = current_access.exhibition.venue
+            affiliation_type = ContentType.objects.get_for_model(current_venue)
+            application_form = ResApplicationForm(
+                initial={'origin_content_type': affiliation_type, 'origin_object_id': current_venue.pk})
+        else:
+            application_form = None
         return render(request, 'Inventory/inventory.html',
                       {
                           'user_type': user_type,
@@ -76,6 +86,7 @@ def inventory(request, space_type, space_id):
                           'space_type': space_type,
                           'space_id': space_id,
                           'add_inventory_form': add_inventory_form,
+                          'application_form': application_form
                       })
 
 
@@ -220,3 +231,9 @@ def create_res_application(request):
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
     else:
         return HttpResponseNotAllowed(['POST'])
+
+
+# TODO 批准和驳回申请
+# TODO 在消息中心中显示资源申请消息
+# TODO 检查回复功能是否正常
+# TODO 添加展台申请（目前只能手动创建）

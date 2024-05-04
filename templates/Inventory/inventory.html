@@ -109,7 +109,7 @@
             </div>
         </div>
     </div>
-    
+
     {# 申请库存的模态框 #}
     <div class="modal fade" id="createResApplyModal" tabindex="-1" aria-labelledby="createResApplyModalLabel"
          aria-hidden="true">
@@ -124,7 +124,7 @@
                           enctype="multipart/form-data" class="needs-validation"
                           novalidate>
                         {% csrf_token %}
-                        {{ add_inventory_form|crispy }}
+                        {{ application_form|crispy }}
                         <input type="hidden" name="venue_id" id="venue_id" value="{{ current_access.pk }}">
                         <div id="application-form-container"></div>
                         <div class="modal-footer">
@@ -152,7 +152,7 @@
             const filterModal = new bootstrap.Modal(document.getElementById('addInventoryModal'));
             filterModal.show();
         }
-        
+
         function openResApplyModal() {
             const filterModal = new bootstrap.Modal(document.getElementById('createResApplyModal'));
             filterModal.show();
@@ -160,7 +160,6 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             const addInventoryForm = document.getElementById('addInventoryForm');
-            
             addInventoryForm.addEventListener('submit', function (e) {
                 e.preventDefault();  // 阻止表单的默认提交行为
                 const formData = new FormData(addInventoryForm);
@@ -192,33 +191,35 @@
                         document.getElementById('add_inventory-message-container').innerHTML = '<div class="alert alert-danger">Error: ' + errorMessage + '</div>';
                     });
             });
-            
+
             const createResApplyForm = document.getElementById('createResApplyForm');
             createResApplyForm.addEventListener('submit', function (e) {
                 e.preventDefault();  // 阻止表单的默认提交行为
-                const formData = new FormData(createResApplicationForm);
-                axios.post('{% url 'Inventory:inventory' space_type space_id %}', formData)
-                    .then(function (response) {
-                        if (response.data.success) { // 如果提交成功，显示成功消息
-                            const createResApplicationModal = new bootstrap.Modal(document.getElementById('createResApplicationModal'), {});
-                            const messageContainer = document.getElementById('create_res_application-message-container');
-                            messageContainer.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
-                            messageContainer.style.display = 'block';
-                            // 设置定时器等待1.5秒后关闭模态框并刷新页面
-                            setTimeout(function () {
-                                createResApplicationModal.hide(); // 关闭模态框
-                                window.location.reload(); // 刷新页面
-                            }, 1500); // 1500毫秒后执行
-                        }
-                    })
-                    .catch(function (error) {
-                        let errorMessage = error.message;
-                        // 如果错误中有响应并且有数据并且数据中有错误信息，则使用服务器的错误信息
-                        if (error.response && error.response.data && error.response.data.errors) {
-                            errorMessage = error.response.data.errors;
-                        }
-                        document.getElementById('create_res_application-message-container').innerHTML = '<div class="alert alert-danger">Error: ' + errorMessage + '</div>';
-                    });
+                const container = document.getElementById('application-form-container');
+                const formData = new FormData(createResApplyForm);
+                formData.set('booth_id', {{ current_access.pk }}); // 设置展位ID
+                for (let pair of formData.entries())
+                    console.log(pair[0] + ', ' + pair[1]);
+                axios.post('{% url 'Inventory:create_res_application' %}', formData, {
+                    headers: {
+                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,  // 在请求头中包含CSRF令牌
+                        'Content-Type': 'multipart/form-data'  // 发送文件时很重要
+                    }
+                }).then(response => {
+                    if (response.data.success) { // 如果提交成功，显示成功消息
+                        container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                        const modal = new bootstrap.Modal(document.getElementById('createResApplyModal'));
+                        setTimeout(() => {
+                            modal.hide();
+                            window.location.reload();
+                        }, 1500);
+                    }
+                }).catch(error => {
+                    // 记录或处理错误
+                    console.error(error);
+                    container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                    container.style.display = 'block';  // Make sure the message container is visible
+                });
             });
         });
     </script>

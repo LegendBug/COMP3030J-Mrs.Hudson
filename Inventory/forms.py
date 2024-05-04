@@ -121,6 +121,7 @@ class ResApplicationForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['category'].label_from_instance = lambda obj: obj.name
         origin_object_id = self.initial.get('origin_object_id')
         origin_content_type = self.initial.get('origin_content_type')
         print('origin_object_id:', origin_object_id)

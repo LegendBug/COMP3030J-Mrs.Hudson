@@ -36,5 +36,5 @@ urlpatterns = [   path('', RedirectView.as_view(pattern_name='User:login', perma
                   path('User/', include(('User.urls', 'User'), namespace='User')),
                   path('Venue/', include(('Venue.urls', 'Venue'), namespace='Venue')),
                   path('Exhibition/', include(('Exhibition.urls', 'Exhibition'), namespace='Exhibition')),
-                  path('Booth/', include(('Booth.urls', 'Venue'), namespace='Booth'))
+                  path('Booth/', include(('Booth.urls', 'Booth'), namespace='Booth'))
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

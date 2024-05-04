@@ -21,6 +21,7 @@
 {% endblock %}
 
 {% block content %}
+    <h2>{{ venue.name }}</h2>
     <!-- TODO 优化Konva舞台容器显示 -->
     <div class="container-fluid" id="stage-container"></div>
 
@@ -49,7 +50,7 @@
     <table class="table table-hover table-striped text-white shadow-sm">
         <thead class="table-dark">
         <tr>
-            <th>Name</th>
+            <th>Exhibition Name</th>
             <th>Description</th>
             <th>Organizer</th>
             <th>Sector</th>

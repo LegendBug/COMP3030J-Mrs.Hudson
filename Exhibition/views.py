@@ -6,7 +6,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 
-from Booth.models import Booth
 from Exhibition.forms import ExhibApplicationForm
 from Exhibition.models import Exhibition, ExhibitionApplication
 from User.models import Message, MessageDetail, Organizer, Manager, Exhibitor
@@ -25,16 +24,28 @@ def exhibition(request, exhibition_id):
     request.session['exhibition_id'] = exhibition_id  # 将exhibition_id存入session
 
     user = request.user
-    user_type = request.session.get('user_type', 'Manager')
-    items = None
-
     if request.method == 'GET':
-        # 根据用户类型筛选展览信息
+        # 根据用户类型筛选展区信息
         if user not in [None, ''] and not hasattr(user, 'exhibitor'):
             booths = current_exhibition.booths.all()
         else:  # 参展方
-            booths = Exhibitor.objects.filter(detail_id=user.id).first().booths
-        return render(request, 'Exhibition/exhibition.html', {'exhibition': current_exhibition, 'booths': booths})
+            booths = Exhibitor.objects.filter(detail_id=user.id).first().booths.all()
+        # 将展区信息转换为字典
+        booth_data = []
+        for booth in booths:
+            sectors = ''
+            for sector in booth.sectors.all():
+                sectors += sector.name + ' '
+            booth_data.append({
+                'id': booth.id,
+                'name': booth.name,
+                'description': booth.description,
+                'start_at': booth.start_at,
+                'end_at': booth.end_at,
+                'exhibitor': booth.exhibitor.detail.username
+
+            })
+        return render(request, 'Exhibition/exhibition.html', {'exhibition': current_exhibition, 'booths': booth_data})
     else:
         return HttpResponseNotAllowed(['GET'])
 
