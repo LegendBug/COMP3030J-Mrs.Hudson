@@ -87,13 +87,13 @@
                         </div>
                     </div>
                 </div>
-{% endcomment %}    
-                 
+{% endcomment %}
+
                 <!-- Top层级Accordion -->
                 <div class="accordion" id="accordion">
-                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer"></layer-component>
+                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" @contextmenu="showContextMenu"></layer-component>
                 </div>
-                
+
             </div>
         </div>
 
@@ -149,23 +149,23 @@
                 };
             },
             template: `
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button" type="button"
-                                :class="{'collapsed': !open}"
-                                @click="open = !open"
-                                @contextmenu.prevent="$emit('contextmenu', layer)">
-                            [[ layer.name ]]
-                        </button>
-                    </h2>
-                    <div v-if="open" class="accordion-collapse">
-                        <div class="accordion-body">
-                            <layer-component v-for="(child, index) in layer.child_units" :key="index"
-                                             :layer="child">
-                            </layer-component>
-                        </div>
-                    </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" type="button"
+                          :class="{'collapsed': !open}"
+                          @click="open = !open"
+                          @contextmenu.prevent="$emit('contextmenu', layer, $event)">
+                    [[ layer.name ]]
+                  </button>
+                </h2>
+                <div v-if="open" class="accordion-collapse">
+                  <div class="accordion-body">
+                    <layer-component v-for="(child, index) in layer.child_units" :key="index"
+                                     :layer="child">
+                    </layer-component>
+                  </div>
                 </div>
+              </div>
             `,
         });
 
@@ -174,7 +174,7 @@
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
                 floor: 1, // 当前楼层,默认为1
-                layers: null,
+                layers: [],
                 currentLayer: null,
                 offcanvasOpen: false,
                 isContextMenuVisible: false,
@@ -231,7 +231,7 @@
                 },
                 renderData(root) {
                     let queue = [root]; // 初始化队列，起始为根节点
-                    this.layers = []; // 确保 layers 是空的
+                    this.layers = []; // 清空Vue实例的layers数组
                     this.layers = [root];
                     while (queue.length > 0) {
                         let currentLayer = queue.shift();  // 获取并移除队列的第一个元素
@@ -260,10 +260,9 @@
                 },
                 // ----------------- Accordions(Layers) -----------------
                 // 控制上下文菜单的显示与隐藏
-                showContextMenu(event, index) {
+                showContextMenu(layer, event) {
                     event.preventDefault();
-                    console.log('Show Context Menu:', index);
-                    this.currentLayer = this.layers[index]; // 设置为具体的层对象
+                    this.currentLayer = layer; // 设置为具体的层对象
                     this.contextMenuX = event.clientX + 'px'; // 确保使用 px 为单位
                     this.contextMenuY = event.clientY + 'px';
                     this.isContextMenuVisible = true;
@@ -284,7 +283,8 @@
                     formData.append('parent_unit', this.currentLayer.id); // 添加parent_unit_id字段
                     formData.append('user_type', '{{ user_type }}'); // 添加user_type字段
                     formData.append('affiliation_object_id', {{ venue.id }}); // 添加user_type字段
-                    console.log('Current Layer ID:', this.currentLayer);
+                    console.log('Current Layer:', this.currentLayer);
+                     console.log('Current Layer ID:', this.currentLayer.id);
                     axios.post('{% url "Layout:add_sublayer" %}', formData).then(response => {
                         this.renderData(response.data);
                         $('#addSubLayerModal').modal('hide');
