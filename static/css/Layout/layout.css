@@ -21,3 +21,8 @@
 .accordion-collapse.collapse {
     overflow: hidden;
 }
+
+.accordion-header {
+    margin: 0;  /* 确保没有外边距 */
+}
+
