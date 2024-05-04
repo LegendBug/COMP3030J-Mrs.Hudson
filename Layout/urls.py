@@ -6,4 +6,5 @@ urlpatterns = [
     path('layout/', views.layout, name='layout'),
     path('synchronize_data/', views.synchronize_data, name='synchronize_data'),
     path('add_sublayer/', views.add_sublayer, name='add_sublayer'),
+    path('add_fake_space_unit/', views.add_fake_space_unit, name='add_fake_space_unit'),
 ]

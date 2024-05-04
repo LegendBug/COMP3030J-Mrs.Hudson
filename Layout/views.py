@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from .forms import AddLayerForm
 from .serializers import *
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.contenttypes.models import ContentType
 
 
 def venue_layout(request):
@@ -92,3 +93,35 @@ def delete_element(request):
 
 def save_layout(request):
     pass
+
+
+def add_fake_space_unit(request):  # 用于提供假数据的视图函数,不会在生产环境中使用
+    # 定义假数据
+    name = "Sub-Sub-Sublayer 2 on floor 1"
+    description = "This is a test Space Unit."
+    floor = 1
+    parent_unit = SpaceUnit.objects.get(pk=16)
+    affiliation = Venue.objects.get(pk=6)
+    affiliation_content_type = ContentType.objects.get_for_model(Venue)
+
+    # 创建SpaceUnit实例
+    space_unit = SpaceUnit.objects.create(
+        name=name,
+        description=description,
+        floor=floor,
+        parent_unit=parent_unit,
+        available=False,
+        affiliation_content_type=affiliation_content_type,
+        affiliation_object_id=affiliation.pk
+    )
+
+    # 返回新创建的SpaceUnit的信息
+    return JsonResponse({
+        'id': space_unit.id,
+        'name': space_unit.name,
+        'description': space_unit.description,
+        'floor': space_unit.floor,
+        'parent_unit': space_unit.parent_unit.id if space_unit.parent_unit else None,
+        'affiliation_type': str(space_unit.affiliation_content_type),
+        'affiliation_id': space_unit.affiliation_object_id
+    }, safe=False)

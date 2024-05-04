@@ -67,6 +67,7 @@
             <div class="offcanvas-body">
 
                 <!-- Top层级Accordion -->
+{% comment %}
                 <div v-for="(layer, index) in layers" :key="layer.id" class="accordion" id="accordion">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
@@ -86,8 +87,13 @@
                         </div>
                     </div>
                 </div>
-
-
+{% endcomment %}    
+                 
+                <!-- Top层级Accordion -->
+                <div class="accordion" id="accordion">
+                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer"></layer-component>
+                </div>
+                
             </div>
         </div>
 
@@ -136,29 +142,31 @@
     <script>
         Vue.component('layer-component', {
             props: ['layer'],
+            delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
+            data: function() {
+                return {
+                    open: false  // 每个组件控制自己的打开状态
+                };
+            },
             template: `
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button" type="button"
-                                :class="{'collapsed': !layer.open}"
-                                @click="toggleLayer"
+                                :class="{'collapsed': !open}"
+                                @click="open = !open"
                                 @contextmenu.prevent="$emit('contextmenu', layer)">
                             [[ layer.name ]]
                         </button>
                     </h2>
-                    <div v-if="layer.open" class="accordion-collapse">
+                    <div v-if="open" class="accordion-collapse">
                         <div class="accordion-body">
-                            <layer-component v-for="(child, index) in layer.layers" :key="index"
-                                             :layer="child" @toggle="toggleLayer" @contextmenu="$emit('contextmenu', child)"></layer-component>
+                            <layer-component v-for="(child, index) in layer.child_units" :key="index"
+                                             :layer="child">
+                            </layer-component>
                         </div>
                     </div>
                 </div>
             `,
-            methods: {
-                toggleLayer() {
-                    this.layer.open = !this.layer.open;
-                }
-            }
         });
 
         new Vue({
@@ -224,13 +232,12 @@
                 renderData(root) {
                     let queue = [root]; // 初始化队列，起始为根节点
                     this.layers = []; // 确保 layers 是空的
+                    this.layers = [root];
                     while (queue.length > 0) {
                         let currentLayer = queue.shift();  // 获取并移除队列的第一个元素
-                        this.layers.push(currentLayer); // 将当前层添加到Vue实例的layers数组中
-                        Vue.set(currentLayer, 'open', false); // 初始化当前层的展开状态为关闭
+                        //this.layers.push(currentLayer); // 将当前层添加到Vue实例的layers数组中
                         if (currentLayer.child_units && currentLayer.child_units.length > 0) { // 如果当前层有子层且不为空
                             currentLayer.child_units.forEach(child => {
-                                Vue.set(child, 'open', false); // 同样设置子层的初始状态
                                 queue.push(child); // 将子层添加到队列中，以便后续处理
                             });
                         }
@@ -252,10 +259,6 @@
                     }
                 },
                 // ----------------- Accordions(Layers) -----------------
-                // 控制 Layer 的展开与折叠
-                toggleLayer(index) {
-                    this.layers[index].open = !this.layers[index].open;
-                },
                 // 控制上下文菜单的显示与隐藏
                 showContextMenu(event, index) {
                     event.preventDefault();
@@ -283,9 +286,7 @@
                     formData.append('affiliation_object_id', {{ venue.id }}); // 添加user_type字段
                     console.log('Current Layer ID:', this.currentLayer);
                     axios.post('{% url "Layout:add_sublayer" %}', formData).then(response => {
-                        this.layers = [];  // 清空当前层数据
-                        this.layers = [response.data];
-                        this.renderData(this.layers);
+                        this.renderData(response.data);
                         $('#addSubLayerModal').modal('hide');
                         this.hideContextMenu();
                     }).catch(error => {
