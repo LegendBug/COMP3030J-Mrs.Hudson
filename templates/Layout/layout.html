@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block extra_head %}
-    <title>Venue Layout</title>
+    <title>Layout</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/fabric"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -20,7 +20,7 @@
             <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="fas fa-edit"></i> Layout</a>
+            <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
         </li>
     {% endif %}
 {% endblock %}
@@ -134,7 +134,7 @@
                      class="list-group context-menu">
                   <a class="list-group-item list-group-item-action" @click="openAddSubLayerModal(layer); ">Add Sublayer</a>
                   <a class="list-group-item list-group-item-action" @click="">Add Element</a>
-                  <a class="list-group-item list-group-item-action" @click="">Remove Layer</a>
+                  <a class="list-group-item list-group-item-action" @click="deleteLayer(layer.id)">Delete Layer</a>
                   <a class="list-group-item list-group-item-action" @click="">Edit</a>
                 </div>
               </div>
@@ -176,6 +176,28 @@
                     this.$emit('update-current-layer', layer);
                     $('#addSubLayerModal').modal('show');
                 },
+                
+                deleteLayer(layerId) {
+                    if (confirm("Are you sure you want to delete current layer and its sub-elements?")) {
+                        axios.get('{% url 'Layout:delete_layer' %}', { 
+                            params: {
+                                layer_id: layerId,
+                                floor: this.floor,
+                                current_access_id: {{ current_access.id }},
+                                user_type: '{{ user_type }}',
+                            }
+                        })
+                        .then(response => {
+                            if(response.data.success) {
+                                this.renderData(response.data);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error deleting layer:', error);
+                            alert('Failed to delete layer');
+                        });
+                    }
+                },
             },
         });
 
@@ -211,7 +233,11 @@
                 // ----------------- 数据加载 -----------------
                  synchronizeData() {
                     axios.get('{% url "Layout:synchronize_data" %}', {
-                        params: { floor: this.floor }
+                        params: { 
+                            floor: this.floor,
+                            current_access_id: {{ current_access.id }},
+                            user_type: '{{ user_type }}',
+                        }
                     }).then(response => {
                         if (response.data && response.data.id) {
                             this.renderData(response.data); // 调用renderData来处理这个单一节点
@@ -257,13 +283,11 @@
                 },
                 
                 addSubLayer() { // 添加子层
-                    console.log('Current Layer:', this.currentLayer);
-                    console.log('Current Layer ID:',this.currentLayer.id);
                     let formData = new FormData(document.getElementById('addSubLayerForm'));
                     formData.append('floor', this.floor); // 确保floor字段被添加
                     formData.append('parent_unit', this.currentLayer.id); // 添加parent_unit_id字段
                     formData.append('user_type', '{{ user_type }}'); // 添加user_type字段
-                    formData.append('affiliation_object_id', {{ venue.id }}); // 添加user_type字段                    
+                    formData.append('affiliation_object_id', {{ current_access.id }}); // 添加user_type字段                    
                     axios.post('{% url "Layout:add_sublayer" %}', formData).then(response => {
                         this.renderData(response.data);
                         $('#addSubLayerModal').modal('hide');

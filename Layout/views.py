@@ -1,12 +1,15 @@
 from django.shortcuts import render
 from rest_framework import status
+
+from Booth.models import Booth
+from Exhibition.models import Exhibition
 from Venue.models import Venue
 from django.http import JsonResponse
 from .forms import AddLayerForm
 from .serializers import *
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
-
+from django.shortcuts import get_object_or_404
 
 def venue_layout(request):
     user_type = 'Manager' if hasattr(request.user, 'manager') \
@@ -38,18 +41,28 @@ def layout(request):
     # add_layer_form
     add_sublayer_form = AddLayerForm(initial={'parent_id': 1, 'floor': venue.floor})
     return render(request, 'Layout/layout.html',
-                  {'venue': venue, 'user_type': user_type, 'items': items, 'floor_range': range(1, venue.floor + 1),
+                  {'current_access': venue, 'user_type': user_type, 'items': items, 'floor_range': range(1, venue.floor + 1),
                    'add_sublayer_form': add_sublayer_form})
 
 
 def synchronize_data(request):  # {url (Layout:get_floor_data)}
-    # 从GET请求中获取当前的floor
+    # 从GET请求中获取参数
     floor = int(request.GET.get('floor', "1"))
-    # 从session中获取venue_id
-    venue_id = request.session.get('venue_id')
-    venue = Venue.objects.get(id=venue_id)
+    current_access_id = int(request.GET.get('current_access_id', 0))
+    user_type = request.GET.get('user_type')
+    # 验证数据有效性
+    if (floor < 1) or (current_access_id < 1) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
+        return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+    # 获取当前正在访问的位置
+    if user_type == 'Manager':
+        current_access = Venue.objects.get(pk=current_access_id)
+    elif user_type == 'Organizer':
+        current_access = Exhibition.objects.get(pk=current_access_id)
+    else:
+        current_access = Booth.objects.get(pk=current_access_id)
+
     # 获取当前场馆的当前楼层的Root SpaceUnit节点(parent_unit=None 且创建时间最早)
-    root = venue.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
+    root = current_access.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
     # 返回JSON化的root数据
     if root is not None:
         # 使用Serializer序列化root
@@ -66,10 +79,9 @@ def add_sublayer(request):
         form = AddLayerForm(request.POST)
         if form.is_valid():
             new_sublayer = form.save(commit=True)  # save the form and create the new sublayer
-            venue_id = new_sublayer.affiliation_object_id
-            venue = Venue.objects.get(id=venue_id)
+            current_access = new_sublayer.affiliation
             floor = new_sublayer.floor
-            root = venue.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
+            root = current_access.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
             serializer = SpaceUnitSerializer(root)
             return JsonResponse(serializer.data, safe=False)
         else:
@@ -80,7 +92,43 @@ def add_sublayer(request):
 
 
 def delete_layer(request):
-    pass
+    # 从GET请求中获取参数
+    floor = int(request.GET.get('floor', "1"))
+    current_access_id = int(request.GET.get('current_access_id', 0))
+    user_type = request.GET.get('user_type')
+    # 验证数据有效性
+    if (floor < 1) or (current_access_id < 1) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
+        return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+
+    layer_id = int(request.GET.get('layer_id', 0))
+    layer = get_object_or_404(SpaceUnit, id=layer_id)
+    def delete_recursive(space_unit):
+        # 先递归删除所有子单位
+        for child in space_unit.child_units.all():
+            delete_recursive(child)
+        # 删除与此SpaceUnit相关联的所有elements
+        space_unit.elements.all().delete()
+        # 最后删除SpaceUnit本身
+        space_unit.delete()
+    # 开始递归删除操作
+    delete_recursive(layer)
+    # 获取当前正在访问的位置
+    if user_type == 'Manager':
+        current_access = Venue.objects.get(pk=current_access_id)
+    elif user_type == 'Organizer':
+        current_access = Exhibition.objects.get(pk=current_access_id)
+    else:
+        current_access = Booth.objects.get(pk=current_access_id)
+    # 获取当前场馆的当前楼层的Root SpaceUnit节点(parent_unit=None 且创建时间最早)
+    root = current_access.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
+    # 返回JSON化的root数据
+    if root is not None:
+        # 使用Serializer序列化root
+        serializer = SpaceUnitSerializer(root)
+        return JsonResponse(serializer.data)  # 使用Django的JsonResponse返回数据
+    else:
+        return JsonResponse({'error': 'No root SpaceUnit found for the specified floor'},
+                            status=status.HTTP_404_NOT_FOUND)
 
 
 def add_element(request):
