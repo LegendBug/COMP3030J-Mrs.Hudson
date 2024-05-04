@@ -46,14 +46,14 @@ class InventoryCategory(models.Model):
 # Item Model
 class Item(models.Model):
     name = models.CharField(max_length=255)
-    is_using = models.BooleanField(default=False)
+    is_using = models.BooleanField(default=False)  # TODO 1
     is_damaged = models.BooleanField(default=False)
     power = models.FloatField(blank=True, null=True)
     water_consumption = models.FloatField(blank=True, null=True)
     last_modified = models.DateTimeField(auto_now=True)
     category = models.ForeignKey("Inventory.InventoryCategory", on_delete=models.CASCADE, related_name='items')
     location = models.ForeignKey("Layout.SpaceUnit", on_delete=models.SET_NULL, null=True,
-                                 related_name='items')  # Item当前正位于哪一个SpaceUnit
+                                 related_name='items')  # Item当前正位于哪一个SpaceUnit # TODO 1
     # affiliation : Venue/Exhibition/Booth, Django泛型
     affiliation_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='items')
     affiliation_object_id = models.PositiveIntegerField()
@@ -63,7 +63,8 @@ class Item(models.Model):
 class ResourceApplication(Application):
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                   related_name='resource_applications')
-    # 某个类型的资源被删除后，申请
+    booth = models.ForeignKey("Booth.Booth", on_delete=models.CASCADE, related_name='resource_applications')
+    # 某个类型的资源被删除后，申请同时被删除
     category = models.OneToOneField("InventoryCategory", on_delete=models.CASCADE, null=True,
                                     related_name='resource_application')
     quantity = models.IntegerField()

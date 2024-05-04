@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 
 from django.http import JsonResponse, HttpResponseNotAllowed
@@ -12,6 +13,7 @@ from User.models import Message, MessageDetail, Organizer, Manager, Exhibitor
 from Venue.models import Venue
 
 
+@login_required
 def exhibition(request, exhibition_id):
     current_exhibition = Exhibition.objects.filter(id=exhibition_id).first()
     if current_exhibition is None:
@@ -38,11 +40,13 @@ def exhibition(request, exhibition_id):
 
 
 # 创建展览申请
+@login_required
 def create_exhibit_application(request):
     if request.method == 'POST':
         try:
+            if not hasattr(request.user, 'organizer'):
+                return JsonResponse({'error': 'Permission denied!'}, status=403)
             # 获取POST请求中的数据
-            print('create')
             form = ExhibApplicationForm(request.POST, request.FILES)
             if not form.is_valid():
                 # 获取第一个错误信息
@@ -57,14 +61,6 @@ def create_exhibit_application(request):
             image = form.cleaned_data.get('exhib_image')
             sectors = form.cleaned_data.get('exhib_sectors')
             content = form.cleaned_data.get('message_content')
-
-            print(len(sectors))
-            for sector in sectors:
-                print(sector.name)
-                print(sector.affiliation_object_id)
-                print(sector.affiliation_content_type)
-
-            print('end')
 
             # 创建新的展览和展览申请
             venue = Venue.objects.get(pk=venue_id)

@@ -36,7 +36,7 @@
                 {% if item_type == 'unread' or item_type == 'inbox' or item_type == 'sent' %}
                     {#消息列表#}
                     {% for message in page_obj %}
-                        <div class="list-group-item cursor-pointer"
+                        <div class="list-group-item cursor-pointer" style="background-color: rgba(255, 255, 255, 0.4)"
                              onclick="loadMessageDetail('{{ message.id }}', '{% url 'User:view_message_detail' message.id %}')">
                             <h5 class="mb-1">{{ message.title }}</h5>
                             <small class="text-muted">Sent by {{ message.sender.username }}
@@ -48,7 +48,7 @@
                     {#申请列表#}
                     {% if applications_type == 'exhibition' %}
                         {% for application in page_obj %}
-                            <div class="list-group-item cursor-pointer"
+                            <div class="list-group-item cursor-pointer" style="background-color: rgba(255, 255, 255, 0.6)"
                                  onclick="loadApplicationDetail('{{ application.id }}', '{% url 'User:view_application_detail' application.id %}')">
                                 <h5 class="mb-1">{{ application.exhibition.name }}</h5>
                                 <small class="text-muted">Sent by {{ application.applicant }}</small>
@@ -76,7 +76,7 @@
                         </li>
                     {% endif %}
                     <li class="page-item disabled">
-                        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                        <span class="page-link" style="background-color: rgba(255, 255, 255, 0.4)">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
                     </li>
                     {% if page_obj.has_next %}
                         <li class="page-item">
@@ -163,12 +163,12 @@
     <blockquote class="blockquote text-muted" style="font-size: 0.9rem;">
         <ul class="list-group">
             ${data.related_messages.map((msg) => `
-            <li class="list-group-item mb-2 cursor-pointer">
+            <li class="list-group-item cursor-pointer" style="background-color: rgba(255, 255, 255, 0.6)">
                 <strong class="d-block mb-1">${msg.title}</strong>
                 <p class="mb-2">${msg.content}</p>
                 <small class="text-muted">
-                    <i class="bi bi-person-fill"></i> Sent by ${msg.sender} 
-                    <i class="bi bi-calendar-event-fill"></i> on ${msg.created_at}
+                    Sent by <i class="bi bi-person-fill"></i> ${msg.sender} 
+                    on <i class="bi bi-calendar-event-fill"></i> ${msg.created_at}
                 </small>
             </li>
             `).join('')}
@@ -190,14 +190,14 @@
     </div>
 
     <!-- Current Message -->
-    <div class="card mt-4 shadow-sm border">
+    <div class="card mt-4 shadow-sm border" style="background-color: rgba(255, 255, 255, 0.6)">
         <div class="card-body">
             <h3 class="card-title text-center mb-3">${data.title}</h3>
             <p class="card-text mb-3">${data.content}</p>
             <div class="text-muted text-center mb-3">
                 <small>
-                    <i class="bi bi-person-fill"></i> Sent by ${data.sender} 
-                    <i class="bi bi-calendar-event-fill"></i> on ${data.created_at}
+                    Sent by <i class="bi bi-person-fill"></i> ${data.sender} 
+                    on <i class="bi bi-calendar-event-fill"></i> ${data.created_at}
                 </small>
             </div>
         </div>
@@ -209,9 +209,11 @@
     <!-- 关联的Application -->
     <div class="mt-4">
         <h5><strong>Application</strong></h5>
-        <div class="card shadow-sm border cursor-pointer" onclick="loadApplicationDetail('${data.application_id}', '${application_url}')">
+        <div class="card shadow-sm"
+            style="background-color: rgba(255, 255, 255, 0.6); cursor: pointer;"
+            onclick="loadApplicationDetail('${data.application_id}', '${application_url}')">
             <div class="card-body">
-                <p class="card-text"><strong>Application Type:</strong> ${data.application_content_type}</p>
+                <p class="card-text cursor-pointer"><strong>Application Type:</strong> ${data.application_content_type}</p>
             </div>
         </div>
     </div>
@@ -246,7 +248,7 @@
         </div>
     </div>
 
-    <div class="card mt-4 shadow-sm border">
+    <div class="card mt-3 shadow-sm border" style="background-color: rgba(255, 255, 255, 0.6)">
         <div class="card-body">
             <div id="application-container"></div>
             <h3 class="card-title text-center mb-3">${data.title}</h3>

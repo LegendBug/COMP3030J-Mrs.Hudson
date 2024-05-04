@@ -1,11 +1,16 @@
 from django import forms
 from django.db import transaction
+from django.db.models import Count
+
 from Booth.models import Booth
 from Exhibition.models import Exhibition
 from Inventory.models import InventoryCategory, Item
 from django.contrib.contenttypes.models import ContentType
 from django import forms
+
+from . import models
 from .models import Item
+
 
 class EditInventoryCategoryForm(forms.ModelForm):
     class Meta:
@@ -83,6 +88,7 @@ class CreateInventoryCategoryForm(forms.ModelForm):
             Item.objects.bulk_create(items)
         return category
 
+
 class EditItemForm(forms.ModelForm):
     class Meta:
         model = Item
@@ -95,3 +101,37 @@ class EditItemForm(forms.ModelForm):
             'water_consumption': forms.NumberInput(attrs={'class': 'form-control'}),
             'location': forms.Select(attrs={'class': 'form-control'}),
         }
+
+
+class ResApplicationForm(forms.Form):
+    # 关联的场馆ID
+    booth_id = forms.IntegerField(widget=forms.HiddenInput())
+    category = forms.ModelChoiceField(
+        queryset=InventoryCategory.objects.none(),  # 初始为空，稍后设置
+        widget=forms.Select(attrs={'id': 'category'}),
+        required=True,
+        label="Resource Category"
+    )
+    quantity = forms.IntegerField(min_value=1, initial=1, required=True, label="Quantity")
+    # 创建资源申请的附加说明
+    message_content = forms.CharField(max_length=500,
+                                      required=True,
+                                      widget=forms.Textarea(attrs={'rows': 3, 'id': 'messageContent'}),
+                                      label="Additional Message")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        origin_object_id = self.initial.get('origin_object_id')
+        origin_content_type = self.initial.get('origin_content_type')
+        print('origin_object_id:', origin_object_id)
+        print('origin_content_type:', origin_content_type)
+        if origin_object_id and origin_content_type:
+            # 获取所有与此origin相关联的、items数量不为0的InventoryCategory
+            self.fields['category'].queryset = InventoryCategory.objects.filter(
+                origin_content_type_id=origin_content_type,
+                origin_object_id=origin_object_id
+            ).annotate(item_count=Count('items')).filter(item_count__gt=0)
+            print('category success:', self.fields['category'].queryset)
+        else:
+            self.fields['category'].queryset = InventoryCategory.objects.all()
+            print('category fail:', self.fields['category'].queryset)

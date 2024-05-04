@@ -17,9 +17,6 @@
         <li class="nav-item">
             <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
-        </li>
     {% endif %}
 {% endblock %}
 
@@ -29,19 +26,26 @@
 
     <!-- Floating Action Button -->
     {% if user.is_authenticated and user_type == 'Organizer' %}
-        <a onclick="createExhibApply()" class="btn btn-success rounded-circle shadow" id="createExhibApply"
+        <a onclick="openExhibApplyModal()" class="btn btn-success rounded-circle shadow" id="createExhibApply"
            style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
-           justify-content: center; align-items: center; font-size: 30px;">
-            +
+           justify-content: center; align-items: center; font-size: 30px;" title="Apply a New Exhibition">
+            📝
+        </a>
+    {% elif user.is_authenticated and user_type == 'Manager' %}
+        <a class="btn btn-success rounded-circle shadow"
+           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+           href="{% url 'Inventory:inventory' 'venue' venue.id %}" title="View Inventory">
+            📦
         </a>
     {% endif %}
-
-    <a class="btn btn-primary rounded-circle shadow" id="filter-exhibitions-btn"
+    <a class="btn btn-success rounded-circle shadow" id="filter-exhibitions-btn"
        style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-       onclick="openFilterModal();">
-        <i class="fas fa-filter"></i> <!-- 假设使用 Font Awesome 的筛选图标 -->
+       onclick="openFilterModal();" title="Filter Exhibitions">
+        <i class="fas fa-filter mt-1"></i>
     </a>
 
+
+    <!-- 展览列表 -->
     <table class="table table-hover table-striped text-white shadow-sm">
         <thead class="table-dark">
         <tr>
@@ -102,7 +106,7 @@
         </div>
     </div>
 
-    {# 展览筛选模态框 #}
+    {# TODO 完善筛选模态框 #}
     <div class="modal fade" id="filterExhibitionsModal" tabindex="-1" aria-labelledby="filterExhibitionsLabel"
          aria-hidden="true">
         <div class="modal-dialog">
@@ -117,7 +121,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="venue_id" id="venue_id" value="{{ venue.pk }}">
                         {{ filter_form|crispy }}
-                        <div id="filter-exhitbions-message-container"></div>
+                        <div id="filter-exhibitions-message-container"></div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             <button type="submit" class="btn btn-success">Filter Exhibitions</button>
@@ -132,15 +136,13 @@
 {% block scripts %}
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
-                function createExhibApply() {
-                    const myModal = new bootstrap.Modal(document.getElementById('createExhibApplyModal'), {
-                        keyboard: false
-                    });
+                function openExhibApplyModal() {
+                    const myModal = new bootstrap.Modal(document.getElementById('createExhibApplyModal'));
                     myModal.show(); // 显示模态框
                 }
 
                 function openFilterModal() {
-                    var filterModal = new bootstrap.Modal(document.getElementById('filterExhibitionsModal'));
+                    const filterModal = new bootstrap.Modal(document.getElementById('filterExhibitionsModal'));
                     filterModal.show();
                 }
 
@@ -176,7 +178,7 @@
                     });
                 }
 
-                window.createExhibApply = createExhibApply;
+                window.openExhibApplyModal = openExhibApplyModal;
                 window.submitApplication = submitApplication;
                 window.openFilterModal = openFilterModal;
 

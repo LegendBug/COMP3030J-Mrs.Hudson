@@ -18,21 +18,12 @@
     <li class="nav-item">
         <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
     </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
-    </li>
 {% endblock %}
 
 
 {% block content %}
     <div class="container mt-3">
-        {% if user.is_authenticated and user_type == 'Manager' %}
-            <h2><a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a> Inventory</h2>
-        {% elif user.is_authenticated and user_type == 'Organizer' %}
-            <h2><a href="#">{{ current_access.name }}</a> Inventory</h2>
-        {% elif user.is_authenticated and user_type == 'Exhibitor' %}
-            <h2><a href="#">{{ current_access.name }}</a> Inventory</h2>
-        {% endif %}
+        <h2><a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a> Inventory</h2>
 
         <table class="table table-hover table-striped text-white shadow-sm">
             <thead class="table-dark">
@@ -60,7 +51,8 @@
                     <td>{{ category.items_quantity }}</td>
                     <td>
                         <a href="{% url 'Inventory:category_detail' category.pk %}" class="btn btn-secondary btn-sm">Detail</a>
-                        <a href="{% url 'Inventory:edit-category' category.pk %}" class="btn btn-success btn-sm">Modify</a>
+                        <a href="{% url 'Inventory:edit-category' category.pk %}"
+                           class="btn btn-success btn-sm">Modify</a>
                         <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ category.id }})">
                             Delete
                         </button>
@@ -80,19 +72,16 @@
     {% if user.is_authenticated and user_type != 'Manager' %}
         <a href="#" class="btn btn-success rounded-circle shadow" id="add-venue-btn"
            style="position: fixed; bottom: 170px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-           onclick="openAddInventoryModal();"> <!-- 这里改为调用函数 -->
+           onclick="openResApplyModal();" title="Apply for resources">
             📝
         </a>
     {% endif %}
-
     <!-- 添加库存按钮 -->
     <a href="#" class="btn btn-success rounded-circle shadow" id="add-venue-btn"
        style="position: fixed; bottom: 100px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-       onclick="openAddInventoryModal();"> <!-- 这里改为调用函数 -->
-        📦
+       onclick="openAddInventoryModal();" title="Add custom resources">
+        +
     </a>
-
-
 
     {# 添加库存的模态框 #}
     <div class="modal fade" id="addInventoryModal" tabindex="-1" aria-labelledby="addInventoryModalLabel"
@@ -120,6 +109,33 @@
             </div>
         </div>
     </div>
+    
+    {# 申请库存的模态框 #}
+    <div class="modal fade" id="createResApplyModal" tabindex="-1" aria-labelledby="createResApplyModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createResApplyModal">Apply for New Resources</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createResApplyForm" method="post"
+                          enctype="multipart/form-data" class="needs-validation"
+                          novalidate>
+                        {% csrf_token %}
+                        {{ add_inventory_form|crispy }}
+                        <input type="hidden" name="venue_id" id="venue_id" value="{{ current_access.pk }}">
+                        <div id="application-form-container"></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Apply</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
 
@@ -136,13 +152,24 @@
             const filterModal = new bootstrap.Modal(document.getElementById('addInventoryModal'));
             filterModal.show();
         }
+        
+        function openResApplyModal() {
+            const filterModal = new bootstrap.Modal(document.getElementById('createResApplyModal'));
+            filterModal.show();
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
             const addInventoryForm = document.getElementById('addInventoryForm');
+            
             addInventoryForm.addEventListener('submit', function (e) {
                 e.preventDefault();  // 阻止表单的默认提交行为
                 const formData = new FormData(addInventoryForm);
-                axios.post('{% url 'Inventory:inventory' %}', formData)
+                {% if not exhibition.id %}
+                    console.error('Invalid exhibition ID');
+                {% else %}
+                    console.log('Exhibition ID:', {{ exhibition.id }});
+                {% endif %}
+                axios.post('{% url 'Inventory:inventory' space_type space_id %}', formData)
                     .then(function (response) {
                         if (response.data.success) { // 如果提交成功，显示成功消息
                             const addInventoryModal = new bootstrap.Modal(document.getElementById('addInventoryModal'), {});
@@ -163,6 +190,34 @@
                             errorMessage = error.response.data.errors;
                         }
                         document.getElementById('add_inventory-message-container').innerHTML = '<div class="alert alert-danger">Error: ' + errorMessage + '</div>';
+                    });
+            });
+            
+            const createResApplyForm = document.getElementById('createResApplyForm');
+            createResApplyForm.addEventListener('submit', function (e) {
+                e.preventDefault();  // 阻止表单的默认提交行为
+                const formData = new FormData(createResApplicationForm);
+                axios.post('{% url 'Inventory:inventory' space_type space_id %}', formData)
+                    .then(function (response) {
+                        if (response.data.success) { // 如果提交成功，显示成功消息
+                            const createResApplicationModal = new bootstrap.Modal(document.getElementById('createResApplicationModal'), {});
+                            const messageContainer = document.getElementById('create_res_application-message-container');
+                            messageContainer.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
+                            messageContainer.style.display = 'block';
+                            // 设置定时器等待1.5秒后关闭模态框并刷新页面
+                            setTimeout(function () {
+                                createResApplicationModal.hide(); // 关闭模态框
+                                window.location.reload(); // 刷新页面
+                            }, 1500); // 1500毫秒后执行
+                        }
+                    })
+                    .catch(function (error) {
+                        let errorMessage = error.message;
+                        // 如果错误中有响应并且有数据并且数据中有错误信息，则使用服务器的错误信息
+                        if (error.response && error.response.data && error.response.data.errors) {
+                            errorMessage = error.response.data.errors;
+                        }
+                        document.getElementById('create_res_application-message-container').innerHTML = '<div class="alert alert-danger">Error: ' + errorMessage + '</div>';
                     });
             });
         });

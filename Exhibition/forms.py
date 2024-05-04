@@ -10,9 +10,10 @@ from django.core.exceptions import ValidationError
 class ExhibApplicationForm(forms.Form):
     # 关联的场馆ID
     venue_id = forms.IntegerField(widget=forms.HiddenInput())
-    exhib_name = forms.CharField(widget=forms.TextInput(attrs={'id': 'exhibName'}), max_length=50, required=True)
+    exhib_name = forms.CharField(widget=forms.TextInput(attrs={'id': 'exhibName'}), max_length=50, required=True,
+                                 label='Exhibition Name')
     exhib_description = forms.CharField(widget=forms.Textarea(attrs={'rows': 3, 'id': 'exhibDescription'}),
-                                        max_length=500, required=True)
+                                        max_length=500, required=True, label='Exhibition Description')
     # 精确到分钟
     exhib_start_at = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={'id': 'exhibStartAt', 'type': 'datetime-local', 'step': 60}),
@@ -23,7 +24,7 @@ class ExhibApplicationForm(forms.Form):
     exhib_image = forms.ImageField(widget=forms.FileInput(attrs={'id': 'exhibImage'}), required=True, label="Image")
     exhib_sectors = forms.ModelMultipleChoiceField(
         queryset=SpaceUnit.objects.none(),
-        widget=forms.SelectMultiple(attrs={'id': 'exhibSectors'}),  # 设置为多选下拉框
+        widget=forms.SelectMultiple(attrs={'id': 'exhibSectors'}),  # 设置为多选下拉框,
         required=True,
         label="Exhibition Sectors"  # 更改标签以表示多个选择
     )
@@ -41,16 +42,12 @@ class ExhibApplicationForm(forms.Form):
         # 设置Sectors为某一场馆的SpaceUnits
         affiliation_object_id = self.initial.get('affiliation_object_id')
         affiliation_content_type = self.initial.get('affiliation_content_type')
-        print(affiliation_object_id)
-        print(affiliation_content_type)
         if affiliation_object_id and affiliation_content_type:
             self.fields['exhib_sectors'].queryset = SpaceUnit.objects.filter(
                 affiliation_object_id=affiliation_object_id,
                 affiliation_content_type=affiliation_content_type)
-            print("Set exhib_sectors queryset.")
         else:
             self.fields['exhib_sectors'].queryset = SpaceUnit.objects.all()
-            print("No affiliation_object_id or affiliation_content_type in initial data.")
 
     def clean(self):
         cleaned_data = super().clean()
