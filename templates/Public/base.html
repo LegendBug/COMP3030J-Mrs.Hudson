@@ -47,18 +47,24 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#"><i class="fas fa-moon"></i> Theme</a>
                 </li>
+
                 {% block extra_nav_icons %}
                     <!-- 在这里添加额外的icon-->
-
                 {% endblock %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:view_message' %}"><i class="fas fa-envelope"></i>
-                        Messages</a>
-                </li>
+
                 <li class="nav-item">
                     <a class="nav-link" href="#"><i class="fas fa-robot"></i> Assistant</a>
                 </li>
                 {% if user.is_authenticated %}
+                    {# TODO 有空把一个Inventory的主页写出来 #}
+{#                    <li class="nav-item">#}
+{#                        <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i>#}
+{#                            Inventory</a>#}
+{#                    </li>#}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'User:view_message' %}"><i class="fas fa-envelope"></i>
+                            Messages</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'User:logout' %}"><i class="fas fa-sign-out-alt"></i>
                             Logout</a>

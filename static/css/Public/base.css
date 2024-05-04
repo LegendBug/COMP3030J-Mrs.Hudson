@@ -197,3 +197,7 @@ h2 a {
     color: inherit; /* Inherits color from parent element */
 }
 
+h2 a:hover {
+    color: #28a745; /* Inherits color from parent element */
+}
+

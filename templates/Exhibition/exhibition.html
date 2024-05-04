@@ -8,23 +8,25 @@
 {% endblock %}
 
 {% block extra_nav_icons %}
-    <!-- 导航栏额外按键-->
     {% if user.is_authenticated and user_type != 'Exhibitor' %}
+        <a class="btn btn-success rounded-circle shadow"
+           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+           href="{% url 'Inventory:inventory' 'exhibition' exhibition.id %}" title="View Inventory">
+            📦
+        </a>
+    {% endif %}
+
+    <!-- 导航栏额外按键-->
+    {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i>
+                Statistics</a>
         </li>
-        {% if user_type == 'Manager' %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i>
-                    Statistics</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
-            </li>
-        {% endif %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
+        </li>
     {% endif %}
 {% endblock %}
-
 
 {% block content %}
     {# TODO 完善展会界面 #}

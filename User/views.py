@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
@@ -118,6 +119,7 @@ def profile(request):
         return JsonResponse({'message': 'Profile updated successfully.'}, status=200)
 
 
+@login_required
 def view_message(request):
     try:
         # 消息类型默认为 'unread', 申请类型默认为 'exhibition'
@@ -177,6 +179,7 @@ def view_message(request):
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
 
 
+@login_required
 def view_message_detail(request, message_id):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -228,6 +231,7 @@ def view_message_detail(request, message_id):
 
 
 # TODO 将查看申请函数适配到新的模型
+@login_required
 def view_application_detail(request, application_id):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -251,6 +255,7 @@ def view_application_detail(request, application_id):
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
 
 
+@login_required
 def reply_message(request, message_id):
     if request.method == 'POST':
         try:
@@ -288,6 +293,7 @@ def reply_message(request, message_id):
         return HttpResponseNotAllowed(['POST'])
 
 
+@login_required
 def reject_application(request, application_id):
     if request.method == 'POST':
         if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
@@ -318,6 +324,7 @@ def reject_application(request, application_id):
         return HttpResponseNotAllowed(['POST'])
 
 
+@login_required
 def accept_application(request, application_id):
     if request.method == 'POST':
         if not hasattr(request.user, 'manager'):

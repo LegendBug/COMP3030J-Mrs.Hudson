@@ -61,5 +61,5 @@ class Application(models.Model):
         ACCEPTED = 'AC', 'ACCEPTED'  # 完成申请
 
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='applications')
-    description = models.TextField()
+    description = models.TextField(default='')
     stage = models.CharField(max_length=2, choices=Stage.choices, default=Stage.INITIAL_SUBMISSION)

@@ -2,12 +2,12 @@
 
 {% block content %}
 <div class="container mt-3">
-    <h2>编辑物品分类</h2>
+    <h2>Edit Category</h2>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-success">保存修改</button>
-        <a href="{% url 'Inventory:inventory' %}" class="btn btn-secondary">取消</a>
+        <button type="submit" class="btn btn-success">Save Changes</button>
+{#        <a href="{% url 'Inventory:inventory' %}" class="btn btn-secondary">Cancel</a>#}
     </form>
 </div>
 {% endblock %}

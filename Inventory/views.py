@@ -1,30 +1,39 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
 
 from Booth.models import Booth
 from Exhibition.models import Exhibition
-from Inventory.forms import EditInventoryCategoryForm, CreateInventoryCategoryForm, EditItemForm
-from Inventory.models import InventoryCategory, Item
+from Inventory.forms import EditInventoryCategoryForm, CreateInventoryCategoryForm, EditItemForm, ResApplicationForm
+from Inventory.models import InventoryCategory, Item, ResourceApplication
+from User.models import Message, Manager, MessageDetail
 from Venue.models import Venue
 
 
 @login_required
-def inventory(request):
+def inventory(request, space_type, space_id):
+    # 获取用户类型
     user_type = 'Manager' if hasattr(request.user, 'manager') \
         else 'Organizer' if hasattr(request.user, 'organizer') \
-        else 'Exhibitor' if hasattr(request.user, 'exhibitor') \
-        else 'Guest'  # 根据用户的类型,获取与该用户关联的所有Item
-    # 获取current_access, current_access是一个Venue/Exhibition/Booth实例, 它代表着用户当前所访问的Venue/Exhibition/Booth
-    if user_type == 'Manager':
-        current_access = Venue.objects.filter(pk=request.session['venue_id']).first()
-    elif user_type == 'Organizer':
-        current_access = Exhibition.objects.filter(pk=1).first()  # TODO 假数据,临时写死
-    elif user_type == 'Exhibitor':
-        current_access = Booth.objects.filter(pk=1).first()  # TODO 假数据,临时写死
-    else:  # 未登录的游客
-        return redirect('User:login')
+        else 'Exhibitor'
+    # 检查用户类型和空间类型是否匹配，current_access是一个Venue/Exhibition/Booth实例, 它代表着用户当前所访问的Venue/Exhibition/Booth
+    if space_type == 'venue':
+        if user_type != 'Manager':
+            return JsonResponse({'error': 'Permission denied!'}, status=403)
+        current_access = Venue.objects.filter(pk=space_id).first()
+    elif space_type == 'exhibition':
+        if user_type not in ['Manager', 'Organizer']:
+            return JsonResponse({'error': 'Permission denied!'}, status=403)
+        current_access = Exhibition.objects.filter(pk=space_id).first()
+    elif space_type == 'booth':
+        current_access = Booth.objects.filter(pk=2).first()
+    else:
+        return JsonResponse({'error': 'Invalid space type!'}, status=400)
+    request.session['space_type'] = space_type
+    request.session['space_id'] = space_id
+
     if request.method == 'POST':
         submitted_form = CreateInventoryCategoryForm(request.POST, request.FILES, origin=current_access)
         if submitted_form.is_valid():
@@ -63,8 +72,10 @@ def inventory(request):
                       {
                           'user_type': user_type,
                           'current_access': current_access,
-                          'categories': current_categories,
-                          'add_inventory_form': add_inventory_form
+                          'categories': categories,
+                          'space_type': space_type,
+                          'space_id': space_id,
+                          'add_inventory_form': add_inventory_form,
                       })
 
 
@@ -91,7 +102,9 @@ def edit_inventory_category(request, category_id):
         form = EditInventoryCategoryForm(request.POST, request.FILES, instance=category)
         if form.is_valid():
             form.save()
-            return redirect('Inventory:inventory')  # 重定向到某个合适的页面
+            space_type = request.session.get('space_type')
+            space_id = request.session.get('space_id')
+            return redirect('Inventory:inventory', space_type=space_type, space_id=space_id)
     else:
         form = EditInventoryCategoryForm(instance=category)
     return render(request, 'Inventory/edit_category.html', {'form': form})
@@ -101,11 +114,13 @@ def edit_inventory_category(request, category_id):
 def delete_inventory_category(request, category_id):
     category = get_object_or_404(InventoryCategory, pk=category_id)
     user_type = request.session.get('user_type', 'Guest')  # 从会话中获取用户类型
+    space_type = request.session.get('space_type')
+    space_id = request.session.get('space_id')
 
     # 检查 category 下是否有正在使用的 item
     if category.items.filter(is_using=True).exists():
         messages.error(request, "Some items are currently in use and cannot be deleted.")
-        return redirect('Inventory:inventory')
+        return redirect('Inventory:inventory', space_type=space_type, space_id=space_id)
 
     # 处理不同用户类型的权限和逻辑
     if user_type == 'Manager' or (user_type in ['Organizer', 'Exhibitor'] and not category.is_public):
@@ -114,8 +129,7 @@ def delete_inventory_category(request, category_id):
     else:
         messages.error(request,
                        "Cannot delete a public category. Please go to category details to return or delete items.")
-
-    return redirect('Inventory:inventory')
+    return redirect('Inventory:inventory', space_type=space_type, space_id=space_id)
 
 
 @login_required
@@ -131,7 +145,9 @@ def edit_item(request, item_id):
         form = EditItemForm(request.POST, instance=item)
         if form.is_valid():
             form.save()
-            return redirect('Inventory:inventory')
+            space_type = request.session.get('space_type')
+            space_id = request.session.get('space_id')
+            return redirect('Inventory:inventory', space_type=space_type, space_id=space_id)
     else:
         form = EditItemForm(instance=item)
     return render(request, 'Inventory/edit_item.html', {'form': form})
@@ -164,37 +180,34 @@ def delete_item(request, item_id):
         return redirect('Inventory:category_detail', category_id=item.category.id)
 
 
+@login_required
 def create_res_application(request):
     if request.method == 'POST':
         try:
-            form = ResourceApplicationForm(request.POST, request.FILES)
+            if not hasattr(request.user, 'exhibitor'):
+                return JsonResponse({'error': 'Permission denied!'}, status=403)
+            form = ResApplicationForm(request.POST, request.FILES)
             if not form.is_valid():
                 first_error_key, first_error_messages = list(form.errors.items())[0]
                 first_error_message = first_error_key + ': ' + first_error_messages[0]
                 return JsonResponse({'error': first_error_message}, status=400)
-            venue_id = form.cleaned_data.get('venue_id')
-            name = form.cleaned_data.get('res_name')
-            description = form.cleaned_data.get('res_description')
-            start_at = form.cleaned_data.get('res_start_at')
-            end_at = form.cleaned_data.get('res_end_at')
-            image = form.cleaned_data.get('res_image')
-            sectors = form.cleaned_data.get('res_sectors')
+            booth_id = form.cleaned_data.get('booth_id')
+            category = form.cleaned_data.get('category')
+            quantity = form.cleaned_data.get('quantity')
             content = form.cleaned_data.get('message_content')
-            venue = Venue.objects.get(pk=venue_id)
-            organizer = Organizer.objects.get(detail=request.user)
-            new_resource = Resource.objects.create(
-                name=name, description=description, start_at=start_at, end_at=end_at,
-                image=image, organizer=organizer, venue=venue
-            )
-            new_resource.sectors.set(sectors)
-            new_res_application = ResourceApplication.objects.create(applicant=request.user,
-                                                                     description=description,
-                                                                     resource=new_resource)
-            new_resource.application = new_res_application
-            new_resource.save()
+            print('booth_id:', booth_id)
+            print('category:', category)
+            print('quantity:', quantity)
+            print('content:', content)
+
+            # 创建新的ResourceApplication和Message
+            booth = Booth.objects.get(pk=booth_id)
+            new_res_application = ResourceApplication.objects.create(applicant=request.user, booth=booth,
+                                                                     category=category, quantity=quantity)
             new_res_application.save()
-            new_message = Message.objects.create(title='New Resource Application for ' + name, sender=request.user,
-                                                 recipient=Manager.objects.first().detail)
+            # 创建提示消息和消息详情
+            new_message = Message.objects.create(title='New Resource Application for ' + category.name,
+                                                 sender=request.user, recipient=Manager.objects.first().detail)
             application_type = ContentType.objects.get_for_model(new_res_application)
             new_message_detail = MessageDetail.objects.create(message=new_message, content=content,
                                                               application_object_id=new_res_application.id,
