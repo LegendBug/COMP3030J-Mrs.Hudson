@@ -64,7 +64,7 @@
             <div class="offcanvas-body">
                 <!-- Top层级Accordion -->
                 <div class="accordion" id="accordion">
-                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" @update-current-layer="setCurrentLayer"></layer-component>
+                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" @update-current-layer="setCurrentLayer" @layer-deleted="synchronizeData"></layer-component>
                 </div>
 
             </div>
@@ -125,7 +125,7 @@
                 <div v-if="open" class="accordion-collapse">
                   <div class="accordion-body">
                     <layer-component v-for="(child, index) in layer.child_units" :key="index"
-                                     :layer="child" @update-current-layer="$emit('update-current-layer', $event)">
+                                     :layer="child" @update-current-layer="$emit('update-current-layer', $event)" @layer-deleted="$emit('layer-deleted', $event)">
                     </layer-component>
                   </div>
                 </div>
@@ -182,19 +182,16 @@
                         axios.get('{% url 'Layout:delete_layer' %}', { 
                             params: {
                                 layer_id: layerId,
-                                floor: this.floor,
-                                current_access_id: {{ current_access.id }},
-                                user_type: '{{ user_type }}',
                             }
                         })
                         .then(response => {
-                            if(response.data.success) {
-                                this.renderData(response.data);
+                            if (response.data && response.data.success) {
+                                //alert(response.data.success); // 显示成功消息
+                                this.$emit('layer-deleted');
                             }
                         })
                         .catch(error => {
                             console.error('Error deleting layer:', error);
-                            alert('Failed to delete layer');
                         });
                     }
                 },
@@ -232,6 +229,7 @@
             methods: {
                 // ----------------- 数据加载 -----------------
                  synchronizeData() {
+                     console.log('Synchronizing data...');
                     axios.get('{% url "Layout:synchronize_data" %}', {
                         params: { 
                             floor: this.floor,

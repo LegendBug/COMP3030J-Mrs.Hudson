@@ -48,3 +48,24 @@ class AddLayerForm(forms.ModelForm):
         if commit:
             space_unit.save()
         return space_unit
+
+class EditLayerForm(forms.ModelForm):
+    class Meta:
+        model = SpaceUnit
+        fields = ['name', 'description', 'available']
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'Layer Name'}),
+            'available': forms.CheckboxInput(),
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(EditLayerForm, self).__init__(*args, **kwargs)
+        self.fields['name'].required = True
+        self.fields['available'].initial = False
+
+    def save(self, commit=True):
+        space_unit = super(EditLayerForm, self).save(commit=False)
+        if commit:
+            space_unit.save()
+        return space_unit

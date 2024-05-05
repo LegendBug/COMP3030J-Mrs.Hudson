@@ -10,6 +10,8 @@ class SpaceUnit(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     floor = models.IntegerField()
+    # 当举办方/参展方希望预约Venue/Exhibition的SpaceUnit时,会新建一个副本SpaceUnit,并将其inherit_from指向原SpaceUnit; 当一个SpaceUnit的available为True且其occupied_units不为空时,说明有Exhibition/Booth预约使用了当前的SpaceUnit,如果用户想删除当前SpaceUnit,则操作会被拒绝
+    inherit_from = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, related_name='occupied_units')
     parent_unit = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, related_name='child_units')
     available = models.BooleanField(default=False)  # boolean field: available, 用于标记当前SpaceUnit是否可被预约或使用
     created_at = models.DateTimeField(auto_now_add=True)

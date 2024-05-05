@@ -92,43 +92,22 @@ def add_sublayer(request):
 
 
 def delete_layer(request):
-    # 从GET请求中获取参数
-    floor = int(request.GET.get('floor', "1"))
-    current_access_id = int(request.GET.get('current_access_id', 0))
-    user_type = request.GET.get('user_type')
-    # 验证数据有效性
-    if (floor < 1) or (current_access_id < 1) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
-        return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
-
     layer_id = int(request.GET.get('layer_id', 0))
     layer = get_object_or_404(SpaceUnit, id=layer_id)
     def delete_recursive(space_unit):
         # 先递归删除所有子单位
         for child in space_unit.child_units.all():
             delete_recursive(child)
-        # 删除与此SpaceUnit相关联的所有elements
-        space_unit.elements.all().delete()
-        # 最后删除SpaceUnit本身
-        space_unit.delete()
+        if not space_unit.available and not space_unit.occupied_units.exists(): # 表明当前SpaceUnit没有被预约使用
+            # 删除与此SpaceUnit相关联的所有elements
+            space_unit.elements.all().delete()
+            # 最后删除SpaceUnit本身
+            space_unit.delete()
     # 开始递归删除操作
     delete_recursive(layer)
-    # 获取当前正在访问的位置
-    if user_type == 'Manager':
-        current_access = Venue.objects.get(pk=current_access_id)
-    elif user_type == 'Organizer':
-        current_access = Exhibition.objects.get(pk=current_access_id)
-    else:
-        current_access = Booth.objects.get(pk=current_access_id)
-    # 获取当前场馆的当前楼层的Root SpaceUnit节点(parent_unit=None 且创建时间最早)
-    root = current_access.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
-    # 返回JSON化的root数据
-    if root is not None:
-        # 使用Serializer序列化root
-        serializer = SpaceUnitSerializer(root)
-        return JsonResponse(serializer.data)  # 使用Django的JsonResponse返回数据
-    else:
-        return JsonResponse({'error': 'No root SpaceUnit found for the specified floor'},
-                            status=status.HTTP_404_NOT_FOUND)
+    # 返回删除成功的信息
+    return JsonResponse({'success': 'The unused Layer has been successfully deleted!'}, status=200)
+
 
 
 def add_element(request):
