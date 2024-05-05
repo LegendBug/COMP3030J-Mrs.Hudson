@@ -9,6 +9,7 @@ from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect
 
 from Exhibition.models import ExhibitionApplication
+from Inventory.models import ResourceApplication
 from .forms import RegisterForm, LoginForm, ReplyMessageForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *
@@ -132,12 +133,21 @@ def view_message(request):
             items = Message.objects.filter(recipient=request.user).order_by('-created_at')
         elif item_type == 'sent':
             items = Message.objects.filter(sender=request.user).order_by('-created_at')
+        # 根据请求的申请类型进行查询
         elif item_type == 'applications':
             if applications_type == 'exhibition':
                 if hasattr(request.user, 'manager'):
                     items = ExhibitionApplication.objects.all().order_by('exhibition__start_at')
                 elif hasattr(request.user, 'organizer'):
-                    items = ExhibitionApplication.objects.filter(applicant=request.user).order_by('exhibition__start_at')
+                    items = ExhibitionApplication.objects.filter(applicant=request.user).order_by(
+                        'exhibition__start_at')
+                else:
+                    raise Http404("Permission denied")
+            elif applications_type == 'resource':
+                if hasattr(request.user, 'manager'):
+                    items = ResourceApplication.objects.all().order_by('booth__start_at')
+                elif hasattr(request.user, 'exhibitor'):
+                    items = ResourceApplication.objects.filter(applicant=request.user).order_by('booth__start_at')
                 else:
                     raise Http404("Permission denied")
             else:
@@ -163,7 +173,6 @@ def view_message(request):
 
         form = ReplyMessageForm()
         user_type = request.session.get('user_type')
-
         return render(request, 'User/message.html',
                       {
                           'page_obj': page_obj,  # 传递分页对象
@@ -230,27 +239,43 @@ def view_message_detail(request, message_id):
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
 
 
-# TODO 将查看申请函数适配到新的模型
 @login_required
-def view_application_detail(request, application_id):
+def view_application_detail(request, application_type, application_id):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
     try:
-        application = ExhibitionApplication.objects.get(id=application_id)
-        location = application.exhibition.venue.name + ' >>'
-        for sector in application.exhibition.sectors.all():
-            location += ' ' + sector.name
-        data = {
-            'title': 'Application for ' + application.exhibition.name,
-            'image_url': application.exhibition.image.url if application.exhibition.image else '',
-            'description': application.description,
-            'applicant': application.applicant.username,
-            'start_at': application.exhibition.start_at.strftime('%Y-%m-%d %H:%M'),
-            'end_at': application.exhibition.end_at.strftime('%Y-%m-%d %H:%M'),
-            'location': location,
-            'stage': application.get_stage_display(),
-        }
-        return JsonResponse(data)
+        if application_type == 'exhibition':
+            application = ExhibitionApplication.objects.get(id=application_id)
+            location = application.exhibition.venue.name + ' >>'
+            for sector in application.exhibition.sectors.all():
+                location += ' ' + sector.name
+            data = {
+                'application_type': 'exhibition',
+                'title': 'Application for ' + application.exhibition.name,
+                'image_url': application.exhibition.image.url if application.exhibition.image else '',
+                'description': application.description,
+                'applicant': application.applicant.username,
+                'start_at': application.exhibition.start_at.strftime('%Y-%m-%d %H:%M'),
+                'end_at': application.exhibition.end_at.strftime('%Y-%m-%d %H:%M'),
+                'location': location,
+                'stage': application.get_stage_display(),
+            }
+            return JsonResponse(data)
+        elif application_type == 'resource':
+            application = ResourceApplication.objects.get(id=application_id)
+            data = {
+                'application_type': 'resource',
+                'title': "Booth '" + application.booth.name + "' Apply for " + application.category.name,
+                'image_url': application.category.image.url if application.category.image else '',
+                'applicant': application.applicant.username,
+                'start_at': application.booth.start_at.strftime('%Y-%m-%d'),
+                'end_at': application.booth.end_at.strftime('%Y-%m-%d'),
+                'quantity': application.quantity,
+                'stage': application.get_stage_display(),
+            }
+            return JsonResponse(data)
+        else:
+            return JsonResponse({'error': 'Application type not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
 

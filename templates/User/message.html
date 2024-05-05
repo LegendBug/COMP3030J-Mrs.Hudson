@@ -22,12 +22,12 @@
                         Exhibition
                     </button>
                 </div>
-                {#                <div class="col-auto">#}
-                {#                    <button class="btn btn-success mt-2"#}
-                {#                            onclick="window.location.href='?item_type=applications&applications_type=Resource'">#}
-                {#                        Resource#}
-                {#                    </button>#}
-                {#                </div>#}
+                <div class="col-auto">
+                    <button class="btn btn-success mt-2"
+                            onclick="window.location.href='?item_type=applications&applications_type=resource'">
+                        Resource
+                    </button>
+                </div>
             </div>
         {% endif %}
 
@@ -48,9 +48,20 @@
                     {#申请列表#}
                     {% if applications_type == 'exhibition' %}
                         {% for application in page_obj %}
-                            <div class="list-group-item cursor-pointer" style="background-color: rgba(255, 255, 255, 0.6)"
-                                 onclick="loadApplicationDetail('{{ application.id }}', '{% url 'User:view_application_detail' application.id %}')">
+                            <div class="list-group-item cursor-pointer"
+                                 style="background-color: rgba(255, 255, 255, 0.6)"
+                                 onclick="loadApplicationDetail('{{ application.id }}', '{% url 'User:view_application_detail' applications_type application.id %}')">
                                 <h5 class="mb-1">{{ application.exhibition.name }}</h5>
+                                <small class="text-muted">Sent by {{ application.applicant }}</small>
+                            </div>
+                        {% endfor %}
+                    {% elif applications_type == 'resource' %}
+                        {% for application in page_obj %}
+                            <div class="list-group-item cursor-pointer"
+                                 style="background-color: rgba(255, 255, 255, 0.6)"
+                                 onclick="loadApplicationDetail('{{ application.id }}', '{% url 'User:view_application_detail' applications_type application.id %}')">
+                                <h5 class="mb-1">Booth '{{ application.booth.name }}' Apply
+                                    for '{{ application.category.name }}'</h5>
                                 <small class="text-muted">Sent by {{ application.applicant }}</small>
                             </div>
                         {% endfor %}
@@ -99,18 +110,17 @@
             {#无消息说明#}
         {% else %}
             <div class="message-info mt-4">
-            {% if item_type == 'unread' %}
-                <p class="message-info">Great job. All messages have been addressed! 👍</p>
-            {% elif item_type == 'inbox' %}
-                <p class="message-info">No message received yet. 😌</p>
-            {% elif item_type == 'sent' %}
-                <p class="message-info">No sent messages. 😲</p>
-            {% elif item_type == 'applications' %}
-                <p class="message-info">No Applications. 😇</p>
-            {% endif %}
+                {% if item_type == 'unread' %}
+                    <p class="message-info">Great job. All messages have been addressed! 👍</p>
+                {% elif item_type == 'inbox' %}
+                    <p class="message-info">No message received yet. 😌</p>
+                {% elif item_type == 'sent' %}
+                    <p class="message-info">No sent messages. 😲</p>
+                {% elif item_type == 'applications' %}
+                    <p class="message-info">No Applications. 😇</p>
+                {% endif %}
             </div>
         {% endif %}
-        </div>
     </div>
 
     {#回复消息模态框#}
@@ -142,6 +152,7 @@
         const currentMessageType = '{{ item_type }}';  // 获取当前消息类型
 
         document.addEventListener('DOMContentLoaded', function () {
+                <!-- 加载消息详情 -->
                 function loadMessageDetail(messageId, url) {
                     currentId = messageId; // Store message ID when loading details
                     axios.get(url)
@@ -152,7 +163,7 @@
                                 replyButtonHtml = `<button onclick="replyMessage()" class="btn btn-success mt-3">Reply</button>`;
                             }
                             // 关联申请
-                            let application_url = '{% url 'User:view_application_detail' 999 %}'.replace('999', data.application_id);
+                            let application_url = '{% url 'User:view_application_detail' 'exhibition' 999 %}'.replace('999', data.application_id).replace('exhibition', data.applications_type);
                             // 关联消息板块
                             let relatedMessageHtml = '';
                             if (data.related_messages.length > 0) {
@@ -177,7 +188,6 @@
 </div>
 `;
                             }
-
                             document.getElementById('content').innerHTML = `
 <div class="mb-4 px-4">
     <div class="row">
@@ -223,6 +233,7 @@
                         .catch(error => console.error('Error loading the message details:', error));
                 }
 
+                <!-- 加载申请详情 -->
                 function loadApplicationDetail(applicationId, url) {
                     currentId = applicationId; // Store message ID when loading details
                     axios.get(url)
@@ -230,9 +241,28 @@
                             const data = response.data;
                             let rejectButtonHtml = '';
                             let acceptButtonHtml = '';
+                            let applicationHtml = '';
+
                             if ('{{ user_type }}' === 'Manager') {
                                 rejectButtonHtml = `<button onclick="rejectApplication()" class="btn btn-danger mt-3">Reject</button>`;
                                 acceptButtonHtml = `<button onclick="acceptApplication()" class="btn btn-success mt-3">Accept</button>`;
+                            }
+                            if (data.application_type === 'exhibition') {
+                                applicationHtml = `
+<div class="mb-3">
+    <strong><i class="bi bi-body-text"></i> Description:</strong>
+    <p class="card-text">${data.description}</p>
+</div>
+<div class="mb-3">
+    <strong><i class="bi bi-geo-alt"></i> Location:</strong>
+    <p class="card-text">${data.location}</p>
+</div>`;
+                            } else if (data.application_type === 'resource') {
+                                applicationHtml = `
+<div class="mb-3">
+    <strong><i class="bi bi-geo-alt"></i> Quantity:</strong>
+    <p class="card-text">${data.quantity}</p>
+</div>`;
                             }
                             document.getElementById('content').innerHTML = `
 <div class="mb-4 px-4">
@@ -255,17 +285,12 @@
             <div class="text-center mb-3">
                 <img src="${data.image_url}" class="img-fluid rounded border" alt="Exhibition Image" style="max-width: 100%; height: auto; max-height: 300px;">
             </div>
-            <div class="mb-3">
-                <strong><i class="bi bi-body-text"></i> Description:</strong>
-                <p class="card-text">${data.description}</p>
-            </div>
+
+            ${applicationHtml}
+
             <div class="mb-3">
                 <strong><i class="bi bi-clock"></i> Time:</strong>
                 <p class="card-text">${new Date(data.start_at).toLocaleString()} - ${new Date(data.end_at).toLocaleString()}</p>
-            </div>
-            <div class="mb-3">
-                <strong><i class="bi bi-geo-alt"></i> Location:</strong>
-                <p class="card-text">${data.location}</p>
             </div>
             <div class="mb-3">
                 <strong><i class="bi bi-layers"></i> Stage:</strong>
