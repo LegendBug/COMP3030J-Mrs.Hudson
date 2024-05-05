@@ -12,7 +12,7 @@ class AddLayerForm(forms.ModelForm):
     class Meta:
         model = SpaceUnit
         fields = ['name', 'description', 'available', 'parent_unit', 'floor', 'affiliation_object_id']
-        widgets = { # widgets是一个字典，用于指定每个字段的小部件
+        widgets = {  # widgets是一个字典，用于指定每个字段的小部件
             'name': forms.TextInput(attrs={'placeholder': 'Layer Name'}),
             'parent_unit': forms.HiddenInput(),
             'available': forms.CheckboxInput(),
@@ -49,10 +49,11 @@ class AddLayerForm(forms.ModelForm):
             space_unit.save()
         return space_unit
 
+
 class EditLayerForm(forms.ModelForm):
     class Meta:
         model = SpaceUnit
-        fields = ['name', 'description', 'available']
+        fields = ['name', 'description', 'available', ]
         widgets = {
             'name': forms.TextInput(attrs={'placeholder': 'Layer Name'}),
             'available': forms.CheckboxInput(),
@@ -63,9 +64,3 @@ class EditLayerForm(forms.ModelForm):
         super(EditLayerForm, self).__init__(*args, **kwargs)
         self.fields['name'].required = True
         self.fields['available'].initial = False
-
-    def save(self, commit=True):
-        space_unit = super(EditLayerForm, self).save(commit=False)
-        if commit:
-            space_unit.save()
-        return space_unit
