@@ -120,7 +120,6 @@
 
 
 {% block scripts %}
-    {% comment %}<script src="{% static 'js/Layout/layout.js' %}"></script>{% endcomment %}
     <script src="{% static 'js/Layout/canvas.js' %}"></script>
     <script>
         Vue.component('layer-component', {
@@ -140,7 +139,7 @@
                   <button class="accordion-button" type="button"
                           :class="{'collapsed': !open}"
                           @click="open = !open;"
-                          @contextmenu.prevent="handleContextMenu($event, layer)">
+                          @contextmenu.prevent="openContextMenu($event, layer)">
                     [[ layer.name ]]
                   </button>
                 </h2>
@@ -154,10 +153,10 @@
                 <!-- 上下文菜单 -->
                 <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
                      class="list-group context-menu">
-                  <a class="list-group-item list-group-item-action" @click="openAddSubLayerModal(layer); ">Add Sublayer</a>
-                  <a class="list-group-item list-group-item-action" @click="openEditLayerModal(layer)">Edit Layer</a>
-                  <a class="list-group-item list-group-item-action" @click="deleteLayer(layer.id)">Delete Layer</a>
-                  <a class="list-group-item list-group-item-action" @click="">Add Element</a>
+                  <a class="list-group-item list-group-item-action" @click="openAddSubLayerModal(layer); closeContextMenu()">Add Sublayer</a>
+                  <a class="list-group-item list-group-item-action" @click="openEditLayerModal(layer); closeContextMenu()">Edit Layer</a>
+                  <a class="list-group-item list-group-item-action" @click="deleteLayer(layer.id); closeContextMenu()">Delete Layer</a>
+                  <a class="list-group-item list-group-item-action" @click="closeContextMenu()">Add Element</a>
                 </div>
               </div>
             `,
@@ -176,7 +175,7 @@
                     }
                 },
                 
-                handleContextMenu(event) { // 上下文菜单事件处理
+                openContextMenu(event) { // 上下文菜单事件处理
                     event.preventDefault();
                     if (this.isContextMenuVisible) {
                         this.isContextMenuVisible = false;
@@ -191,6 +190,10 @@
                             this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
                             this.isContextMenuVisible = true;  // 显示上下文菜单
                     }
+                },
+                
+                closeContextMenu() {
+                    this.isContextMenuVisible = false;  // 隐藏上下文菜单
                 },
                 
                 // 打开添加子层模态框
@@ -214,11 +217,14 @@
                         axios.get('{% url 'Layout:delete_layer' %}', { 
                             params: {
                                 layer_id: layerId,
+                                floor: this.floor,
+                                user_type: '{{ user_type }}',
+                                current_access_id: {{ current_access.id }},
                             }
                         })
                         .then(response => {
                             if (response.data && response.data.success) {
-                                //alert(response.data.success); // 显示成功消息
+                                alert(response.data.success); // 显示成功消息
                                 this.$emit('layer-deleted');
                             }
                         })
@@ -227,6 +233,52 @@
                         });
                     }
                 },
+            },
+        });
+        
+        Vue.component('element-component', {
+            props: ['element'],
+            delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
+            data: function() {
+                return {
+                    open: false,  // 每个组件控制自己的打开状态
+                    isContextMenuVisible: false,  // 上下文菜单是否可见
+                    contextMenuX: '0px',  // 上下文菜单的X坐标
+                    contextMenuY: '0px'   // 上下文菜单的Y坐标
+                };
+            },
+            template: 
+            `
+              
+            `,
+            mounted() { // 监听全局点击事件，用于隐藏上下文菜单                
+                document.addEventListener('click', this.handleOutsideClick);
+            },
+            beforeDestroy() { // 组件销毁前移除事件监听器，避免内存泄漏                
+                document.removeEventListener('click', this.handleOutsideClick);
+            },
+            methods: {
+                handleOutsideClick(e) { // 全局点击事件处理
+ 
+                },
+                
+                handleContextMenu(event) { // 上下文菜单事件处理
+                    event.preventDefault();
+                    if (this.isContextMenuVisible) {
+                        this.isContextMenuVisible = false;
+                        // 添加一个小延迟再显示新的菜单，以使菜单的隐藏和显示更加明显
+                        this.$nextTick(() => {
+                            this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
+                            this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
+                            this.isContextMenuVisible = true;  // 显示上下文菜单
+                        });
+                    } else {
+                            this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
+                            this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
+                            this.isContextMenuVisible = true;  // 显示上下文菜单
+                    }
+                },
+                
             },
         });
 

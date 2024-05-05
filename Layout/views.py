@@ -91,8 +91,25 @@ def add_sublayer(request):
 
 def delete_layer(request):
     if request.method == 'GET':
+        floor = int(request.GET.get('floor', 1))
+        user_type = request.GET.get('user_type')
+        current_access_id = int(request.GET.get('current_access_id', 0))
+        # 验证数据有效性:
+        if (floor < 1) or (current_access_id is not None) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
+            return JsonResponse({'error': 'Invalid request'}, status=400)
+
         layer_id = int(request.GET.get('layer_id', 0))
         layer = get_object_or_404(SpaceUnit, id=layer_id)
+        if user_type == 'Manager':
+            current_access = get_object_or_404(Venue, pk=current_access_id)
+        elif user_type == 'Organizer':
+            current_access = get_object_or_404(Exhibition, pk=current_access_id)
+        else:
+            current_access = get_object_or_404(Booth, pk=current_access_id)
+        root = current_access.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
+        if root == layer: # 表明当前SpaceUnit是根节点,不能删除
+            return JsonResponse({'error': 'The root SpaceUnit cannot be deleted!'}, status=400)
+
         def delete_recursive(space_unit):
             # 先递归删除所有子单位
             for child in space_unit.child_units.all():
