@@ -70,7 +70,7 @@
             </div>
         </div>
         
-         <!-- Add SubLayer Modal -->
+        <!-- Add SubLayer Modal -->
         <div class="modal fade" id="addSubLayerModal" tabindex="-1" aria-labelledby="addSubLayerModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -85,6 +85,28 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="submit" class="btn btn-primary">Add Sublayer</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Edit Layer Modal -->
+        <div class="modal fade" id="editLayerModal" tabindex="-1" aria-labelledby="editLayerModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editLayerModalLabel">Edit Layer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editLayerForm" @submit.prevent="editLayer()">
+                            {% csrf_token %}
+                            {{ edit_layer_form|crispy }}
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Edit Layer</button>
                             </div>
                         </form>
                     </div>
@@ -135,7 +157,7 @@
                   <a class="list-group-item list-group-item-action" @click="openAddSubLayerModal(layer); ">Add Sublayer</a>
                   <a class="list-group-item list-group-item-action" @click="">Add Element</a>
                   <a class="list-group-item list-group-item-action" @click="deleteLayer(layer.id)">Delete Layer</a>
-                  <a class="list-group-item list-group-item-action" @click="">Edit</a>
+                  <a class="list-group-item list-group-item-action" @click="openEditLayerModal(layer)">Edit</a>
                 </div>
               </div>
             `,
@@ -175,6 +197,16 @@
                 openAddSubLayerModal(layer) {
                     this.$emit('update-current-layer', layer);
                     $('#addSubLayerModal').modal('show');
+                },
+                
+                // 打开添加子层模态框
+                openEditLayerModal(layer) {
+                    this.$emit('update-current-layer', layer);
+                    // 为模态框填充数据
+                    $('#editLayerForm input[name="name"]').val(layer.name);
+                    $('#editLayerForm input[name="description"]').val(layer.description);
+                    $('#editLayerForm input[name="available"]').prop('checked', layer.available);
+                    $('#editLayerModal').modal('show');
                 },
                 
                 deleteLayer(layerId) {
@@ -287,13 +319,25 @@
                     formData.append('user_type', '{{ user_type }}'); // 添加user_type字段
                     formData.append('affiliation_object_id', {{ current_access.id }}); // 添加user_type字段                    
                     axios.post('{% url "Layout:add_sublayer" %}', formData).then(response => {
-                        this.renderData(response.data);
+                        this.synchronizeData();
                         $('#addSubLayerModal').modal('hide');
                     }).catch(error => {
                         console.error('Error adding sub-layer:', error);
                         alert('Failed to add sub-layer.');
                     });
-                },                                               
+                },               
+                
+                editLayer() { // 编辑层
+                    let formData = new FormData(document.getElementById('editLayerForm'));
+                    formData.append('id', this.currentLayer.id); // 添加layer_id字段
+                    axios.post('{% url "Layout:edit_layer" %}', formData).then(response => {
+                        this.synchronizeData();
+                        $('#editLayerModal').modal('hide');
+                    }).catch(error => {
+                        console.error('Error editing layer:', error);
+                        alert('Failed to edit layer.');
+                    });
+                },                                
             }
         });
     </script>
