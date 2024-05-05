@@ -21,7 +21,12 @@
 {% endblock %}
 
 {% block content %}
-    <h2>{{ venue.name }}</h2>
+    <br>
+    <div style="display: inline-block; background-color: rgba(92, 92, 92, 0.5); border-radius: 10px; padding: 5px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); width: fit-content;">
+        <h2 style="margin: 0;">{{ venue.name }}</h2>
+    </div>
+    <br>
+
     <!-- TODO 优化Konva舞台容器显示 -->
     <div class="container-fluid" id="stage-container"></div>
 
@@ -257,3 +262,4 @@
         ;
     </script>
 {% endblock %}
+

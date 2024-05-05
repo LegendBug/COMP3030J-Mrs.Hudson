@@ -23,7 +23,11 @@
 
 {% block content %}
     <div class="container mt-3">
-        <h2><a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a> Inventory</h2>
+        <br>
+        <div style="display: inline-block; background-color: rgba(92, 92, 92, 0.5); border-radius: 10px; padding: 10px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); width: fit-content;">
+            <h2 style="margin: 0;"> <a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a> Inventory</h2>
+        </div>
+        <br>
 
         <table class="table table-hover table-striped text-white shadow-sm">
             <thead class="table-dark">
