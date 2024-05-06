@@ -11,6 +11,8 @@ urlpatterns = [
     path('message/reply_message/<int:message_id>/', views.reply_message, name='reply_message'),
     path('application/detail/<str:application_type>/<int:application_id>/',
          views.view_application_detail, name='view_application_detail'),
-    path('application/reject_application/<int:application_id>/', views.reject_application, name='reject_application'),
-    path('application/accept_application/<int:application_id>/', views.accept_application, name='accept_application'),
+    path('application/reject_application/<str:application_type>/<int:application_id>/',
+         views.reject_application, name='reject_application'),
+    path('application/accept_application/<str:application_type>/<int:application_id>/',
+         views.accept_application, name='accept_application'),
 ]

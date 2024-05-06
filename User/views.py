@@ -230,7 +230,7 @@ def view_message_detail(request, message_id):
             'created_at': message.created_at.strftime('%Y-%m-%d %H:%M'),
             'content': message_detail.content,
             'application_id': application_id,
-            'application_content_type': message_detail.application_content_type.model
+            'application_type': str(message_detail.application_content_type.model).replace('application', '')
             if message_detail.application_content_type else '',
             'related_messages': related_messages_data,
         }
@@ -319,27 +319,35 @@ def reply_message(request, message_id):
 
 
 @login_required
-def reject_application(request, application_id):
+def reject_application(request, application_type, application_id):
     if request.method == 'POST':
         if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
             return JsonResponse({'error': 'Permission denied'}, status=403)
         try:
             # 获取申请实例
-            application = ExhibitionApplication.objects.get(id=application_id)
+            if application_type == 'exhibition':
+                application = ExhibitionApplication.objects.get(id=application_id)
+                content = 'Sorry, your application ' + application.exhibition.name + ' has been rejected.'
+            elif application_type == 'resource':
+                application = ResourceApplication.objects.get(id=application_id)
+                content = 'Sorry, your application for ' + application.category.name + ' has been rejected.'
+            else:
+                return JsonResponse({'error': 'Application type not found'}, status=404)
+
+            # 通过申请
             if application.stage != ExhibitionApplication.Stage.INITIAL_SUBMISSION:
                 return JsonResponse({'error': 'Application has been processed.'}, status=200)
             application.stage = ExhibitionApplication.Stage.REJECTED
             application.save()
 
             # 发送拒绝消息
-            application_type = ContentType.objects.get_for_model(application)
-            content = 'Sorry, your application ' + application.exhibition.name + ' has been rejected.'
-            new_message = Message.objects.create(title='Exhibition Application Rejected',
+            application_content_type = ContentType.objects.get_for_model(application)
+            new_message = Message.objects.create(title=application_type.capitalize() + ' Application Rejected',
                                                  sender=request.user, recipient=application.applicant)
             new_message_detail = MessageDetail.objects.create(message=new_message,
                                                               content=content,
                                                               application_object_id=application.id,
-                                                              application_content_type=application_type)
+                                                              application_content_type=application_content_type)
             new_message.detail = new_message_detail
             new_message.save()
             return JsonResponse({'success': 'Application rejected successfully.'}, status=200)
@@ -350,27 +358,35 @@ def reject_application(request, application_id):
 
 
 @login_required
-def accept_application(request, application_id):
+def accept_application(request, application_type, application_id):
     if request.method == 'POST':
         if not hasattr(request.user, 'manager'):
             return JsonResponse({'error': 'Permission denied'}, status=403)
         try:
             # 获取申请实例
-            application = ExhibitionApplication.objects.get(id=application_id)
+            if application_type == 'exhibition':
+                application = ExhibitionApplication.objects.get(id=application_id)
+                content = 'Congratulations! Your application ' + application.exhibition.name + ' has been accepted.'
+            elif application_type == 'resource':
+                application = ResourceApplication.objects.get(id=application_id)
+                content = 'Congratulations! Your application for ' + application.category.name + ' has been accepted.'
+            else:
+                return JsonResponse({'error': 'Application type not found'}, status=404)
+
+            # 通过申请
             if application.stage != ExhibitionApplication.Stage.INITIAL_SUBMISSION:
                 return JsonResponse({'error': 'Application has been processed.'}, status=200)
             application.stage = ExhibitionApplication.Stage.ACCEPTED
             application.save()
 
             # 发送接受消息
-            application_type = ContentType.objects.get_for_model(application)
-            content = 'Congratulations! Your application ' + application.exhibition.name + ' has been accepted.'
-            new_message = Message.objects.create(title='Exhibition Application Accepted',
+            application_content_type = ContentType.objects.get_for_model(application)
+            new_message = Message.objects.create(title=application_type.capitalize() + ' Application Accepted',
                                                  sender=request.user, recipient=application.applicant)
             new_message_detail = MessageDetail.objects.create(message=new_message,
                                                               content=content,
                                                               application_object_id=application.id,
-                                                              application_content_type=application_type)
+                                                              application_content_type=application_content_type)
             new_message.detail = new_message_detail
             new_message.save()
             return JsonResponse({'success': 'Application accepted successfully.'}, status=200)

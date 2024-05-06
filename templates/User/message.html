@@ -169,7 +169,7 @@
                                 replyButtonHtml = `<button onclick="openReplyModal()" class="btn btn-success mt-3">Reply</button>`;
                             }
                             // 关联申请
-                            let application_url = '{% url 'User:view_application_detail' 'exhibition' 999 %}'.replace('999', data.application_id).replace('exhibition', data.applications_type);
+                            let application_url = '{% url 'User:view_application_detail' 'exhibition' 999 %}'.replace('exhibition', data.application_type).replace('999', data.application_id);
                             // 关联消息板块
                             let relatedMessageHtml = '';
                             if (data.related_messages.length > 0) {
@@ -180,7 +180,7 @@
     <blockquote class="blockquote text-muted" style="font-size: 0.9rem;">
         <ul class="list-group">
             ${data.related_messages.map((msg) => `
-            <li class="list-group-item cursor-pointer" style="background-color: rgba(255, 255, 255, 0.6)">
+            <li class="list-group-item" style="background-color: rgba(255, 255, 255, 0.6)">
                 <strong class="d-block mb-1">${msg.title}</strong>
                 <p class="mb-2">${msg.content}</p>
                 <small class="text-muted">
@@ -229,7 +229,7 @@
             style="background-color: rgba(255, 255, 255, 0.6); cursor: pointer;"
             onclick="loadApplicationDetail('${data.application_id}', '${application_url}')">
             <div class="card-body">
-                <p class="card-text cursor-pointer"><strong>Application Type:</strong> ${data.application_content_type}</p>
+                <p class="card-text cursor-pointer"><strong>Application Type:</strong> ${data.application_type}</p>
             </div>
         </div>
     </div>
@@ -322,7 +322,7 @@
 
                 function rejectApplication() {
                     const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
-                    const url = `{% url 'User:reject_application' 999 %}`.replace('999', currentId);  // 确保 URL 正确
+                    const url = `{% url 'User:reject_application' 'exhibition' 999 %}`.replace('exhibition', '{{ applications_type }}').replace('999', currentId);  // 确保 URL 正确
                     const container = document.getElementById('application-container');
 
                     // 显示确认对话框
@@ -357,8 +357,8 @@
 
 
                 function acceptApplication() {
-                    const token = document.querySelector('input[name="csrf-token"]').value;  // 获取 CSRF 令牌
-                    const url = `{% url 'User:accept_application' 999 %}`.replace('999', currentId);  // 确保 URL 正确
+                    const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
+                    const url = `{% url 'User:accept_application' 'exhibition' 999 %}`.replace('exhibition', '{{ applications_type }}').replace('999', currentId);  // 确保 URL 正确
                     const container = document.getElementById('application-container');
 
                     // 显示确认对话框

@@ -206,10 +206,6 @@ def create_res_application(request):
             category = form.cleaned_data.get('category')
             quantity = form.cleaned_data.get('quantity')
             content = form.cleaned_data.get('message_content')
-            print('booth_id:', booth_id)
-            print('category:', category)
-            print('quantity:', quantity)
-            print('content:', content)
 
             # 创建新的ResourceApplication和Message
             booth = Booth.objects.get(pk=booth_id)
@@ -232,8 +228,4 @@ def create_res_application(request):
     else:
         return HttpResponseNotAllowed(['POST'])
 
-
-# TODO 批准和驳回申请
-# TODO 在消息中心中显示资源申请消息
-# TODO 检查回复功能是否正常
 # TODO 添加展台申请（目前只能手动创建）
