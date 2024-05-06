@@ -5,71 +5,48 @@
 
 {% block extra_head %}
     <title>Inventory</title>
-    {#    <link rel="stylesheet" href="{% static 'css/Inventory/inventory.css' %}">#}
+    {% comment %} <link rel="stylesheet" href="{% static 'css/Inventory/inventory.css' %}">{% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/Inventory/inventory_styles.css' %}">
 {% endblock %}
 
 {% block extra_nav_icons %}
-    <!-- 在这里添加导航栏里额外的icon-->
+    <!-- 使用 Bootstrap Icons -->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="bi bi-bar-chart"></i> Statistics</a>
         </li>
     {% endif %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
+        <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="bi bi-layout-text-sidebar-reverse"></i> Layout</a>
     </li>
+{#    <li class="nav-item">#}
+{#        <a class="nav-link" href="{% url 'Inventory:inventory ' %}"><i class="bi bi-box-seam"></i> Inventory</a>#}
+{#    </li>#}
 {% endblock %}
 
 
 {% block content %}
     <div class="container mt-3">
-        <br>
-        <div style="display: inline-block; background-color: rgba(92, 92, 92, 0.5); border-radius: 10px; padding: 10px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); width: fit-content;">
-            <h2 style="margin: 0;"> <a href="{% url 'Booth:booth' current_access.pk %}">{{ current_access.name }}</a> Inventory</h2>
-        </div>
-        <br>
-
-        <table class="table table-hover table-striped text-white shadow-sm">
-            <thead class="table-dark">
-            <tr>
-                <th>Name</th>
-                <th>Image</th>
-                <th>Is Public</th>
-                <th>Description</th>
-                <th>Quantity</th>
-                <th>Operations</th>
-            </tr>
-            </thead>
-            <tbody>
+        <div class="row">
             {% for category in categories %}
-                <tr>
-                    <td>{{ category.name }}</td>
-                    {% if category.image %}
-                        <td><img src="{{ category.image.url }}" alt="{{ category.name }}"
-                                 style="width:100px; height:auto;"></td>
-                    {% else %}
-                        <td>No Image</td>
-                    {% endif %}
-                    <td>{{ category.is_public }}</td>
-                    <td>{{ category.description }}</td>
-                    <td>{{ category.items_quantity }}</td>
-                    <td>
-                        <a href="{% url 'Inventory:category_detail' category.pk %}" class="btn btn-secondary btn-sm">Detail</a>
-                        <a href="{% url 'Inventory:edit-category' category.pk %}"
-                           class="btn btn-success btn-sm">Modify</a>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ category.id }})">
-                            Delete
-                        </button>
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="7" class="text-center text-white">No resource found.</td>
-                </tr>
+            <div class="col-md-4 col-sm-6 mb-4">
+                <div class="card">
+                    <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ category.name }}</h5>
+                        <p class="card-text"><strong>Description：</strong>{{ category.description }}</p>
+                        <p class="card-text"><small class="text-muted"><strong>Quantity：</strong>{{ category.items_quantity }}</small></p>
+                        <p class="card-text"><strong>Is Public：</strong>{{ category.is_public|yesno:"是,否" }}</p>
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'Inventory:category_detail' category.pk %}" class="btn btn-info btn-sm">View</a>
+                            <a href="{% url 'Inventory:edit-category' category.pk %}" class="btn btn-secondary btn-sm">Modify</a>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ category.id }})">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-            </tbody>
-        </table>
-
+        </div>
     </div>
 
     <!-- 申请库存按钮 -->
@@ -87,7 +64,7 @@
         +
     </a>
 
-    {# 添加库存的模态框 #}
+     {# 添加库存的模态框 #}
     <div class="modal fade" id="addInventoryModal" tabindex="-1" aria-labelledby="addInventoryModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
