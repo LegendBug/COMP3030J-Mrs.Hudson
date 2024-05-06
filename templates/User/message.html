@@ -5,7 +5,6 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/User/message.css' %}">
-    <script src="{% static 'js/User/message.js' %}"></script>
 {% endblock %}
 
 {% block sidebar %}
@@ -34,18 +33,18 @@
         {% if page_obj %}
             <div class="list-group shadow-sm mb-4 mt-2">
                 {% if item_type == 'unread' or item_type == 'inbox' or item_type == 'sent' %}
-                    {#消息列表#}
+                    <!-- 消息列表 -->
                     {% for message in page_obj %}
                         <div class="list-group-item cursor-pointer" style="background-color: rgba(255, 255, 255, 0.4)"
                              onclick="loadMessageDetail('{{ message.id }}', '{% url 'User:view_message_detail' message.id %}')">
                             <h5 class="mb-1">{{ message.title }}</h5>
                             <small class="text-muted">Sent by {{ message.sender.username }}
-                                on {{ message.created_at| date:"Y-m-d H:i" }}
+                                on {{ message.created_at|date:"Y-m-d H:i" }}
                             </small>
                         </div>
                     {% endfor %}
                 {% elif item_type == 'applications' %}
-                    {#申请列表#}
+                    <!-- 申请列表 -->
                     {% if applications_type == 'exhibition' %}
                         {% for application in page_obj %}
                             <div class="list-group-item cursor-pointer"
@@ -69,7 +68,7 @@
                 {% endif %}
             </div>
 
-            {#分页按键#}
+            <!-- 分页按键 -->
             <nav aria-label="Page navigation" class="d-flex justify-content-center">
                 <ul class="pagination">
                     {% if page_obj.has_previous %}
@@ -87,7 +86,9 @@
                         </li>
                     {% endif %}
                     <li class="page-item disabled">
-                        <span class="page-link" style="background-color: rgba(255, 255, 255, 0.4)">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                    <span class="page-link" style="background-color: rgba(255, 255, 255, 0.4)">
+                        {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                    </span>
                     </li>
                     {% if page_obj.has_next %}
                         <li class="page-item">
@@ -107,20 +108,20 @@
                     {% endif %}
                 </ul>
             </nav>
-            {#无消息说明#}
         {% else %}
+            <!-- 无消息说明 -->
             <div class="message-info mt-4">
-                {% if item_type == 'unread' %}
-                    <p class="message-info">Great job. All messages have been addressed! 👍</p>
-                {% elif item_type == 'inbox' %}
-                    <p class="message-info">No message received yet. 😌</p>
-                {% elif item_type == 'sent' %}
-                    <p class="message-info">No sent messages. 😲</p>
-                {% elif item_type == 'applications' %}
-                    <p class="message-info">No Applications. 😇</p>
-                {% endif %}
-            </div>
+            {% if item_type == 'unread' %}
+                <p class="message-info">Great job. All messages have been addressed! 👍</p>
+            {% elif item_type == 'inbox' %}
+                <p class="message-info">No message received yet. 😌</p>
+            {% elif item_type == 'sent' %}
+                <p class="message-info">No sent messages. 😲</p>
+            {% elif item_type == 'applications' %}
+                <p class="message-info">No Applications. 😇</p>
+            {% endif %}
         {% endif %}
+        </div>
     </div>
 
     {#回复消息模态框#}
@@ -133,7 +134,7 @@
                 </div>
                 <div class="modal-body">
                     {% csrf_token %}
-                    {{ form|crispy }}
+                    {{ message_form|crispy }}
                     <div id="reply-container"></div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -148,10 +149,15 @@
 
 {% block scripts %}
     <script type="text/javascript">
-        let currentId = null;
-        const currentMessageType = '{{ item_type }}';  // 获取当前消息类型
-
         document.addEventListener('DOMContentLoaded', function () {
+                let currentId = null;
+                const currentMessageType = '{{ item_type }}';  // 获取当前消息类型
+
+                function openReplyModal() {
+                    const myModal = new bootstrap.Modal(document.getElementById('replyModal'));
+                    myModal.show();
+                }
+
                 <!-- 加载消息详情 -->
                 function loadMessageDetail(messageId, url) {
                     currentId = messageId; // Store message ID when loading details
@@ -160,7 +166,7 @@
                             const data = response.data;
                             let replyButtonHtml = '';
                             if (currentMessageType !== 'sent') {  // 不是sent messages界面，显示回复按钮
-                                replyButtonHtml = `<button onclick="replyMessage()" class="btn btn-success mt-3">Reply</button>`;
+                                replyButtonHtml = `<button onclick="openReplyModal()" class="btn btn-success mt-3">Reply</button>`;
                             }
                             // 关联申请
                             let application_url = '{% url 'User:view_application_detail' 'exhibition' 999 %}'.replace('999', data.application_id).replace('exhibition', data.applications_type);
@@ -267,7 +273,7 @@
                             document.getElementById('content').innerHTML = `
 <div class="mb-4 px-4">
     <div class="row">
-         <div class="col-auto">
+        <div class="col-auto">
             <button onclick="backToList()" class="btn btn-secondary mt-3">Back</button>
         </div>
         <div class="col-auto">
@@ -314,13 +320,6 @@
                     window.location.reload(); // Reload the current page to show the message list again
                 }
 
-                function replyMessage() {
-                    const myModal = new bootstrap.Modal(document.getElementById('replyModal'), {
-                        keyboard: false
-                    });
-                    myModal.show(); // 显示模态框
-                }
-
                 function rejectApplication() {
                     const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
                     const url = `{% url 'User:reject_application' 999 %}`.replace('999', currentId);  // 确保 URL 正确
@@ -358,7 +357,7 @@
 
 
                 function acceptApplication() {
-                    const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
+                    const token = document.querySelector('input[name="csrf-token"]').value;  // 获取 CSRF 令牌
                     const url = `{% url 'User:accept_application' 999 %}`.replace('999', currentId);  // 确保 URL 正确
                     const container = document.getElementById('application-container');
 
@@ -406,38 +405,35 @@
                         headers: {
                             'X-CSRFToken': token  // Include CSRF token in the request headers
                         }
-                    })
-                        .then(response => {
-                            if (response.data.success) {
-                                container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
-                                const modal = bootstrap.Modal.getInstance(document.getElementById('replyModal'));
-                                setTimeout(() => {
-                                    modal.hide();  // 隐藏模态框
-                                    window.location.reload();  // 重新加载页面以更新消息列表
-                                }, 1500);
-                            } else {
-                                container.innerHTML = `<div class="alert alert-danger">${response.data.error}</div>`;
-                                container.style.display = 'block';  // Make sure the message container is visible
-                            }
-                        })
-                        .catch(error => {
-                            // 记录或处理错误
-                            console.error(error);
-                            container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                    }).then(response => {
+                        if (response.data.success) {
+                            container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('replyModal'));
+                            setTimeout(() => {
+                                modal.hide();  // 隐藏模态框
+                                window.location.reload();  // 重新加载页面以更新消息列表
+                            }, 1500);
+                        } else {
+                            container.innerHTML = `<div class="alert alert-danger">${response.data.error}</div>`;
                             container.style.display = 'block';  // Make sure the message container is visible
-                        });
+                        }
+                    }).catch(error => {
+                        // 记录或处理错误
+                        console.error(error);
+                        container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                        container.style.display = 'block';  // Make sure the message container is visible
+                    });
                 }
 
                 window.loadMessageDetail = loadMessageDetail;
                 window.loadApplicationDetail = loadApplicationDetail;
                 window.backToList = backToList;
-                window.replyMessage = replyMessage;
+                window.openReplyModal = openReplyModal;
                 window.rejectApplication = rejectApplication;
                 window.acceptApplication = acceptApplication;
                 window.submitReply = submitReply;
             }
-        )
-        ;
+        );
     </script>
 
 {% endblock %}

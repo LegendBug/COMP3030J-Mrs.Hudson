@@ -171,7 +171,7 @@ def view_message(request):
              'active_class': 'active' if item_type == 'applications' else ''},
         ]
 
-        form = ReplyMessageForm()
+        message_form = ReplyMessageForm()
         user_type = request.session.get('user_type')
         return render(request, 'User/message.html',
                       {
@@ -181,7 +181,7 @@ def view_message(request):
                           'item_type': item_type,  # 将当前消息类型传递到模板中，用于侧边栏链接
                           'applications_type': applications_type,  # 传递申请类型
                           'custom_items': custom_items,  # 传递自定义侧边栏链接
-                          'form': form,  # 传递回复消息表单
+                          'message_form': message_form,  # 传递回复消息表单
                           'user_type': user_type  # 传递用户类型
                       })
     except Exception as e:
