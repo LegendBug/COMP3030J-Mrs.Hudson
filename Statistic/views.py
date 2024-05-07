@@ -1,6 +1,11 @@
 from django.shortcuts import render
 
 
+
+
+
+
+
 def statistic(request):
     user_type = 'Manager' if hasattr(request.user, 'manager') \
         else 'Organizer' if hasattr(request.user, 'organizer') \

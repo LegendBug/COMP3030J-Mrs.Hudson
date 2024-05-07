@@ -4,10 +4,70 @@
 {% block extra_head %}
     <title>Statistic</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="{% static 'css/Statistic/statistic.css' %}">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            outline: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chart-container_one{
+            flex: 1;
+            width: 50%; /* 第一个图表占据 container 的 95% 宽度 */
+            flex-wrap: nowrap;
+        }
+        .chart-container_two{
+            flex: 1;
+            padding: 50px;
+
+        }
+
+        .controls {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .input {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            background-color: #303f9f;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .chart-container {
+            margin-bottom: 20px;
+        }
+
+
+    </style>
 {% endblock %}
 
 {% block extra_nav_icons %}
@@ -23,34 +83,33 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="chart-container">
-            <div id="canvas-container"></div>
+     <div class="container">
+        <div class="chart-container_one">
+            <div class="chart-container">
+                <canvas id="barChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="lineChart" class="chart"></canvas>
+            </div>
         </div>
-
-        <div class="controls">
-            <select id="chartType" class="select">
-                <option value="bar">Bar</option>
-                <option value="line">Line</option>
-                <option value="pie">Pie</option>
-                <option value="doughnut">Doughnut</option>
-                <option value="radar">Radar</option>
-            </select>
+         <div class="chart-container_two">
+             <canvas id="pieChart" class="chart"></canvas>
+         </div>
+    </div>
+    <div class="controls">
             <input type="text" id="labelInput" class="input" placeholder="Label">
             <input type="number" id="dataInput" class="input" placeholder="Data">
             <button onclick="addData()" class="btn">Add Data</button>
             <button onclick="selectDataSource()" class="btn">Select data resource</button>
-            <button onclick="updateChartType()" class="btn">Change Chart Type</button>
         </div>
     </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
-        let chartData = {
+        let barChartData  = {
             labels: [],
             datasets: [{
-                label: '# of Values',
                 data: [],
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.5)',
@@ -72,81 +131,176 @@
             }]
         };
 
-        function createChart(type, height = 400){
-            const canvasContainer = document.getElementById('canvas-container');
-            canvasContainer.innerHTML = '<canvas id="myChart"></canvas>';
-            canvasContainer.style.height = `${height}px`;
-            const ctx = document.getElementById('myChart').getContext('2d');
+        let lineChartData  = {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(255, 206, 86, 0.5)',
+                    'rgba(75, 192, 192, 0.5)',
+                    'rgba(153, 102, 255, 0.5)',
+                    'rgba(255, 159, 64, 0.5)',
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)',
+                ],
+                borderWidth: 1
+            }]
+        };
 
-            return new Chart(ctx, {
-                type: type,
-                data: chartData,
+        let pieChartData  = {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(255, 206, 86, 0.5)',
+                    'rgba(75, 192, 192, 0.5)',
+                    'rgba(153, 102, 255, 0.5)',
+                    'rgba(255, 159, 64, 0.5)',
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)',
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        let barChart, lineChart, pieChart;
+
+
+        function createBarChart() {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: barChartData,
                 options: {
                     plugins: {
+                         legend: {
+                            display: false  // 隐藏图例
+                         },
                         title: {
                             display: true,
-                            text: 'Chart Title' // 默认标题
+                            text: 'Default Title' // 设置默认标题
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true
                         }
-                    },
-                    onClick: (event, activeElements) =>{
-                        if(activeElements.length > 0){
-                            const { datasetIndex, index } = activeElements[0];
-                            removeData(datasetIndex, index);
-                        }
-                    },
-                    tooltips: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    hover: {
-                        mode: 'index',
-                        intersect: false
                     }
                 }
             });
         }
 
-        let myChart = createChart('bar');    // Create inital chart with default height = 400
+        function createLineChart() {
+            const ctx = document.getElementById('lineChart').getContext('2d');
+            lineChart = new Chart(ctx, {
+                type: 'line',
+                data: lineChartData,
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false  // 隐藏图例
+                         },
+                        title: {
+                            display: true,
+                            text: 'Default Title' // 设置默认标题
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
 
-        function addData(){
+        function createPieChart() {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(ctx, {
+                type: 'pie',
+                data: pieChartData,
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false  // 隐藏图例
+                         },
+                        title: {
+                            display: true,
+                            text: 'Default Title' // 设置默认标题
+                        }
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        createBarChart();
+        createLineChart();
+        createPieChart();
+
+
+
+       function addData() {
             const labelInput = document.getElementById('labelInput');
             const dataInput = document.getElementById('dataInput');
 
-            if(labelInput.value && dataInput.value){
-                chartData.labels.push(labelInput.value);
-                chartData.datasets.forEach((dataset) =>{
-                    dataset.data.push(dataInput.value);
-                });
-                myChart.update();
+            if (labelInput.value && dataInput.value) {
+                barChartData.labels.push(labelInput.value);
+                barChartData.datasets[0].data.push(dataInput.value);
+
+                lineChartData.labels.push(labelInput.value);
+                lineChartData.datasets[0].data.push(dataInput.value);
+
+                pieChartData.labels.push(labelInput.value);
+                pieChartData.datasets[0].data.push(dataInput.value);
+
+                barChart.update();
+                lineChart.update();
+                pieChart.update();
+
                 labelInput.value = '';
                 dataInput.value = '';
             }
         }
 
-        function updateChartType() {
-            const selectedType = document.getElementById('chartType').value;
-            myChart.destroy();    // Destroy the old chart
-            myChart = createChart(selectedType);
-        }
-
         function removeData(datasetIndex, index){
-            if (chartData.labels.length > index){
-                chartData.labels.splice(index, 1);
-                chartData.datasets[datasetIndex].data.splice(index, 1);
-                myChart.update();
+            if (barChartData.labels.length > index){
+                barChartData.labels.splice(index, 1);
+                barChartData.datasets[datasetIndex].data.splice(index, 1);
+                barChart.update();
+            }
+            if (lineChartData.labels.length > index){
+                lineChartData.labels.splice(index, 1);
+                lineChartData.datasets[datasetIndex].data.splice(index, 1);
+                lineChart.update();
+            }
+            if (pieChartData.labels.length > index){
+                pieChartData.labels.splice(index, 1);
+                pieChartData.datasets[datasetIndex].data.splice(index, 1);
+                pieChart.update();
             }
         }
 
         function selectDataSource() {
-            // 弹出选择框供用户选择数据源
             const selectedDataSource = prompt("Please select a data source: 'water' or 'electric' or 'object");
 
-            // 根据用户选择更新图表标题和数据
             if (selectedDataSource === 'water') {
                 updateChartTitle('Water Usage (tons)');
                 updateChartData(waterStatistics);
@@ -161,22 +315,41 @@
             }
         }
 
-        function updateChartTitle(title) {
-            myChart.options.plugins.title.text = title;
-            myChart.update();
+
+         function updateChartTitle(title) {
+            barChart.options.plugins.title.text = title;
+            lineChart.options.plugins.title.text = title;
+            pieChart.options.plugins.title.text = title;
+            barChart.update();
+            lineChart.update();
+            pieChart.update();
         }
 
-        function updateChartData(data) {
-            // 清空原有数据
-            chartData.labels = [];
-            chartData.datasets[0].data = [];
 
-            // 将选择的数据源中的数据更新到图表数据中
+        function updateChartData(data) {
+            barChartData.labels = [];
+            barChartData.datasets[0].data = [];
+
+            lineChartData.labels = [];
+            lineChartData.datasets[0].data = [];
+
+            pieChartData.labels = [];
+            pieChartData.datasets[0].data = [];
+
             for (const month in data) {
-                chartData.labels.push(month);
-                chartData.datasets[0].data.push(data[month]);
+                barChartData.labels.push(month);
+                barChartData.datasets[0].data.push(data[month]);
+
+                lineChartData.labels.push(month);
+                lineChartData.datasets[0].data.push(data[month]);
+
+                pieChartData.labels.push(month);
+                pieChartData.datasets[0].data.push(data[month]);
             }
-            myChart.update();
+
+            barChart.update();
+            lineChart.update();
+            pieChart.update();
         }
 
 
@@ -196,16 +369,16 @@
         };
 
         const electricStatistics = {
-            "Month 1": 1000,
+            "Month 1": 100,
             "Month 2": 1600,
             "Month 3": 1000,
             "Month 4": 800,
             "Month 5": 900,
             "Month 6": 1600,
-            "Month 7": 2100,
+            "Month 7": 210,
             "Month 8": 2200,
             "Month 9": 1800,
-            "Month 10": 1500,
+            "Month 10": 150,
             "Month 11": 1300,
             "Month 12": 900,
         };
@@ -224,5 +397,14 @@
             "Month 11": 130,
             "Month 12": 90,
         };
+
+
+        {#// 从后端获取的数据#}
+        {#const waterStatistics = {{ water_statistics|safe }};#}
+        {#const electricStatistics = {{ electric_statistics|safe }};#}
+        {#const objectStatistics = {{ object_statistics|safe }};#}
     </script>
 {% endblock %}
+
+
+

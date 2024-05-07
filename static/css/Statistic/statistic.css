@@ -49,3 +49,12 @@ body{
 .btn:hover{
     background-color: #0056b3;
 }
+
+.navbar {
+    width: 100%; /* 设置导航栏宽度为100% */
+}
+
+.public-base-footer {
+    width: 100%; /* 设置页脚宽度为100% */
+}
+
