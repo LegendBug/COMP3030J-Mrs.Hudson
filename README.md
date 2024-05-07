@@ -49,6 +49,7 @@ DB_PORT='3306'
 DB_USERNAME='your_username'
 MYSQL_ROOT_PASSWORD='your_password'
 MYSQL_DATABASE='hudson'
+OPENAI_API_KEY='your_openai_api_key'
 ```
 
 ### Additional Commands
