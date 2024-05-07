@@ -21,6 +21,7 @@ from django.views.generic import RedirectView
 from Inventory.views import *
 from Layout.views import *
 from Statistic.views import *
+from System.views import *
 from User.views import *
 from django.conf import settings
 from django.conf.urls.static import static
@@ -33,6 +34,7 @@ urlpatterns = [   path('', RedirectView.as_view(pattern_name='User:login', perma
                   path('Inventory/', include(('Inventory.urls', 'Inventory'), namespace='Inventory')),
                   path('Layout/', include(('Layout.urls', 'Layout'), namespace='Layout')),
                   path('Statistic/', include(('Statistic.urls', 'Statistic'), namespace='Statistic')),
+                  path('System/', include(('System.urls', 'System'), namespace='System')),
                   path('User/', include(('User.urls', 'User'), namespace='User')),
                   path('Venue/', include(('Venue.urls', 'Venue'), namespace='Venue')),
                   path('Exhibition/', include(('Exhibition.urls', 'Exhibition'), namespace='Exhibition')),

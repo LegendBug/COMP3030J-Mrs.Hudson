@@ -1,0 +1,53 @@
+{% extends 'Public/base.html' %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extra_head %}
+    <title>Watson</title>
+    <link rel="stylesheet" href="{% static 'css/System/copilot.css' %}">
+{% endblock %}
+
+{% block extra_nav_icons %}
+    <!-- Additional icons in the navigation bar -->
+    {% if user.is_authenticated and user_type == 'Manager' %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
+        </li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12" >
+                <br>
+                <div style="display: inline-block; background-color: rgba(92, 92, 92, 0.5); border-radius: 10px; padding: 5px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); width: fit-content; height: fit-content;">
+                    <h2>Watson</h2>
+                </div>
+                <p>Enter any problem you met:</p>
+                <!-- Form for user input -->
+                <form method="post">
+                    {% csrf_token %}
+                    <textarea name="user_input" class="form-control" rows="3" placeholder="Type your question here..."></textarea>
+                    <br>
+                    <button type="submit" class="btn btn-primary">Ask Watson</button>
+                </form>
+                <br>
+                <!-- Area to display the chatbot's response -->
+                {% if response %}
+                    <div class="alert alert-info" role="alert">
+                        <strong>Watson:</strong> {{ response }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <!-- Add any JavaScript scripts here if necessary -->
+{% endblock %}
