@@ -40,9 +40,9 @@ def copilot(request):
                 ],
                 max_tokens=250
             )
-            chat_response = response.choices[0].message
+            chat_response = response.choices[0].message.content
             
-            return render(request, 'System/copilot.html', {'response': chat_response.content, 'user_input': user_input})
+            return render(request, 'System/copilot.html', {'response': chat_response, 'user_input': user_input})
 
 
     # Handle GET request or empty POST request

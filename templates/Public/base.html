@@ -53,7 +53,9 @@
                 {% endblock %}
 
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-robot"></i> Assistant</a>
+                    <a class="nav-link" href="{% url 'System:copilot' %}"><i class="fas fa-robot"></i>
+                        Watson
+                    </a>
                 </li>
                 {% if user.is_authenticated %}
                     {# TODO 有空把一个Inventory的主页写出来 #}
