@@ -50,12 +50,13 @@ def venue(request, venue_id):
         elif user not in [None, ''] and hasattr(user, 'organizer'):
             exhibitions = current_venue.exhibitions.filter(organizer=user.organizer)
         else:  # 参展方
-            current_exhibitions = current_venue.exhibitions.all()
-            booths = Exhibitor.objects.filter(detail=user).first().booths.all()
-            exhibitions = []
-            for booth in booths:
-                if booth.exhibition in current_exhibitions:
-                    exhibitions.append(booth.exhibition)
+            exhibitions = current_venue.exhibitions.all()
+            # current_exhibitions = current_venue.exhibitions.all()
+            # booths = Exhibitor.objects.filter(detail=user).first().booths.all()
+            # exhibitions = []
+            # for booth in booths:
+            #     if booth.exhibition in current_exhibitions:
+            #         exhibitions.append(booth.exhibition)
 
     elif request.method == 'POST':
         submitted_filter_form = FilterExhibitionsForm(request.POST)

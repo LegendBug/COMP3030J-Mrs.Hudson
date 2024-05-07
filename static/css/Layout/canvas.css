@@ -1,20 +1,10 @@
-#menu {
-    display: none;
-    position: absolute;
-    width: 80px; /* 增加宽度以容纳更多文本 */
-    background-color: white;
-    box-shadow: 0 0 5px grey;
-    border-radius: 3px;
-}
-
-#menu button {
-    width: 100%;
-    background-color: white;
-    border: none;
-    padding: 10px;
-    text-align: left; /* 文本居左对齐 */
-}
-
-#menu button:hover {
-    background-color: lightgray;
+#konva-container {
+    position: relative;
+    height: 95%;
+    width: 95%;
+    border: 2px solid #ccc;
+    background: #607180; /* 提供一个背景以便在内容加载前显示 */
+    box-sizing: border-box; /* 包含边框和内边距在内的总宽高 */
+    overflow: hidden; /* 防止内容溢出 */
+    margin: 0 auto; /* 居中 */
 }

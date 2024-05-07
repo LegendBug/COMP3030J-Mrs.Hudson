@@ -29,7 +29,6 @@ class AddLayerForm(forms.ModelForm):
     def save(self, commit=True):
         # 保存SpaceUnit实例
         space_unit = super(AddLayerForm, self).save(commit=False)
-
         parent_unit = self.cleaned_data.get('parent_unit')
         floor = self.cleaned_data.get('floor')
         user_type = self.cleaned_data.get('user_type')

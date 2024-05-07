@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/fabric"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/Layout/layout.css' %}">
     <link rel="stylesheet" href="{% static 'css/Layout/canvas.css' %}">
 {% endblock %}
@@ -34,6 +35,7 @@
             <i :class="offcanvasOpen ? 'fas fa-chevron-left' : 'fas fa-chevron-right'"></i>
         </button>
 
+        <div id="konva-container"></div>
 
         <!-- Offcanvas -->
         <div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" id="offcanvasScrolling"
@@ -64,7 +66,7 @@
             <div class="offcanvas-body">
                 <!-- Top层级Accordion -->
                 <div class="accordion" id="accordion">
-                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" @update-current-layer="setCurrentLayer" @layer-deleted="synchronizeData"></layer-component>
+                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" :floor="floor" @update-current-layer="setCurrentLayer" @layer-deleted="synchronizeData"></layer-component>
                 </div>
 
             </div>
@@ -123,7 +125,7 @@
     <script src="{% static 'js/Layout/canvas.js' %}"></script>
     <script>
         Vue.component('layer-component', {
-            props: ['layer'],
+            props: ['layer','floor'],
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: function() {
                 return {
@@ -139,23 +141,34 @@
                   <button class="accordion-button" type="button"
                           :class="{'collapsed': !open}"
                           @click="open = !open;"
-                          @contextmenu.prevent="openContextMenu($event, layer)">
+                          @contextmenu.prevent="openContextMenu($event, layer)"
+                          style="background-color: #8bc0fa;">
                     [[ layer.name ]]
                   </button>
                 </h2>
                 <div v-if="open" class="accordion-collapse">
                   <div class="accordion-body">
                     <layer-component v-for="(child, index) in layer.child_units" :key="index"
-                                     :layer="child" @update-current-layer="$emit('update-current-layer', $event)" @layer-deleted="$emit('layer-deleted', $event)">
+                                     :layer="child" :floor="floor"
+                                     @update-current-layer="$emit('update-current-layer', $event)"
+                                     @layer-deleted="$emit('layer-deleted', $event)">
                     </layer-component>
+
+                    <element-component v-for="(element, index) in layer.elements" :key="index"
+                                       :element="element">
+                    </element-component>
                   </div>
                 </div>
+
                 <!-- 上下文菜单 -->
                 <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
                      class="list-group context-menu">
-                  <a class="list-group-item list-group-item-action" @click="openAddSubLayerModal(layer); closeContextMenu()">Add Sublayer</a>
-                  <a class="list-group-item list-group-item-action" @click="openEditLayerModal(layer); closeContextMenu()">Edit Layer</a>
-                  <a class="list-group-item list-group-item-action" @click="deleteLayer(layer.id); closeContextMenu()">Delete Layer</a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="openAddSubLayerModal(layer); closeContextMenu()">Add Sublayer</a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="openEditLayerModal(layer); closeContextMenu()">Edit Layer</a>
+                  <a class="list-group-item list-group-item-action" @click="deleteLayer(layer.id); closeContextMenu()">Delete
+                    Layer</a>
                   <a class="list-group-item list-group-item-action" @click="closeContextMenu()">Add Element</a>
                 </div>
               </div>
@@ -235,51 +248,35 @@
                 },
             },
         });
-        
+
         Vue.component('element-component', {
             props: ['element'],
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
-            data: function() {
+            data() {
                 return {
-                    open: false,  // 每个组件控制自己的打开状态
-                    isContextMenuVisible: false,  // 上下文菜单是否可见
-                    contextMenuX: '0px',  // 上下文菜单的X坐标
-                    contextMenuY: '0px'   // 上下文菜单的Y坐标
+                    open: false
                 };
             },
-            template: 
+            template:
             `
-              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" type="button"
+                          :class="{'collapsed': !open}"
+                          @click="open = !open;"
+                          style="background-color: #c3dcf6;">
+                    [[ element.name ]]
+                  </button>
+                </h2>
+                <div v-if="open" class="accordion-collapse">
+                  <div class="accordion-body" style="background-color: #f6f0f0;">
+                    Type: [[ element.type ]]
+                    <!-- 更多 element 详情显示 -->
+                  </div>
+                </div>
+              </div>
             `,
-            mounted() { // 监听全局点击事件，用于隐藏上下文菜单                
-                document.addEventListener('click', this.handleOutsideClick);
-            },
-            beforeDestroy() { // 组件销毁前移除事件监听器，避免内存泄漏                
-                document.removeEventListener('click', this.handleOutsideClick);
-            },
-            methods: {
-                handleOutsideClick(e) { // 全局点击事件处理
- 
-                },
-                
-                handleContextMenu(event) { // 上下文菜单事件处理
-                    event.preventDefault();
-                    if (this.isContextMenuVisible) {
-                        this.isContextMenuVisible = false;
-                        // 添加一个小延迟再显示新的菜单，以使菜单的隐藏和显示更加明显
-                        this.$nextTick(() => {
-                            this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
-                            this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
-                            this.isContextMenuVisible = true;  // 显示上下文菜单
-                        });
-                    } else {
-                            this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
-                            this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
-                            this.isContextMenuVisible = true;  // 显示上下文菜单
-                    }
-                },
-                
-            },
+
         });
 
         new Vue({
@@ -289,10 +286,19 @@
                 floor: 1, // 当前楼层,默认为1
                 layers: [],
                 currentLayer: null,
+                stage: null,
                 offcanvasOpen: false,
             },
             mounted() {
                 this.synchronizeData();  // 同步数据当组件挂载
+                this.$nextTick(() => {
+                    this.initializeKonva();
+                    this.adjustKonvaSize();  // 组件挂载时调整大小
+                    window.addEventListener('resize', this.adjustKonvaSize);  // 窗口大小变化时调整画布大小
+                });
+            },
+            beforeDestroy() {
+                window.removeEventListener('resize', this.adjustKonvaSize);  // 组件销毁前移除监听器，避免内存泄露
             },
             computed: {
                 buttonStyle() {
@@ -313,7 +319,7 @@
             methods: {
                 // ----------------- 数据加载 -----------------
                  synchronizeData() {
-                     console.log('Synchronizing data...');
+                    console.log('Synchronizing data...');
                     axios.get('{% url "Layout:synchronize_data" %}', {
                         params: { 
                             floor: this.floor,
@@ -322,6 +328,7 @@
                         }
                     }).then(response => {
                         if (response.data && response.data.id) {
+                            console.log('Data synchronized:', response.data);
                             this.renderData(response.data); // 调用renderData来处理这个单一节点
                         } else {
                             console.error('Unexpected response data:', response.data);
@@ -343,6 +350,47 @@
                             });
                         }
                     }
+                },
+
+                // ----------------- konva.js -----------------
+                initializeKonva() {
+                    const width = window.innerWidth * 0.9;
+                    const height = window.innerHeight;
+                    this.stage = new Konva.Stage({
+                        container: 'konva-container',
+                        width: width,
+                        height: height,
+                    });
+
+                    const layer = new Konva.Layer();
+                    this.stage.add(layer);
+
+                    this.layers.forEach((spaceUnit) => {
+                        spaceUnit.elements.forEach((element) => {
+                            if (element.type === 'Rectangle') {
+                                const rect = new Konva.Rect({
+                                    x: element.data.x,
+                                    y: element.data.y,
+                                    width: element.data.width,
+                                    height: element.data.height,
+                                    fill: element.data.fill,
+                                    stroke: element.data.stroke,
+                                    strokeWidth: element.data.strokeWidth,
+                                });
+                                layer.add(rect);
+                            }
+                            // 添加其他类型的元素绘制代码
+                        });
+                    });
+                    layer.draw();
+                },
+
+                adjustKonvaSize() {
+                    // 计算应当设置的高度和宽度
+                    const height = window.innerHeight * 0.9
+                    const width = window.clientWidth;
+                    // 设置Konva画布的尺寸
+                    this.stage.setSize({ width, height });
                 },
                 // ----------------- Offcanvas -----------------
                 // 控制 Offcanvas 的显示与隐藏

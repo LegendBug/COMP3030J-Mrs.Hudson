@@ -1,6 +1,6 @@
+import json
 from django.shortcuts import render
 from rest_framework import status
-
 from Booth.models import Booth
 from Exhibition.models import Exhibition
 from Venue.models import Venue
@@ -10,6 +10,7 @@ from .serializers import *
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
+
 
 def venue_layout(request):
     user_type = 'Manager' if hasattr(request.user, 'manager') \
@@ -42,19 +43,20 @@ def layout(request):
     add_sublayer_form = AddLayerForm(initial={'parent_id': 1, 'floor': venue.floor})
     edit_layer_form = EditLayerForm()
     return render(request, 'Layout/layout.html',
-                  {'current_access': venue, 'user_type': user_type, 'items': items, 'floor_range': range(1, venue.floor + 1),
+                  {'current_access': venue, 'user_type': user_type, 'items': items,
+                   'floor_range': range(1, venue.floor + 1),
                    'add_sublayer_form': add_sublayer_form, 'edit_layer_form': edit_layer_form})
 
 
 def synchronize_data(request):  # {url (Layout:get_floor_data)}
     if request.method == 'GET':
         # 从GET请求中获取参数
-        floor = int(request.GET.get('floor', "1"))
+        floor = int(request.GET.get('floor', 1))
         current_access_id = int(request.GET.get('current_access_id', 0))
         user_type = request.GET.get('user_type')
         # 验证数据有效性
-        if (floor < 1) or (current_access_id < 1) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
-            return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+        if (floor < 1) or (current_access_id is None) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
+            return JsonResponse({'error': 'Invalid request'}, status=400)
         # 获取当前正在访问的位置
         if user_type == 'Manager':
             current_access = Venue.objects.get(pk=current_access_id)
@@ -62,7 +64,6 @@ def synchronize_data(request):  # {url (Layout:get_floor_data)}
             current_access = Exhibition.objects.get(pk=current_access_id)
         else:
             current_access = Booth.objects.get(pk=current_access_id)
-
         # 获取当前场馆的当前楼层的Root SpaceUnit节点(parent_unit=None 且创建时间最早)
         root = current_access.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
         # 返回JSON化的root数据
@@ -75,6 +76,7 @@ def synchronize_data(request):  # {url (Layout:get_floor_data)}
                                 status=status.HTTP_404_NOT_FOUND)
     else:
         return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @csrf_exempt
 def add_sublayer(request):
@@ -95,9 +97,8 @@ def delete_layer(request):
         user_type = request.GET.get('user_type')
         current_access_id = int(request.GET.get('current_access_id', 0))
         # 验证数据有效性:
-        if (floor < 1) or (current_access_id is not None) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
+        if (floor < 1) or (current_access_id is None) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
             return JsonResponse({'error': 'Invalid request'}, status=400)
-
         layer_id = int(request.GET.get('layer_id', 0))
         layer = get_object_or_404(SpaceUnit, id=layer_id)
         if user_type == 'Manager':
@@ -107,24 +108,26 @@ def delete_layer(request):
         else:
             current_access = get_object_or_404(Booth, pk=current_access_id)
         root = current_access.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
-        if root == layer: # 表明当前SpaceUnit是根节点,不能删除
+        if root == layer:  # 表明当前SpaceUnit是根节点,不能删除
             return JsonResponse({'error': 'The root SpaceUnit cannot be deleted!'}, status=400)
 
         def delete_recursive(space_unit):
             # 先递归删除所有子单位
             for child in space_unit.child_units.all():
                 delete_recursive(child)
-            if not space_unit.available and not space_unit.occupied_units.exists(): # 表明当前SpaceUnit没有被预约使用
+            if not space_unit.available and not space_unit.occupied_units.exists():  # 表明当前SpaceUnit没有被预约使用
                 # 删除与此SpaceUnit相关联的所有elements
                 space_unit.elements.all().delete()
                 # 最后删除SpaceUnit本身
                 space_unit.delete()
+
         # 开始递归删除操作
         delete_recursive(layer)
         # 返回删除成功的信息
         return JsonResponse({'success': 'The unused Layer has been successfully deleted!'}, status=200)
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)
+
 
 @csrf_exempt
 def edit_layer(request):
@@ -151,33 +154,34 @@ def save_layout(request):
     pass
 
 
-def add_fake_space_unit(request):  # 用于提供假数据的视图函数,不会在生产环境中使用
+def add_fake_konva_element(request):
     # 定义假数据
-    name = "Sub-Sub-Sublayer 2 on floor 1"
-    description = "This is a test Space Unit."
-    floor = 1
-    parent_unit = SpaceUnit.objects.get(pk=16)
-    affiliation = Venue.objects.get(pk=6)
-    affiliation_content_type = ContentType.objects.get_for_model(Venue)
-
-    # 创建SpaceUnit实例
-    space_unit = SpaceUnit.objects.create(
+    name = "Konva Element 1"
+    layer = get_object_or_404(SpaceUnit, id=4)
+    element_type = KonvaElement.ElementType.RECTANGLE
+    element_data = json.dumps({
+        "x": 100,
+        "y": 300,
+        "width": 250,
+        "height": 350,
+        "fill": "red",
+        "stroke": "black",
+        "strokeWidth": 4
+    })
+    # 创建FabricElement实例
+    konva_element = KonvaElement.objects.create(
         name=name,
-        description=description,
-        floor=floor,
-        parent_unit=parent_unit,
-        available=False,
-        affiliation_content_type=affiliation_content_type,
-        affiliation_object_id=affiliation.pk
+        layer=layer,
+        type=element_type,
+        data=element_data
     )
 
-    # 返回新创建的SpaceUnit的信息
+    # 返回新创建的FabricElement的信息
     return JsonResponse({
-        'id': space_unit.id,
-        'name': space_unit.name,
-        'description': space_unit.description,
-        'floor': space_unit.floor,
-        'parent_unit': space_unit.parent_unit.id if space_unit.parent_unit else None,
-        'affiliation_type': str(space_unit.affiliation_content_type),
-        'affiliation_id': space_unit.affiliation_object_id
+        'id': konva_element.id,
+        'name': konva_element.name,
+        'layer': konva_element.layer.id if konva_element.layer else None,
+        'type': konva_element.type,
+        'data': konva_element.data,
+        'image_url': konva_element.image.url if konva_element.image else None
     }, safe=False)

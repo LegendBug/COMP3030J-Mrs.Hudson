@@ -8,5 +8,6 @@ urlpatterns = [
     path('add_sublayer/', views.add_sublayer, name='add_sublayer'),
     path('delete_layer/', views.delete_layer, name='delete_layer'),
     path('edit_layer/', views.edit_layer, name='edit_layer'),
-    path('add_fake_space_unit/', views.add_fake_space_unit, name='add_fake_space_unit'),
+
+    path('add_fake_konva_element/', views.add_fake_konva_element, name='add_fake_konva_element'),
 ]

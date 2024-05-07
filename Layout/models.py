@@ -24,7 +24,7 @@ class SpaceUnit(models.Model):
     affiliation = GenericForeignKey('affiliation_content_type', 'affiliation_object_id')
 
 
-class FabricElement(models.Model):
+class KonvaElement(models.Model):
     class ElementType(models.TextChoices):
         PATH = 'Path', _('Path')
         RECTANGLE = 'Rectangle', _('Rectangle')
@@ -44,7 +44,7 @@ class FabricElement(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:  # 如果模型已经存在，则是更新过程
-            old_venue = FabricElement.objects.get(pk=self.pk)
+            old_venue = KonvaElement.objects.get(pk=self.pk)
             if old_venue.image and old_venue.image != self.image:
                 if os.path.isfile(old_venue.image.path):
                     os.remove(old_venue.image.path)  # 删除旧图片
