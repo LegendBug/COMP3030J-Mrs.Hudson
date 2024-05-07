@@ -354,6 +354,9 @@ def reject_application(request, application_type, application_id):
             if application_type == 'exhibition':
                 application = ExhibitionApplication.objects.get(id=application_id)
                 content = 'Sorry, your application ' + application.exhibition.name + ' has been rejected.'
+            elif application_type == 'booth':
+                application = BoothApplication.objects.get(id=application_id)
+                content = 'Sorry, your application for ' + application.booth.name + ' has been rejected.'
             elif application_type == 'resource':
                 application = ResourceApplication.objects.get(id=application_id)
                 content = 'Sorry, your application for ' + application.category.name + ' has been rejected.'
@@ -361,9 +364,9 @@ def reject_application(request, application_type, application_id):
                 return JsonResponse({'error': 'Application type not found'}, status=404)
 
             # 通过申请
-            if application.stage != ExhibitionApplication.Stage.INITIAL_SUBMISSION:
+            if application.stage != Application.Stage.INITIAL_SUBMISSION:
                 return JsonResponse({'error': 'Application has been processed.'}, status=200)
-            application.stage = ExhibitionApplication.Stage.REJECTED
+            application.stage = Application.Stage.REJECTED
             application.save()
 
             # 发送拒绝消息
@@ -393,6 +396,9 @@ def accept_application(request, application_type, application_id):
             if application_type == 'exhibition':
                 application = ExhibitionApplication.objects.get(id=application_id)
                 content = 'Congratulations! Your application ' + application.exhibition.name + ' has been accepted.'
+            elif application_type == 'booth':
+                application = BoothApplication.objects.get(id=application_id)
+                content = 'Congratulations! Your application for ' + application.booth.name + ' has been accepted.'
             elif application_type == 'resource':
                 application = ResourceApplication.objects.get(id=application_id)
                 content = 'Congratulations! Your application for ' + application.category.name + ' has been accepted.'

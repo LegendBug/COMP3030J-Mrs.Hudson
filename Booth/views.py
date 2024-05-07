@@ -47,7 +47,6 @@ def create_booth_application(request):
             message_content = form.cleaned_data.get('message_content')
 
             # 创建新的展台和展台申请
-            print(exhibition_id)
             exhibition = Exhibition.objects.get(id=exhibition_id)
             exhibitor = Exhibitor.objects.get(detail=request.user)
             new_booth = Booth.objects.create(name=name, description=description, image=image,
