@@ -228,4 +228,3 @@ def create_res_application(request):
     else:
         return HttpResponseNotAllowed(['POST'])
 
-# TODO 添加展台申请（目前只能手动创建）

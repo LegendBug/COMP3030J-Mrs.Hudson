@@ -23,6 +23,12 @@
                 </div>
                 <div class="col-auto">
                     <button class="btn btn-success mt-2"
+                            onclick="window.location.href='?item_type=applications&applications_type=booth'">
+                        Booth
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-success mt-2"
                             onclick="window.location.href='?item_type=applications&applications_type=resource'">
                         Resource
                     </button>
@@ -45,26 +51,21 @@
                     {% endfor %}
                 {% elif item_type == 'applications' %}
                     <!-- 申请列表 -->
-                    {% if applications_type == 'exhibition' %}
-                        {% for application in page_obj %}
-                            <div class="list-group-item cursor-pointer"
-                                 style="background-color: rgba(255, 255, 255, 0.6)"
-                                 onclick="loadApplicationDetail('{{ application.id }}', '{% url 'User:view_application_detail' applications_type application.id %}')">
+                    {% for application in page_obj %}
+                        <div class="list-group-item cursor-pointer"
+                             style="background-color: rgba(255, 255, 255, 0.6)"
+                             onclick="loadApplicationDetail('{{ application.id }}', '{% url 'User:view_application_detail' applications_type application.id %}')">
+                            {% if applications_type == 'exhibition' %}
                                 <h5 class="mb-1">{{ application.exhibition.name }}</h5>
-                                <small class="text-muted">Sent by {{ application.applicant }}</small>
-                            </div>
-                        {% endfor %}
-                    {% elif applications_type == 'resource' %}
-                        {% for application in page_obj %}
-                            <div class="list-group-item cursor-pointer"
-                                 style="background-color: rgba(255, 255, 255, 0.6)"
-                                 onclick="loadApplicationDetail('{{ application.id }}', '{% url 'User:view_application_detail' applications_type application.id %}')">
+                            {% elif applications_type == 'booth' %}
+                                <h5 class="mb-1">{{ application.booth.name }}</h5>
+                            {% elif applications_type == 'resource' %}
                                 <h5 class="mb-1">Booth '{{ application.booth.name }}' Apply
                                     for '{{ application.category.name }}'</h5>
-                                <small class="text-muted">Sent by {{ application.applicant }}</small>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+                            {% endif %}
+                            <small class="text-muted">Sent by {{ application.applicant }}</small>
+                        </div>
+                    {% endfor %}
                 {% endif %}
             </div>
 
@@ -253,7 +254,7 @@
                                 rejectButtonHtml = `<button onclick="rejectApplication()" class="btn btn-danger mt-3">Reject</button>`;
                                 acceptButtonHtml = `<button onclick="acceptApplication()" class="btn btn-success mt-3">Accept</button>`;
                             }
-                            if (data.application_type === 'exhibition') {
+                            if (data.application_type === 'exhibition' || data.application_type === 'booth') {
                                 applicationHtml = `
 <div class="mb-3">
     <strong><i class="bi bi-body-text"></i> Description:</strong>
@@ -263,6 +264,9 @@
     <strong><i class="bi bi-geo-alt"></i> Location:</strong>
     <p class="card-text">${data.location}</p>
 </div>`;
+                            } else if (data.application_type === 'booth') {
+                                applicationHtml = `
+                                `;
                             } else if (data.application_type === 'resource') {
                                 applicationHtml = `
 <div class="mb-3">

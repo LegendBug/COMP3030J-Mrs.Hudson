@@ -39,7 +39,8 @@
         </a>
     {% elif user.is_authenticated and user_type == 'Manager' %}
         <a class="btn btn-success rounded-circle shadow"
-           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; 
+           justify-content: center; align-items: center; font-size: 30px;"
            href="{% url 'Inventory:inventory' 'venue' venue.id %}" title="View Inventory">
             📦
         </a>
@@ -258,8 +259,7 @@
                 });
                 // ----------------------------------------------------------------------
             }
-        )
-        ;
+        );
     </script>
 {% endblock %}
 

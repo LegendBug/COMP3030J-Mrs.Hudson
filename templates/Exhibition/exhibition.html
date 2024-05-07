@@ -8,14 +8,6 @@
 {% endblock %}
 
 {% block extra_nav_icons %}
-    {% if user.is_authenticated and user_type != 'Exhibitor' %}
-        <a class="btn btn-success rounded-circle shadow"
-           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-           href="{% url 'Inventory:inventory' 'exhibition' exhibition.id %}" title="View Inventory">
-            📦
-        </a>
-    {% endif %}
-
     <!-- 导航栏额外按键-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
@@ -30,13 +22,29 @@
 
 {% block content %}
     {# TODO 完善展会界面 #}
+
+    <!-- Floating Action Button -->
+    {% if user.is_authenticated and user_type == 'Exhibitor' %}
+        <a onclick="openBoothApplyModal()" class="btn btn-success rounded-circle shadow" id="createBoothApply"
+           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
+           justify-content: center; align-items: center; font-size: 30px;" title="Apply a New Booth">
+            📝
+        </a>
+    {% elif user.is_authenticated and user_type != 'Exhibitor' %}
+        <a class="btn btn-success rounded-circle shadow"
+           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+           href="{% url 'Inventory:inventory' 'exhibition' exhibition.id %}" title="View Inventory">
+            📦
+        </a>
+    {% endif %}
+
     <br>
     <div style="display: inline-block; background-color: rgba(92, 92, 92, 0.5); border-radius: 10px; padding: 10px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); width: fit-content;">
         <h2 style="margin: 0;">{{ exhibition.name }}</h2>
     </div>
     <br>
 
-    
+
     <!-- 展览列表 -->
     <table class="table table-hover table-striped text-white shadow-sm">
         <thead class="table-dark">
@@ -57,8 +65,8 @@
                 <td>{{ booth.description }}</td>
                 <td>{{ booth.exhibitor }}</td>
                 <td>{{ booth.sectors }}</td>
-                <td>{{ booth.start_at| date:"Y-m-d" }}</td>
-                <td>{{ booth.end_at| date:"Y-m-d" }}</td>
+                <td>{{ booth.start_at| date:"Y-m-d H:i" }}</td>
+                <td>{{ booth.end_at| date:"Y-m-d H:i" }}</td>
             </tr>
         {% empty %}
             <tr>
@@ -67,4 +75,77 @@
         {% endfor %}
         </tbody>
     </table>
+
+    {# 申请新展台模态框 #}
+    <div class="modal fade" id="createBoothApplyModal" tabindex="-1" aria-labelledby="createBoothApplyModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createBoothApplyModalLabel">Apply for a New Booth</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="application-form" method="post"
+                          action="{% url 'Booth:create_booth_application' %}" enctype="multipart/form-data"
+                          class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        {{ application_form|crispy }}
+                        <div id="application-form-container"></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-success" onclick="submitApplication()">Apply</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+                function openBoothApplyModal() {
+                    const myModal = new bootstrap.Modal(document.getElementById('createBoothApplyModal'));
+                    myModal.show(); // 显示模态框
+                }
+
+                function submitApplication() {
+                    const formElement = document.getElementById('application-form');
+                    const formData = new FormData(formElement);
+                    const url = formElement.action;  // 直接从表单元素获取action
+                    const container = document.getElementById('application-form-container');
+
+                    formData.set('exhib_id', {{ exhibition.pk }}); // 添加场馆ID
+                    for (let [key, value] of formData.entries())
+                        console.log(key, value);
+
+                    axios.post(url, formData, {
+                        headers: {
+                            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,  // 在请求头中包含CSRF令牌
+                            'Content-Type': 'multipart/form-data'  // 发送文件时很重要
+                        }
+                    }).then(response => {
+                        if (response.data.success) {  // 检查响应中是否包含“success”
+                            container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('createBoothApplyModal'));
+                            setTimeout(() => {
+                                modal.hide();  // 隐藏模态框
+                                window.location.reload();  // 重新加载页面以更新消息列表
+                            }, 1500);
+                        }
+                    }).catch(error => {
+                        // 记录或处理错误
+                        console.error(error);
+                        container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                        container.style.display = 'block';  // Make sure the message container is visible
+                    });
+                }
+
+                window.openBoothApplyModal = openBoothApplyModal;
+                window.submitApplication = submitApplication;
+            }
+        );
+    </script>
 {% endblock %}

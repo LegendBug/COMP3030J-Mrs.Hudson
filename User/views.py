@@ -8,6 +8,7 @@ from django.http import Http404, JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect
 
+from Booth.models import BoothApplication
 from Exhibition.models import ExhibitionApplication
 from Inventory.models import ResourceApplication
 from .forms import RegisterForm, LoginForm, ReplyMessageForm  # 导入注册和登录表单类
@@ -143,6 +144,13 @@ def view_message(request):
                         'exhibition__start_at')
                 else:
                     raise Http404("Permission denied")
+            elif applications_type == 'booth':
+                if hasattr(request.user, 'manager'):
+                    items = BoothApplication.objects.all().order_by('booth__start_at')
+                elif hasattr(request.user, 'exhibitor'):
+                    items = BoothApplication.objects.filter(applicant=request.user).order_by('booth__start_at')
+                else:
+                    raise Http404("Permission denied")
             elif applications_type == 'resource':
                 if hasattr(request.user, 'manager'):
                     items = ResourceApplication.objects.all().order_by('booth__start_at')
@@ -209,6 +217,7 @@ def view_message_detail(request, message_id):
             # 获取与应用程序关联的所有消息详细信息，并按消息创建时间降序排序
             related_messages_detail = MessageDetail.objects.filter(
                 application_object_id=application_id,
+                application_content_type=message_detail.application_content_type,
                 message__created_at__lt=message.created_at  # 只返回创建时间在当前消息之前的消息
             ).order_by('-message__created_at')
 
@@ -250,8 +259,8 @@ def view_application_detail(request, application_type, application_id):
             for sector in application.exhibition.sectors.all():
                 location += ' ' + sector.name
             data = {
-                'application_type': 'exhibition',
-                'title': 'Application for ' + application.exhibition.name,
+                'application_type': application_type,
+                'title': "Application for Exhibition '" + application.exhibition.name + "'",
                 'image_url': application.exhibition.image.url if application.exhibition.image else '',
                 'description': application.description,
                 'applicant': application.applicant.username,
@@ -260,7 +269,24 @@ def view_application_detail(request, application_type, application_id):
                 'location': location,
                 'stage': application.get_stage_display(),
             }
-            return JsonResponse(data)
+        elif application_type == 'booth':
+            application = BoothApplication.objects.get(id=application_id)
+            print(1)
+            location = application.booth.exhibition.venue.name + ' >>'
+            for sector in application.booth.sectors.all():
+                location += ' ' + sector.name
+            print(2)
+            data = {
+                'application_type': application_type,
+                'title': "Application for Booth '" + application.booth.name + "' at Exhibition '" + application.booth.exhibition.name + "'",
+                'image_url': application.booth.image.url if application.booth.image else '',
+                'applicant': application.applicant.username,
+                'start_at': application.booth.start_at.strftime('%Y-%m-%d %H:%M'),
+                'end_at': application.booth.end_at.strftime('%Y-%m-%d %H:%M'),
+                'description': application.description,
+                'location': location,
+                'stage': application.get_stage_display(),
+            }
         elif application_type == 'resource':
             application = ResourceApplication.objects.get(id=application_id)
             data = {
@@ -268,14 +294,14 @@ def view_application_detail(request, application_type, application_id):
                 'title': "Booth '" + application.booth.name + "' Apply for " + application.category.name,
                 'image_url': application.category.image.url if application.category.image else '',
                 'applicant': application.applicant.username,
-                'start_at': application.booth.start_at.strftime('%Y-%m-%d'),
-                'end_at': application.booth.end_at.strftime('%Y-%m-%d'),
+                'start_at': application.booth.start_at.strftime('%Y-%m-%d %H:%M'),
+                'end_at': application.booth.end_at.strftime('%Y-%m-%d %H:%M'),
                 'quantity': application.quantity,
                 'stage': application.get_stage_display(),
             }
-            return JsonResponse(data)
         else:
             return JsonResponse({'error': 'Application type not found'}, status=404)
+        return JsonResponse(data)
     except Exception as e:
         return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
 
@@ -295,9 +321,9 @@ def reply_message(request, message_id):
             message = Message.objects.get(id=message_id)
             message_detail = message.detail
             # 如果消息关联了申请，则将回复消息也关联到申请
-            if message_detail.application_object_id:
+            if message_detail.application_object_id is not None:
                 application = message_detail.application
-                if application.stage != ExhibitionApplication.Stage.INITIAL_SUBMISSION:
+                if application.stage != Application.Stage.INITIAL_SUBMISSION:
                     return JsonResponse({'error': 'Application has been processed.'}, status=200)
                 application_type = ContentType.objects.get_for_model(application)
                 new_message = Message.objects.create(title=title, sender=request.user, recipient=message.sender)

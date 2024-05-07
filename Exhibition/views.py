@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 
+from Booth.forms import BoothApplicationForm
 from Exhibition.forms import ExhibApplicationForm
 from Exhibition.models import Exhibition, ExhibitionApplication
 from User.models import Message, MessageDetail, Organizer, Manager, Exhibitor
@@ -24,6 +25,7 @@ def exhibition(request, exhibition_id):
     request.session['exhibition_id'] = exhibition_id  # 将exhibition_id存入session
 
     user = request.user
+    user_type = request.session.get('user_type', 'Manager')
     if request.method == 'GET':
         # 根据用户类型筛选展区信息
         if user not in [None, ''] and not hasattr(user, 'exhibitor'):
@@ -42,10 +44,18 @@ def exhibition(request, exhibition_id):
                 'description': booth.description,
                 'start_at': booth.start_at,
                 'end_at': booth.end_at,
-                'exhibitor': booth.exhibitor.detail.username
-
+                'exhibitor': booth.exhibitor.detail.username,
+                'sectors': sectors,
             })
-        return render(request, 'Exhibition/exhibition.html', {'exhibition': current_exhibition, 'booths': booth_data})
+        affiliation_type = ContentType.objects.get_for_model(current_exhibition)  # 获取场馆的ContentType
+        application_form = BoothApplicationForm(
+            initial={'affiliation_content_type': affiliation_type, 'affiliation_object_id': exhibition_id})  # 传入当前Type和场馆的id
+        return render(request, 'Exhibition/exhibition.html', {
+            'booths': booth_data,
+            'exhibition': current_exhibition,
+            'user_type': user_type,
+            'application_form': application_form,
+        })
     else:
         return HttpResponseNotAllowed(['GET'])
 
@@ -84,12 +94,12 @@ def create_exhibit_application(request):
             new_exhib_application = ExhibitionApplication.objects.create(applicant=request.user,
                                                                          description=description,
                                                                          exhibition=new_exhibition)
-            new_exhibition.application = new_exhib_application
+            new_exhibition.exhibition_application = new_exhib_application
             new_exhibition.save()
             new_exhib_application.save()
             # 创建提示消息和消息详情
-            new_message = Message.objects.create(title='New Exhibition Application for ' + name, sender=request.user,
-                                                 recipient=Manager.objects.first().detail)
+            new_message = Message.objects.create(title="New Exhibition Application for '" + name + "'",
+                                                 sender=request.user, recipient=Manager.objects.first().detail)
             application_type = ContentType.objects.get_for_model(new_exhib_application)
             new_message_detail = MessageDetail.objects.create(message=new_message, content=content,
                                                               application_object_id=new_exhib_application.id,

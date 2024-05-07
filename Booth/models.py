@@ -1,8 +1,11 @@
 import os
 import uuid
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
+
+from User.models import Application
 
 
 class Booth(models.Model):
@@ -35,8 +38,8 @@ class Booth(models.Model):
     exhibition = models.ForeignKey("Exhibition.Exhibition", on_delete=models.CASCADE, related_name='booths')
     sectors = GenericRelation('Layout.SpaceUnit', content_type_field='affiliation_content_type',
                               object_id_field='affiliation_object_id')
-    start_at = models.DateField()
-    end_at = models.DateField()
+    start_at = models.DateTimeField()
+    end_at = models.DateTimeField()
     items = GenericRelation('Inventory.Item', content_type_field='affiliation_content_type',
                             object_id_field='affiliation_object_id')  # items = List<Item>, 由Django ORM的反向关系实现
     inventory_categories = GenericRelation('Inventory.InventoryCategory',
@@ -46,12 +49,14 @@ class Booth(models.Model):
     image = models.ImageField(upload_to=booth_upload_to, null=True, blank=True)
 
 
-class BoothApplication(models.Model):
-    content = models.TextField(blank=True, null=True)
-    exhibitor = models.ForeignKey("User.Exhibitor", on_delete=models.CASCADE, related_name='booth_applications')
-    exhibition = models.ForeignKey("Exhibition.Exhibition", on_delete=models.CASCADE, related_name='booth_applications')
-    sectors = models.ForeignKey("Layout.SpaceUnit", on_delete=models.CASCADE)
-    start_at = models.DateTimeField()
-    end_at = models.DateTimeField()
-    is_approved = models.BooleanField(null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+class BoothApplication(Application):
+    # 更改related_name，避免与其它application冲突
+    applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                  related_name='booth_applications')
+    # 某个展台被删除后，申请同时被删除
+    booth = models.OneToOneField("Booth", on_delete=models.CASCADE, null=True,
+                                      related_name='booth_application')
+    # 某个消息被删除后，申请不会被删除
+    message_details = GenericRelation("User.MessageDetail", related_query_name='booth_application', null=True,
+                                      content_type_field='application_content_type',
+                                      object_id_field='application_object_id')
