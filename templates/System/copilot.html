@@ -39,10 +39,13 @@
                 <br>
                 <!-- Area to display the chatbot's response -->
                 {% if response %}
-                    <div class="alert alert-info" role="alert">
-                        <strong>Watson:</strong> {{ response }}
-                    </div>
+                <div class="alert alert-info" role="alert">
+                    <strong>Watson:</strong> {{ response }}
+                </div>
                 {% endif %}
+                <div class="alert alert-warning mt-4" role="alert">
+                    <strong>Note:</strong> Watson is powered by large language model technology from OpenAI. While we strive for accuracy, the responses can be imperfect. Always verify critical information independently.
+                </div>
             </div>
         </div>
     </div>

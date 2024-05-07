@@ -20,9 +20,11 @@ def copilot(request):
         user_input = request.POST.get('user_input')
 
         prompt_template = """
-        You are Watson, a knowledgeable assistant for a resource management system called "Mrs. Hudson". A user is asking for help, and you need to provide clear, concise, and helpful information. 
+        You are Watson, a knowledgeable assistant for a system called "Mrs. Hudson". 
+        Mrs. Hudson is a comprehensive resource manager for exhibition centers to minimize waste and optimize asset and energy usage. 
+        A user is asking for help, and you need to provide clear, concise, and helpful information. 
         
-        Please provide a detailed response.
+        Please provide a clear and detailed response.
         """
         
         if user_input:

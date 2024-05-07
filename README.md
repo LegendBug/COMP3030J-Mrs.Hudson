@@ -41,7 +41,7 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Note that before running the project for the first time, you need to create a `.env` file in the root directory of your project. Format the file as shown below, replacing `your_username` and `your_password` with your actual RDBMS settings:
+Note that before running the project for the first time, you need to create a `.env` file in the root directory of your project. Format the file as shown below, replacing `your_username` and `your_password` with your actual RDBMS settings and `your_openai_api_key` with your own OpenAI API Key:
 
 ```text
 DB_HOST='localhost'
