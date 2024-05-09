@@ -6,13 +6,13 @@
 {% block extra_head %}
     <title>Layout</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     {% comment %}为了避免客户端通过CDN获取JS资源时因网络问题导致的加载失败,我们在这里先导入本地的JS资源,之后再通过CDN导入{% endcomment %}
     <script src="{% static 'js/CDN/Sortable.min.js' %}"></script>
     <script src="{% static 'js/CDN/vue.min.js' %}"></script>
     <script src="{% static 'js/CDN/konva.min.js' %}"></script>
     <script src="{% static 'js/CDN/vue-konva.min.js' %}"></script>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
@@ -43,6 +43,7 @@
             <i :class="offcanvasOpen ? 'fas fa-chevron-left' : 'fas fa-chevron-right'"></i>
         </button>
 
+        {% comment %}TODO 用vue-konva的v-stage来替代{% endcomment %}
         <div id="konva-container"></div>
 
         <!-- Offcanvas -->
@@ -125,7 +126,7 @@
         </div>
         
     </div>
-    
+
 {% endblock %}
 
 
@@ -139,8 +140,11 @@
                 return {
                     open: false,  // 每个组件控制自己的打开状态
                     isContextMenuVisible: false,  // 上下文菜单是否可见
+                    isElementMenuVisible: false,
                     contextMenuX: '0px',  // 上下文菜单的X坐标
-                    contextMenuY: '0px'   // 上下文菜单的Y坐标
+                    contextMenuY: '0px',   // 上下文菜单的Y坐标
+                    elementMenuX: '0px',
+                    elementMenuY: '0px'
                 };
             },
             template: `
@@ -163,7 +167,7 @@
                     </layer-component>
 
                     <element-component v-for="(element, index) in layer.elements" :key="index"
-                                       :element="element">
+                                       :element="element" :floor="floor">
                     </element-component>
                   </div>
                 </div>
@@ -177,7 +181,25 @@
                      @click="openEditLayerModal(layer); closeContextMenu()">Edit Layer</a>
                   <a class="list-group-item list-group-item-action" @click="deleteLayer(layer.id); closeContextMenu()">Delete
                     Layer</a>
-                  <a class="list-group-item list-group-item-action" @click="closeContextMenu()">Add Element</a>
+                  <a class="list-group-item list-group-item-action" ref="addElementButton" @click="closeContextMenu()"
+                     @mouseover="openElementMenu()">Add Element</a>
+                </div>
+
+                <!-- Sub Context Menu for Adding Elements -->
+                <div v-show="isElementMenuVisible" :style="{top: elementMenuY, left: elementMenuX}"
+                     class="list-group context-menu">
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('PATH'); closeContextMenu()">PATH</a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('RECTANGLE'); closeContextMenu()">RECTANGLE</a>
+                  <a class="list-group-item list-group-item-action" @click="addElement('TRIANGLE'); closeContextMenu()">TRIANGLE</a>
+                  <a class="list-group-item list-group-item-action" @click="addElement('CIRCLE');closeContextMenu()">CIRCLE</a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('LINE');closeContextMenu()">LINE</a>
+                  <a class="list-group-item list-group-item-action" @click="addElement('ARROW');closeContextMenu()">ARROW</a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('TEXT');closeContextMenu()">TEXT</a>
+                  <a class="list-group-item list-group-item-action" @click="addElement('IMAGE');closeContextMenu()">IMAGE</a>
                 </div>
               </div>
             `,
@@ -193,6 +215,7 @@
                 handleOutsideClick(e) { // 全局点击事件处理
                     if (!e.target.closest('.context-menu')) {
                         this.isContextMenuVisible = false; // 使用 this 指向组件实例
+                        this.isElementMenuVisible = false;
                     }
                 },
                 
@@ -211,28 +234,33 @@
                             this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
                             this.isContextMenuVisible = true;  // 显示上下文菜单
                     }
-                },
-                
+                },                
+                openElementMenu() {
+                    const buttonRect = this.$refs.addElementButton.getBoundingClientRect();
+                    this.elementMenuX = (buttonRect.left + buttonRect.width) + 'px';
+                    this.elementMenuY = (buttonRect.top) + 'px';
+                    this.isElementMenuVisible = true;
+                },                
+                addElement(type) {
+                    alert('Adding element: ' + type);
+                    this.isElementMenuVisible = false;
+                    this.isContextMenuVisible = false;
+                },               
                 closeContextMenu() {
                     this.isContextMenuVisible = false;  // 隐藏上下文菜单
-                },
-                
-                // 打开添加子层模态框
-                openAddSubLayerModal(layer) {
+                },                              
+                openAddSubLayerModal(layer) {  // 打开添加子层模态框
                     this.$emit('update-current-layer', layer);
                     $('#addSubLayerModal').modal('show');
-                },
-                
-                // 打开添加子层模态框
-                openEditLayerModal(layer) {
+                },                               
+                openEditLayerModal(layer) { // 打开添加子层模态框
                     this.$emit('update-current-layer', layer);
                     // 为模态框填充数据
                     $('#editLayerForm input[name="name"]').val(layer.name);
                     $('#editLayerForm input[name="description"]').val(layer.description);
                     $('#editLayerForm input[name="available"]').prop('checked', layer.available);
                     $('#editLayerModal').modal('show');
-                },
-                
+                },               
                 deleteLayer(layerId) {
                     if (confirm("Are you sure you want to delete current layer and its sub-elements?")) {
                         axios.get('{% url 'Layout:delete_layer' %}', { 
@@ -258,11 +286,14 @@
         });
 
         Vue.component('element-component', {
-            props: ['element'],
+            props: ['element','floor'],
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data() {
                 return {
-                    open: false
+                    open: false,
+                    isContextMenuVisible: false, // 控制上下文菜单显示
+                    contextMenuX: '0px', // 上下文菜单的横坐标
+                    contextMenuY: '0px' // 上下文菜单的纵坐标
                 };
             },
             template:
@@ -271,6 +302,7 @@
                 <h2 class="accordion-header">
                   <button class="accordion-button" type="button"
                           :class="{'collapsed': !open}"
+                          @contextmenu.prevent="openContextMenu($event)"
                           @click="open = !open;"
                           style="background-color: #c3dcf6;">
                     [[ element.name ]]
@@ -282,9 +314,76 @@
                     <!-- 更多 element 详情显示 -->
                   </div>
                 </div>
+
+                <!-- 上下文菜单 -->
+                <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
+                     class="list-group context-menu">
+                    <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Edit Element</a>
+                    <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Delete Item</a>
+                </div>
+
               </div>
             `,
-
+            mounted() {     
+                // 监听全局点击事件，用于隐藏上下文菜单
+                document.addEventListener('click', this.handleOutsideClick);
+            },
+            beforeDestroy() {
+                // 组件销毁前移除事件监听器，避免内存泄漏
+                document.removeEventListener('click', this.handleOutsideClick);
+            },
+            methods: {
+                handleOutsideClick(e) { // 全局点击事件处理
+                    if (!e.target.closest('.context-menu')) {
+                        this.closeContextMenu();
+                    }
+                },
+                
+                openContextMenu(event) {                    
+                    event.preventDefault();
+                    if (this.isContextMenuVisible) {
+                        this.isContextMenuVisible = false;
+                        // 添加一个小延迟再显示新的菜单，以使菜单的隐藏和显示更加明显
+                        this.$nextTick(() => {
+                            this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
+                            this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
+                            this.isContextMenuVisible = true;  // 显示上下文菜单
+                        });
+                    } else {
+                            this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
+                            this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
+                            this.isContextMenuVisible = true;  // 显示上下文菜单
+                    }
+                },                
+                closeContextMenu() {
+                    this.isContextMenuVisible = false;
+                },               
+                deleteElement(element) {
+                    // 确认删除操作
+                    if (confirm("Are you sure you want to delete this element?")) {
+                        axios.get('{% url 'Layout:delete_element' %}', { 
+                            params: {
+                                element_id: element.id,
+                                floor: this.floor,
+                                user_type: '{{ user_type }}',
+                                current_access_id: {{ current_access.id }},
+                            }
+                        })
+                        .then(response => {
+                            if (response.data && response.data.success) {
+                                alert(response.data.success); // 显示成功消息
+                                this.$emit('element-deleted');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error deleting layer:', error);
+                        });
+                    }
+                    this.closeContextMenu();
+                    
+                    
+                }
+            }
         });
 
         new Vue({
@@ -327,7 +426,7 @@
                 // ----------------- 数据加载 -----------------
                  synchronizeData() {
                     console.log('Synchronizing data...');
-                    axios.get('{% url "Layout:synchronize_data" %}', {
+                    return axios.get('{% url "Layout:synchronize_data" %}', {
                         params: { 
                             floor: this.floor,
                             current_access_id: {{ current_access.id }},
@@ -337,7 +436,7 @@
                         if (response.data && response.data.id) {
                             console.log('Data synchronized:', response.data);
                             this.renderData(response.data); // 调用renderData来处理这个单一节点
-                        
+
                         } else {
                             console.error('Unexpected response data:', response.data);
                         }
@@ -370,14 +469,14 @@
                         width: width,
                         height: height,
                     });
-                
+
                     // 递归函数来处理每个层级的SpaceUnit和elements
                     const processLayer = (spaceUnits, parentLayer) => {
                         spaceUnits.forEach(spaceUnit => {
                             console.log('Processing SpaceUnit:', spaceUnit);
                             const layer = new Konva.Layer();
                             this.stage.add(layer); // 将新层添加到舞台
-                
+
                             // 处理当前SpaceUnit的elements
                             spaceUnit.elements.forEach(element => {
                                 console.log('Processing element:', element);
@@ -396,16 +495,16 @@
                                 }
                                 // TODO: 添加其他类型的元素处理
                             });
-                
+
                             layer.draw(); // 绘制当前层
-                
+
                             // 如果当前SpaceUnit有子单位，则递归处理
                             if (spaceUnit.child_units && spaceUnit.child_units.length > 0) {
                                 processLayer(spaceUnit.child_units, layer);
                             }
                         });
                     };
-                
+
                     // 从根层级开始处理所有层级
                     processLayer(this.layers, null);
                 },

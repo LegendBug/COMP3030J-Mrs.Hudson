@@ -147,7 +147,13 @@ def add_element(request):
 
 
 def delete_element(request):
-    pass
+    if request.method == 'GET':
+        element_id = int(request.GET.get('element_id', 0))
+        element = get_object_or_404(KonvaElement, id=element_id)
+        element.delete() # 删除元素
+        return JsonResponse({'success': 'The element has been successfully deleted!'}, status=200)
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
 def save_layout(request):

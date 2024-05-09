@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'crispy_forms',
     "crispy_bootstrap5",
+    "django_extensions",
     'Inventory',
     'User',
     'Statistic',
@@ -174,3 +175,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/data')  # 配置 MEDIA_ROOT 至项目根目录下的 'static/data' 文件夹
 # 配置 MEDIA_URL，用于访问媒体资源
 MEDIA_URL = '/data/'
+
+# 配置django_extensions的models可视化插件
+GRAPH_MODELS = { # python manage.py graph_models -a -o ER_Diagram.png
+    'all_applications': True,
+    'group_models': True,
+    'app_labels': ["Inventory", "User", 'Statistic', 'Layout', 'System', 'Venue', 'Exhibition',
+                   'Booth', "auth"],
+}

@@ -2,11 +2,13 @@ annotated-types==0.6.0
 anyio==4.3.0
 asgiref==3.7.2
 certifi==2024.2.2
+colorama==0.4.6
 crispy-bootstrap5==2024.2
 distro==1.9.0
 Django==5.0.3
 django-cors-headers==4.3.1
 django-crispy-forms==2.1
+django-extensions==3.2.3
 djangorestframework==3.15.1
 h11==0.14.0
 httpcore==1.0.5
@@ -19,6 +21,8 @@ openai==1.26.0
 pillow==10.3.0
 pydantic==2.7.1
 pydantic_core==2.18.2
+pydotplus==2.0.2
+pyparsing==3.1.2
 python-dotenv==1.0.1
 sniffio==1.3.1
 sqlparse==0.4.4
