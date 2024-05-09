@@ -4,58 +4,64 @@
 {% load crispy_forms_tags %}
 {#TODO 改进意见: 按钮太丑了, 得换一种样式(比如悬浮按钮?下拉框式的按钮?); css可能存在bug, 当上传的图片宽高不一致时Card会变形; 可以加一些动画效果#}
 {% block extra_head %}
-    <title>Venue Homepage</title>
+    <title>Hudson Homepage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/Venue/home.css' %}">
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-4 mb-4">
-        <div class="row row-cols-1 row-cols-md-2 g-4">
-            {% if venues|length == 0 %}
-                <div class="message-info mt-4">
-                    <p class="message-info">Create the company's first venue!</p>
-                </div>
-            {% else %}
-                {% for venue in venues %}
-                    <div class="col">
-                        <div class="card h-auto shadow-sm"
-                             style="background-color: rgba(255, 255, 255, 0.4); border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);">
-                            {% if venue.image %}
-                                <a href="{% url 'Venue:venue' venue.id %}" class="text-decoration-none">
-                                    <img src="{{ venue.image.url }}" class="card-img-top img-fluid"
-                                         alt="{{ venue.name }}"
-                                         style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
-                                </a>
-                            {% endif %}
-                            <div class="card-body">
-                                <h5 class="card-title">
-                                    <a href="{% url 'Venue:venue' venue.id %}" class="text-decoration-none"
-                                       style="color: #333;">
-                                        {{ venue.name }}
-                                    </a>
-                                </h5>
-                                <p class="card-text">{{ venue.address }}</p>
-                                {% if user.is_authenticated and user_type == 'Manager' %}
-                                    <div class="d-flex justify-content-between mt-3">
-                                        <a href="#" class="btn btn-secondary" data-bs-toggle="modal"
-                                           data-bs-target="#venueInfoModal"
-                                           data-venue-id="{{ venue.id }}" data-venue-name="{{ venue.name }}"
-                                           data-venue-address="{{ venue.address }}" data-venue-area="{{ venue.area }}"
-                                           data-venue-floor="{{ venue.floor }}"
-                                           data-venue-description="{{ venue.description }}">Detail</a>
-                                        <a href="#" class="btn btn-success" data-bs-toggle="modal"
-                                           data-bs-target="#venueModifyModal" data-venue-id="{{ venue.id }}">Modify</a>
-                                        <a href="#" class="btn btn-danger" data-bs-toggle="modal"
-                                           data-bs-target="#venueDeleteModal" data-venue-id="{{ venue.id }}">Delete</a>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% endif %}
+    <div class="row">
+        <div class="col-12 text-center">
+            <h1 class="logo-title">Explore Hudson Venues</h1>
         </div>
     </div>
+
+    {#瀑布流卡片布局#}
+    <div class="container mt-4 mb-4">
+        {% if venues|length == 0 %}
+            <h2 class="message-info">Create the company's first venue!</h2>
+        {% else %}
+            {% for venue in venues %}
+                <div class="card-columns">
+                    <div class="card h-auto shadow-sm"
+                         style="background-color: rgba(255, 255, 255, 0.4); border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);">
+                        {% if venue.image %}
+                            <a href="{% url 'Venue:venue' venue.id %}" class="text-decoration-none">
+                                <img src="{{ venue.image.url }}" class="card-img-top img-fluid"
+                                     alt="{{ venue.name }}"
+                                     style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                            </a>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'Venue:venue' venue.id %}" class="text-decoration-none"
+                                   style="color: #333;">
+                                    {{ venue.name }}
+                                </a>
+                            </h5>
+                            <p class="card-text">{{ venue.address }}</p>
+                            {% if user.is_authenticated and user_type == 'Manager' %}
+                                <div class="d-flex justify-content-between mt-3">
+                                    <a href="#" class="btn btn-secondary" data-bs-toggle="modal"
+                                       data-bs-target="#venueInfoModal"
+                                       data-venue-id="{{ venue.id }}" data-venue-name="{{ venue.name }}"
+                                       data-venue-address="{{ venue.address }}" data-venue-area="{{ venue.area }}"
+                                       data-venue-floor="{{ venue.floor }}"
+                                       data-venue-description="{{ venue.description }}">Detail</a>
+                                    <a href="#" class="btn btn-success" data-bs-toggle="modal"
+                                       data-bs-target="#venueModifyModal" data-venue-id="{{ venue.id }}">Modify</a>
+                                    <a href="#" class="btn btn-danger" data-bs-toggle="modal"
+                                       data-bs-target="#venueDeleteModal" data-venue-id="{{ venue.id }}">Delete</a>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
 
     <!-- Floating Action Button -->
     {% if user.is_authenticated and user_type == 'Manager' %}

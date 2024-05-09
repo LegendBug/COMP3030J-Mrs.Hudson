@@ -2,12 +2,13 @@ html, body {
     height: 100%;
     margin: 0;
     display: flex;
-    flex-direction: column; /* 设定主轴为垂直方向 */
-    background: linear-gradient(rgba(224, 224, 224, 0.7), rgba(0, 0, 0, 0.7)), url('../../images/Public/poster.jpg') no-repeat center center fixed;
+    flex-direction: column;
+    background: linear-gradient(rgba(224, 224, 224, 0.7), rgba(0, 0, 0, 0.7)), url('../../images/Public/poster.jpg') no-repeat;
     background-size: cover;
+    background-attachment: fixed;
 }
 
-body, p, h1, h2, h3, h4, h5, h6, div {
+h1, h2, h3, h4, h5, h6 {
     cursor: default; /* 设置默认光标 */
     user-select: none; /* 防止文本被选中 */
 }
@@ -199,5 +200,56 @@ h2 a {
 
 h2 a:hover {
     color: #28a745; /* Inherits color from parent element */
+}
+
+/*--------------------------------------------------------------*/
+/*card及其动画*/
+
+.card-columns {
+    column-count: 2; /* Adjust based on preference, 2 for two columns */
+    column-gap: 5rem;
+}
+
+.card {
+    animation: fadeInUp 0.8s ease-out;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    /* 确保图片圆角 */
+    overflow: hidden; /* 新增：确保图片圆角不超出卡片边界 */
+}
+
+.card {
+    transition: transform 0.5s ease; /* 添加图片缩放的过渡效果 */
+}
+
+.card:hover {
+    transform: scale(1.02); /* 当鼠标悬停时放大图片 */
+}
+
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
