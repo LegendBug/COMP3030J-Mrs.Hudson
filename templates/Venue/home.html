@@ -33,27 +33,43 @@
                             </a>
                         {% endif %}
                         <div class="card-body">
-                            <h5 class="card-title">
-                                <a href="{% url 'Venue:venue' venue.id %}" class="text-decoration-none"
-                                   style="color: #333;">
-                                    {{ venue.name }}
-                                </a>
-                            </h5>
-                            <p class="card-text">{{ venue.address }}</p>
-                            {% if user.is_authenticated and user_type == 'Manager' %}
-                                <div class="d-flex justify-content-between mt-3">
-                                    <a href="#" class="btn btn-secondary" data-bs-toggle="modal"
-                                       data-bs-target="#venueInfoModal"
-                                       data-venue-id="{{ venue.id }}" data-venue-name="{{ venue.name }}"
-                                       data-venue-address="{{ venue.address }}" data-venue-area="{{ venue.area }}"
-                                       data-venue-floor="{{ venue.floor }}"
-                                       data-venue-description="{{ venue.description }}">Detail</a>
-                                    <a href="#" class="btn btn-success" data-bs-toggle="modal"
-                                       data-bs-target="#venueModifyModal" data-venue-id="{{ venue.id }}">Modify</a>
-                                    <a href="#" class="btn btn-danger" data-bs-toggle="modal"
-                                       data-bs-target="#venueDeleteModal" data-venue-id="{{ venue.id }}">Delete</a>
+                            <div class="d-flex justify-content-between">
+                                {#文本区域#}
+                                <div>
+                                    <h5 class="card-title">
+                                        <a href="{% url 'Venue:venue' venue.id %}" class="text-decoration-none"
+                                           style="color: #333;">
+                                            {{ venue.name }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text">{{ venue.address }}</p>
                                 </div>
-                            {% endif %}
+                                {#按钮区域#}
+                                <div class="d-flex flex-column">
+                                    <div class="btn-group">
+                                        <a href="#" class="btn btn-secondary mt-1" data-bs-toggle="modal"
+                                           data-bs-target="#venueInfoModal"
+                                           data-venue-id="{{ venue.id }}" data-venue-name="{{ venue.name }}"
+                                           data-venue-address="{{ venue.address }}" data-venue-area="{{ venue.area }}"
+                                           data-venue-floor="{{ venue.floor }}"
+                                           data-venue-description="{{ venue.description }}"
+                                           style="transform: scale(0.8);">
+                                            Detail
+                                        </a>
+                                    </div>
+                                    {% if user.is_authenticated and user_type == 'Manager' %}
+                                        <div class="btn-group" style="transform: scale(0.82);">
+                                            <a href="#" class="btn btn-success" data-bs-toggle="modal"
+                                               data-bs-target="#venueModifyModal"
+                                               data-venue-id="{{ venue.id }}">Modify</a>
+                                            <a href="#" class="btn btn-danger" data-bs-toggle="modal"
+                                               data-bs-target="#venueDeleteModal"
+                                               data-venue-id="{{ venue.id }}">Delete</a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
