@@ -39,6 +39,11 @@
                 </form>
                 <br>
                 <!-- Area to display the chatbot's response -->
+                {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endif %}
                 {% if user_input and response %}
                 {% comment %} <div class="card mb-3">
                     <div class="card-header">
@@ -68,5 +73,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <!-- Add any JavaScript scripts here if necessary -->
+
 {% endblock %}
