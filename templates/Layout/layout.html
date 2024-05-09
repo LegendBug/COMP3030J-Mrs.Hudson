@@ -75,7 +75,9 @@
             <div class="offcanvas-body">
                 <!-- Top层级Accordion -->
                 <div class="accordion" id="accordion">
-                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" :floor="floor" @update-current-layer="setCurrentLayer" @layer-deleted="synchronizeData"></layer-component>
+                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" :floor="floor" 
+                    @update-current-layer="setCurrentLayer" @data-updated="synchronizeData">   
+                    </layer-component>
                 </div>
 
             </div>
@@ -163,11 +165,12 @@
                     <layer-component v-for="(child, index) in layer.child_units" :key="index"
                                      :layer="child" :floor="floor"
                                      @update-current-layer="$emit('update-current-layer', $event)"
-                                     @layer-deleted="$emit('layer-deleted', $event)">
+                                     @data-updated="$emit('data-updated', $event)">
                     </layer-component>
 
                     <element-component v-for="(element, index) in layer.elements" :key="index"
-                                       :element="element" :floor="floor">
+                                       :element="element" :floor="floor"
+                                       @data-updated="$emit('data-updated', $event)">
                     </element-component>
                   </div>
                 </div>
@@ -273,8 +276,7 @@
                         })
                         .then(response => {
                             if (response.data && response.data.success) {
-                                alert(response.data.success); // 显示成功消息
-                                this.$emit('layer-deleted');
+                                this.$emit('data-updated');
                             }
                         })
                         .catch(error => {
@@ -301,27 +303,17 @@
               <div class="accordion-item">
                 <h2 class="accordion-header">
                   <button class="accordion-button" type="button"
-                          :class="{'collapsed': !open}"
                           @contextmenu.prevent="openContextMenu($event)"
-                          @click="open = !open;"
                           style="background-color: #c3dcf6;">
                     [[ element.name ]]
                   </button>
                 </h2>
-                <div v-if="open" class="accordion-collapse">
-                  <div class="accordion-body" style="background-color: #f6f0f0;">
-                    Type: [[ element.type ]]
-                    <!-- 更多 element 详情显示 -->
-                  </div>
-                </div>
-
                 <!-- 上下文菜单 -->
                 <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
                      class="list-group context-menu">
                     <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Edit Element</a>
                     <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Delete Item</a>
                 </div>
-
               </div>
             `,
             mounted() {     
@@ -371,8 +363,8 @@
                         })
                         .then(response => {
                             if (response.data && response.data.success) {
-                                alert(response.data.success); // 显示成功消息
-                                this.$emit('element-deleted');
+                                console.log('Element deleted:', response.data.success);
+                                this.$emit('data-updated');
                             }
                         })
                         .catch(error => {
