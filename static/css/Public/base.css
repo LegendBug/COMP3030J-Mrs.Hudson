@@ -3,7 +3,7 @@ html, body {
     margin: 0;
     display: flex;
     flex-direction: column; /* 设定主轴为垂直方向 */
-    background: linear-gradient(rgba(224, 224, 224, 0.7), rgba(0, 0, 0, 0.7)), url('../../images/User/poster.jpg') no-repeat center center fixed;
+    background: linear-gradient(rgba(224, 224, 224, 0.7), rgba(0, 0, 0, 0.7)), url('../../images/Public/poster.jpg') no-repeat center center fixed;
     background-size: cover;
 }
 

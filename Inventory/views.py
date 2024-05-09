@@ -15,12 +15,15 @@ from datetime import timedelta, datetime
 import calendar
 from django.utils.timezone import make_aware
 
+
 @login_required
 def inventory(request, space_type, space_id):
     # 获取用户类型
     user_type = 'Manager' if hasattr(request.user, 'manager') \
         else 'Organizer' if hasattr(request.user, 'organizer') \
         else 'Exhibitor'
+    request.session['space_type'] = space_type
+    request.session['space_id'] = space_id
     # 检查用户类型和空间类型是否匹配，current_access是一个Venue/Exhibition/Booth实例, 它代表着用户当前所访问的Venue/Exhibition/Booth
     if space_type == 'venue':
         if user_type != 'Manager':
@@ -34,24 +37,22 @@ def inventory(request, space_type, space_id):
         current_access = Booth.objects.filter(pk=space_id).first()
     else:
         return JsonResponse({'error': 'Invalid space type!'}, status=400)
-    request.session['space_type'] = space_type
-    request.session['space_id'] = space_id
 
+    # POST请求处理创建库存类别
     if request.method == 'POST':
-        submitted_form = CreateInventoryCategoryForm(request.POST, request.FILES, origin=current_access)
-        if submitted_form.is_valid():
-            category = submitted_form.save()
-            if category:
-                return JsonResponse({'success': 'Category and items created'}, status=201)
-            else:
-                return JsonResponse({'errors': 'Failed to create category and items'}, status=500)
+        form = CreateInventoryCategoryForm(request.POST, request.FILES, origin=current_access,
+                                           initial={'user_type': user_type})
+        if not form.is_valid():
+            first_error_key, first_error_messages = list(form.errors.items())[0]
+            first_error_message = first_error_key + ': ' + first_error_messages[0]
+            return JsonResponse({'error': first_error_message}, status=400)
+        category = form.save()
+        if category:
+            return JsonResponse({'success': 'Resource category and items created'}, status=201)
         else:
-            # TODO 存在bug,需要修改  return JsonResponse({'errors': submitted_form.errors.as_json()}, status=400)
-            return JsonResponse(
-                {'errors': "There is an error in the content you filled in, please correct it and submit again!"},
-                status=400)
-    else:  # 如果是 GET 请求，只需返回一个空表单
-        add_inventory_form = CreateInventoryCategoryForm(origin=current_access)
+            return JsonResponse({'error': 'There are something wrong.'}, status=400)
+    else:  # GET请求处理展示库存
+        add_inventory_form = CreateInventoryCategoryForm(origin=current_access, initial={'user_type': user_type})
         # 通过当前访问的Venue/Exhibition/Booth中的所有Item,获取所有的Category并统计每个Category下的Item数量
         current_items = current_access.items.all()
         current_categories = {}
@@ -167,11 +168,15 @@ def edit_item(request, item_id):
     return render(request, 'Inventory/edit_item.html', {'form': form})
 
 
-# @login_required
-# def delete_item(request, item_id):
-#     item = get_object_or_404(Item, pk=item_id)
-#     item.delete()
-#     return redirect('Inventory:inventory')
+@login_required
+def delete_item(request, item_id):
+    item = get_object_or_404(Item, pk=item_id)
+    if request.method == 'POST':
+        item.delete()
+        messages.success(request, "Item deleted successfully.")
+        return redirect('Inventory:category_detail', category_id=item.category.id)
+    else:
+        return HttpResponseNotAllowed(['POST'])
 
 
 @login_required
@@ -179,18 +184,10 @@ def return_item(request, item_id):
     if request.method == 'POST':
         item = get_object_or_404(Item, pk=item_id)
         # 修改 affiliation 至 origin
-        item.affiliation = item.category.origin
+        item.affiliation_content_type = ContentType.objects.get_for_model(item.category.origin)
+        item.affiliation_object_id = item.category.origin.pk
         item.save()
         messages.success(request, "Item returned successfully.")
-        return redirect('Inventory:category_detail', category_id=item.category.id)
-
-
-@login_required
-def delete_item(request, item_id):
-    if request.method == 'POST':
-        item = get_object_or_404(Item, pk=item_id)
-        item.delete()
-        messages.success(request, "Item deleted successfully.")
         return redirect('Inventory:category_detail', category_id=item.category.id)
 
 
@@ -230,6 +227,7 @@ def create_res_application(request):
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
     else:
         return HttpResponseNotAllowed(['POST'])
+
 
 def monthly_usage_report(request, year):
     year = int(year)

@@ -374,8 +374,7 @@
                             headers: {
                                 'X-CSRFToken': token  // 请求头中包含 CSRF 令牌
                             }
-                        })
-                            .then(response => {
+                        }).then(response => {
                                 if (response.data.success) {
                                     container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
                                     setTimeout(() => {

@@ -17,11 +17,12 @@
         </li>
     {% endif %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="bi bi-layout-text-sidebar-reverse"></i> Layout</a>
+        <a class="nav-link" href="{% url 'Layout:venue_layout' %}"><i class="bi bi-layout-text-sidebar-reverse"></i>
+            Layout</a>
     </li>
-{#    <li class="nav-item">#}
-{#        <a class="nav-link" href="{% url 'Inventory:inventory ' %}"><i class="bi bi-box-seam"></i> Inventory</a>#}
-{#    </li>#}
+    {#    <li class="nav-item">#}
+    {#        <a class="nav-link" href="{% url 'Inventory:inventory ' %}"><i class="bi bi-box-seam"></i> Inventory</a>#}
+    {#    </li>#}
 {% endblock %}
 
 
@@ -29,22 +30,28 @@
     <div class="container mt-3">
         <div class="row">
             {% for category in categories %}
-            <div class="col-md-4 col-sm-6 mb-4">
-                <div class="card">
-                    <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}" style="height: 200px; object-fit: cover;">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ category.name }}</h5>
-                        <p class="card-text"><strong>Description：</strong>{{ category.description }}</p>
-                        <p class="card-text"><small class="text-muted"><strong>Quantity：</strong>{{ category.items_quantity }}</small></p>
-                        <p class="card-text"><strong>Is Public：</strong>{{ category.is_public|yesno:"是,否" }}</p>
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'Inventory:category_detail' category.pk %}" class="btn btn-info btn-sm">View</a>
-                            <a href="{% url 'Inventory:edit-category' category.pk %}" class="btn btn-secondary btn-sm">Modify</a>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ category.id }})">Delete</button>
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="card">
+                        <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}"
+                             style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ category.name }}</h5>
+                            <p class="card-text"><strong>Description：</strong>{{ category.description }}</p>
+                            <p class="card-text"><small
+                                    class="text-muted"><strong>Quantity：</strong>{{ category.items_quantity }}</small>
+                            </p>
+                            <p class="card-text"><strong>Is Public：</strong>{{ category.is_public|yesno:"是,否" }}</p>
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'Inventory:category_detail' category.pk %}" class="btn btn-info btn-sm">View</a>
+                                <a href="{% url 'Inventory:edit-category' category.pk %}"
+                                   class="btn btn-secondary btn-sm">Modify</a>
+                                <button type="button" class="btn btn-danger btn-sm"
+                                        onclick="confirmDelete({{ category.id }})">Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             {% endfor %}
         </div>
     </div>
@@ -64,13 +71,13 @@
         +
     </a>
 
-     {# 添加库存的模态框 #}
+    {# 添加库存的模态框 #}
     <div class="modal fade" id="addInventoryModal" tabindex="-1" aria-labelledby="addInventoryModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addInventoryModal">Add new resource to the Inventory</h5>
+                    <h5 class="modal-title" id="addInventoryModal">Add a Custom Resource Category</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -141,6 +148,7 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             const addInventoryForm = document.getElementById('addInventoryForm');
+            const container = document.getElementById('add_inventory-message-container');
             addInventoryForm.addEventListener('submit', function (e) {
                 e.preventDefault();  // 阻止表单的默认提交行为
                 const formData = new FormData(addInventoryForm);
@@ -153,24 +161,20 @@
                     .then(function (response) {
                         if (response.data.success) { // 如果提交成功，显示成功消息
                             const addInventoryModal = new bootstrap.Modal(document.getElementById('addInventoryModal'), {});
-                            const messageContainer = document.getElementById('add_inventory-message-container');
-                            messageContainer.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
-                            messageContainer.style.display = 'block';
+                            container.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
+                            container.style.display = 'block';
                             // 设置定时器等待1.5秒后关闭模态框并刷新页面
                             setTimeout(function () {
                                 addInventoryModal.hide(); // 关闭模态框
                                 window.location.reload(); // 刷新页面
                             }, 1500); // 1500毫秒后执行
                         }
-                    })
-                    .catch(function (error) {
-                        let errorMessage = error.message;
-                        // 如果错误中有响应并且有数据并且数据中有错误信息，则使用服务器的错误信息
-                        if (error.response && error.response.data && error.response.data.errors) {
-                            errorMessage = error.response.data.errors;
-                        }
-                        document.getElementById('add_inventory-message-container').innerHTML = '<div class="alert alert-danger">Error: ' + errorMessage + '</div>';
-                    });
+                    }).catch(error => {
+                    // 记录或处理错误
+                    console.error(error);
+                    container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                    container.style.display = 'block';  // Make sure the message container is visible
+                });
             });
 
             const createResApplyForm = document.getElementById('createResApplyForm');
@@ -194,6 +198,9 @@
                             modal.hide();
                             window.location.reload();
                         }, 1500);
+                    } else {
+                        container.innerHTML = `<div class="alert alert-danger">${response.data.error}</div>`;
+                        container.style.display = 'block';  // 确保消息容器可见
                     }
                 }).catch(error => {
                     // 记录或处理错误

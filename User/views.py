@@ -8,9 +8,10 @@ from django.http import Http404, JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect
 
+import Inventory.views
 from Booth.models import BoothApplication
 from Exhibition.models import ExhibitionApplication
-from Inventory.models import ResourceApplication
+from Inventory.models import ResourceApplication, Item
 from .forms import RegisterForm, LoginForm, ReplyMessageForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *
@@ -275,7 +276,6 @@ def view_application_detail(request, application_type, application_id):
             location = application.booth.exhibition.venue.name + ' >>'
             for sector in application.booth.sectors.all():
                 location += ' ' + sector.name
-            print(2)
             data = {
                 'application_type': application_type,
                 'title': "Application for Booth '" + application.booth.name + "' at Exhibition '" + application.booth.exhibition.name + "'",
@@ -406,10 +406,17 @@ def accept_application(request, application_type, application_id):
                 return JsonResponse({'error': 'Application type not found'}, status=404)
 
             # 通过申请
-            if application.stage != ExhibitionApplication.Stage.INITIAL_SUBMISSION:
+            if application.stage != Application.Stage.INITIAL_SUBMISSION:
                 return JsonResponse({'error': 'Application has been processed.'}, status=200)
-            application.stage = ExhibitionApplication.Stage.ACCEPTED
+            application.stage = Application.Stage.ACCEPTED
             application.save()
+            if application_type == 'resource':
+                rent_item = Item.objects.filter(category=application.category, is_using=False, is_damaged=False).first()
+                if rent_item:
+                    rent_item.affiliation_content_type = ContentType.objects.get_for_model(application.booth)
+                    rent_item.affiliation_object_id = application.booth.id
+                else:
+                    return JsonResponse({'error': 'No available item found.'}, status=404)
 
             # 发送接受消息
             application_content_type = ContentType.objects.get_for_model(application)
@@ -426,3 +433,6 @@ def accept_application(request, application_type, application_id):
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
     else:
         return HttpResponseNotAllowed(['POST'])
+
+# TODO 资源重名提示
+# 创建资源Public属性非管理员不可选

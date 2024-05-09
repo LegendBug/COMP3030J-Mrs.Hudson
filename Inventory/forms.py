@@ -19,7 +19,7 @@ class EditInventoryCategoryForm(forms.ModelForm):
 
 
 class CreateInventoryCategoryForm(forms.ModelForm):
-    quantity = forms.IntegerField(min_value=1, initial=1, required=True, label="Number of Items")
+    quantity = forms.IntegerField(min_value=1, initial=1, required=True, label="Number of Initial Items")
     power = forms.FloatField(required=False, label="Power Consumption(Optional)")
     water_consumption = forms.FloatField(required=False, label="Daily Water Consumption(Optional)")
 
@@ -29,17 +29,30 @@ class CreateInventoryCategoryForm(forms.ModelForm):
         widgets = {
             'origin_content_type': forms.HiddenInput(),
             'origin_object_id': forms.HiddenInput(),
-            'is_public': forms.CheckboxInput(),  # 确保is_public为必填，并使用复选框
+            'is_public': forms.CheckboxInput(attrs={'class': 'hidden'}),  # 初始隐藏is_public字段
         }
 
     def __init__(self, *args, **kwargs):  # 需要传入user和venue/exhibition/booth作为参数
         self.origin = kwargs.pop('origin', None)
         super(CreateInventoryCategoryForm, self).__init__(*args, **kwargs)
+        user_type = self.initial.get('user_type', 'Manager')
+
+        # 如果是Manager, 则需要显示is_public字段
+        if user_type == 'Manager':
+            self.fields['is_public'].widget = forms.CheckboxInput()
+            self.fields['is_public'].required = True
+            self.fields['is_public'].initial = True
+        else:  # 如果是其他用户, 则隐藏is_public字段
+            self.fields['is_public'].widget = forms.HiddenInput()
+            self.fields['is_public'].initial = False
+
         if self.origin:
             self.fields['origin_content_type'].initial = ContentType.objects.get_for_model(type(self.origin))
             self.fields['origin_object_id'].initial = self.origin.pk
+
+        self.fields['name'].label = "Resource Name"
+        self.fields['description'].label = "Resource Description"
         self.fields['image'].required = True  # 确保image为必填
-        self.fields['is_public'].required = True  # 确保is_public为必填
 
     def clean_cost(self):
         cost = self.cleaned_data.get('cost')
@@ -68,7 +81,7 @@ class CreateInventoryCategoryForm(forms.ModelForm):
         if commit:
             category.save()
 
-        quantity = self.cleaned_data.get('quantity')
+        quantity = self.cleaned_data.get('quantity', 1)
         power = self.cleaned_data.get('power', None)
         water_consumption = self.cleaned_data.get('water_consumption', None)
 
