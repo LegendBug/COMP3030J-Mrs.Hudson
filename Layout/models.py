@@ -27,8 +27,8 @@ class SpaceUnit(models.Model):
 class KonvaElement(models.Model):
     class ElementType(models.TextChoices):
         PATH = 'Path', _('Path')
-        RECTANGLE = 'Rectangle', _('Rectangle')
-        TRIANGLE = 'Triangle', _('Triangle')
+        RECTANGLE = 'Rect', _('Rect')
+        POLYGON = 'Polygon', _('Polygon')
         CIRCLE = 'Circle', _('Circle')
         LINE = 'Line', _('Line')
         ARROW = 'Arrow', _('Arrow')
@@ -40,7 +40,7 @@ class KonvaElement(models.Model):
         extension = filename.split('.')[-1]
         # 生成一个新的UUID文件名
         new_filename = '{0}.{1}'.format(uuid.uuid4(), extension)
-        return 'Venue/{0}'.format(new_filename)
+        return 'KonvaElement/{0}'.format(new_filename)
 
     def save(self, *args, **kwargs):
         if self.pk:  # 如果模型已经存在，则是更新过程
@@ -60,8 +60,8 @@ class KonvaElement(models.Model):
         super().delete(*args, **kwargs)
 
     name = models.CharField(max_length=255)
-    layer = models.ForeignKey(SpaceUnit, on_delete=models.CASCADE,
+    layer = models.ForeignKey('Layout.SpaceUnit', on_delete=models.CASCADE,
                               related_name='elements')  # 当前Element所在的SpaceUnit(层级)
     type = models.CharField(max_length=20, choices=ElementType.choices)
-    data = models.JSONField()  # FabricJS的JSON数据
-    image = models.ImageField(upload_to=element_upload_to, null=True, blank=True)  # 如果是FabricJS的Image
+    data = models.JSONField(null=True, blank=True)  # KonvaJS的JSON数据
+    image = models.ImageField(upload_to=element_upload_to, null=True, blank=True)  # 如果是KonvaJS的Image

@@ -150,7 +150,7 @@ def delete_element(request):
     if request.method == 'GET':
         element_id = int(request.GET.get('element_id', 0))
         element = get_object_or_404(KonvaElement, id=element_id)
-        element.delete() # 删除元素
+        element.delete()  # 删除元素
         return JsonResponse({'success': 'The element has been successfully deleted!'}, status=200)
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)
@@ -166,13 +166,18 @@ def add_fake_konva_element(request):
     layer = get_object_or_404(SpaceUnit, id=4)
     element_type = KonvaElement.ElementType.RECTANGLE
     element_data = json.dumps({
-        "x": 100,
-        "y": 300,
-        "width": 250,
-        "height": 350,
-        "fill": "red",
-        "stroke": "black",
-        "strokeWidth": 4
+        'attrs': {
+            'x': 100,
+            'y': 300,
+            'width': 250,
+            'height': 350,
+            'fill': 'red',
+            'stroke': 'black',
+            'strokeWidth': 4,
+            'draggable': 'true',
+        },
+        'className': f'{element_type}',
+
     })
     # 创建FabricElement实例
     konva_element = KonvaElement.objects.create(
@@ -181,6 +186,12 @@ def add_fake_konva_element(request):
         type=element_type,
         data=element_data
     )
+
+    # 在数据中添加主键信息
+    updated_element_data = json.loads(element_data)
+    updated_element_data["attrs"]["id"] = f"{konva_element.pk}"  # 添加id属性
+    konva_element.data = json.dumps(updated_element_data) # 更新已创建的KonvaElement实例的data字段
+    konva_element.save()
 
     # 返回新创建的FabricElement的信息
     return JsonResponse({
