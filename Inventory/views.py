@@ -8,9 +8,12 @@ from Booth.models import Booth
 from Exhibition.models import Exhibition
 from Inventory.forms import EditInventoryCategoryForm, CreateInventoryCategoryForm, EditItemForm, ResApplicationForm
 from Inventory.models import InventoryCategory, Item, ResourceApplication
+from Statistic.models import Usage
 from User.models import Message, Manager, MessageDetail
 from Venue.models import Venue
-
+from datetime import timedelta, datetime
+import calendar
+from django.utils.timezone import make_aware
 
 @login_required
 def inventory(request, space_type, space_id):
@@ -228,3 +231,37 @@ def create_res_application(request):
     else:
         return HttpResponseNotAllowed(['POST'])
 
+def monthly_usage_report(request, year):
+    year = int(year)
+    report = []
+
+    for month in range(1, 13):
+        start_of_month = make_aware(datetime(year, month, 1, 0, 0, 0))
+        _, days_in_month = calendar.monthrange(year, month)
+        end_of_month = start_of_month + timedelta(days=days_in_month - 1, hours=23, minutes=59, seconds=59)
+
+        items = Item.objects.all()
+        month_report = {
+            'month': f'{year}-{month:02d}',
+            'total_power': 0,
+            'total_water': 0,
+        }
+
+        for item in items:
+            usages = Usage.objects.filter(item=item, start_time__lte=end_of_month, end_time__gte=start_of_month)
+
+            for usage in usages:
+                usage_start = max(usage.start_time, start_of_month)
+                usage_end = min(usage.end_time or end_of_month, end_of_month)
+
+                duration_seconds = (usage_end - usage_start).total_seconds()
+                duration_hours = duration_seconds / 3600
+
+                if item.power is not None:
+                    month_report['total_power'] += duration_hours * item.power
+                if item.water_consumption is not None:
+                    month_report['total_water'] += duration_hours * item.water_consumption
+
+        report.append(month_report)
+
+    return render()
