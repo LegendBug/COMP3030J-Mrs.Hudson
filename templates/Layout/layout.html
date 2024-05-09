@@ -73,7 +73,7 @@
                 <!-- Top层级Accordion -->
                 <div class="accordion" id="accordion">
                     <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" :floor="floor" 
-                    @update-current-layer="setCurrentLayer" @data-updated="synchronizeData">   
+                    @update-current-layer="setCurrentLayer" @element-added="addElement" @data-updated="synchronizeData">   
                     </layer-component>
                 </div>
 
@@ -123,6 +123,26 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Upload Image Modal -->
+        <div class="modal fade" id="uploadImageModal" tabindex="-1" role="dialog" aria-labelledby="uploadImageModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="uploadImageModalLabel">Upload Image</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="file" id="imageUpload" accept="image/*">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" @click="addImage">Add Image</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         
     </div>
 
@@ -188,18 +208,14 @@
                 <!-- Sub Context Menu for Adding Elements -->
                 <div v-show="isElementMenuVisible" :style="{top: elementMenuY, left: elementMenuX}"
                      class="list-group context-menu">
-                  <a class="list-group-item list-group-item-action"
-                     @click="addElement('PATH'); closeContextMenu()">PATH</a>
-                  <a class="list-group-item list-group-item-action"
-                     @click="addElement('RECTANGLE'); closeContextMenu()">RECTANGLE</a>
-                  <a class="list-group-item list-group-item-action" @click="addElement('TRIANGLE'); closeContextMenu()">TRIANGLE</a>
-                  <a class="list-group-item list-group-item-action" @click="addElement('CIRCLE');closeContextMenu()">CIRCLE</a>
-                  <a class="list-group-item list-group-item-action"
-                     @click="addElement('LINE');closeContextMenu()">LINE</a>
-                  <a class="list-group-item list-group-item-action" @click="addElement('ARROW');closeContextMenu()">ARROW</a>
-                  <a class="list-group-item list-group-item-action"
-                     @click="addElement('TEXT');closeContextMenu()">TEXT</a>
-                  <a class="list-group-item list-group-item-action" @click="addElement('IMAGE');closeContextMenu()">IMAGE</a>
+                  <a class="list-group-item list-group-item-action" @click="$emit('element-added', 'Path', layer); closeContextMenu()">Path</a>
+                  <a class="list-group-item list-group-item-action" @click="$emit('element-added', 'Rect', layer); closeContextMenu()">Rectangle</a>
+                  <a class="list-group-item list-group-item-action" @click="$emit('element-added', 'Polygon', layer); closeContextMenu()">Polygon</a>
+                  <a class="list-group-item list-group-item-action" @click="$emit('element-added', 'Circle', layer); closeContextMenu()">Circle</a>
+                  <a class="list-group-item list-group-item-action" @click="$emit('element-added', 'Line', layer); closeContextMenu()">Line</a>
+                  <a class="list-group-item list-group-item-action" @click="$emit('element-added', 'Arrow', layer); closeContextMenu()">Arrow</a>
+                  <a class="list-group-item list-group-item-action" @click="$emit('element-added', 'Text', layer); closeContextMenu()">Text</a>
+                  <a class="list-group-item list-group-item-action" @click="$emit('element-added', 'Image', layer); closeContextMenu()">Image</a>
                 </div>
               </div>
             `,
@@ -240,13 +256,9 @@
                     this.elementMenuX = (buttonRect.left + buttonRect.width) + 'px';
                     this.elementMenuY = (buttonRect.top) + 'px';
                     this.isElementMenuVisible = true;
-                },                
-                addElement(type) {
-                    alert('Adding element: ' + type);
-                    this.isElementMenuVisible = false;
-                    this.isContextMenuVisible = false;
-                },               
+                },                               
                 closeContextMenu() {
+                    this.isElementMenuVisible = false;
                     this.isContextMenuVisible = false;  // 隐藏上下文菜单
                 },                              
                 openAddSubLayerModal(layer) {  // 打开添加子层模态框
@@ -384,6 +396,7 @@
                 currentLayer: null,
                 stage: null,
                 offcanvasOpen: false,
+                newElementType: null, // 用户选择添加的新元素的类型
             },
             mounted() {
                 this.synchronizeData().then(() => {
@@ -500,6 +513,102 @@
                         console.error('Failed to synchronize elements data:', error);
                     });
                 },
+                
+                addElement(type, layer) {
+                    this.offcanvasOpen = false; // 先收缩Offcanvas
+                    this.newElementType = type;
+                    this.currentLayer = layer;
+                    if (type === 'Image') {                        
+                        $('#uploadImageModal').modal('show'); // 如果是图片，先弹出模态框让用户上传图片
+                    } else {        
+                        document.getElementById('konva-container').style.cursor = 'crosshair'; // 设置鼠标样式为加号
+                        // 添加事件监听，只有在addingElement为true时处理
+                        this.stage.on('mousedown touchstart', (e) => {
+                            if (e.evt.button === 2) {  // 鼠标右键
+                                this.resetAddingState();
+                            } else if (e.evt.button === 0) {  // 鼠标左键
+                                this.placeElement(e);
+                            }
+                        });                        
+                    }
+                },
+                
+                resetAddingState() {
+                    this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
+                    this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
+                },
+                
+                placeElement(event) {
+                    const pos = this.stage.getPointerPosition();
+                    let shape; 
+                    // 根据不同类型创建Konva图形实例
+                    switch (this.newElementType) {
+                        case 'Rect':
+                            shape = new Konva.Rect({
+                                x: pos.x,
+                                y: pos.y,
+                                width: 100,
+                                height: 50,
+                                fill: 'red'
+                            });
+                            break;
+                        // 可以添加更多case处理其他形状
+                    }
+                    if (shape) { 
+                        this.synchronizeElementsData().then(() => { // 确保在创建新元素前更新本地数据到后端
+                            const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
+                            konvaLayer.add(shape);
+                            konvaLayer.draw();
+                            this.uploadElement(shape); // 上传元素数据到服务器
+                        });
+                    }
+                    this.resetAddingState(); // 重置添加状态
+                },                
+                
+                addImage() {
+                    const input = document.getElementById('imageUpload');
+                    const file = input.files[0];
+                    const reader = new FileReader();
+                    reader.onloadend = (e) => {
+                        const imageObj = new Image();
+                        imageObj.onload = () => {
+                            const img = new Konva.Image({
+                                image: imageObj,
+                                x: 50, // 可以设定一个初始位置
+                                y: 50,
+                                width: 200, // 根据实际情况调整
+                                height: 200
+                            });
+                            const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
+                            konvaLayer.add(img);
+                            konvaLayer.draw();
+                            $('#uploadImageModal').modal('hide');
+                        };
+                        imageObj.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                },
+
+                uploadElement(shape) {
+                    // 示例：发送基本的矩形数据，根据需求调整发送的数据
+                    const data = {
+                        type: this.newElementType,
+                        data: shape.toJSON(),
+                        layer_id: this.currentLayer.id,
+                        floor: this.floor
+                    };
+                    axios.post('{% url "Layout:add_element" %}', data)
+                        .then(response => {
+                            console.log('Element added successfully:', response.data);
+                            this.currentLayer = null;
+                            this.newElementType = null;
+                            this.synchronizeData();
+                        })
+                        .catch(error => {
+                            console.error('Error adding element:', error);
+                        });
+                },
+                
                 // ----------------- Offcanvas -----------------
                 // 控制 Offcanvas 的显示与隐藏
                 toggleOffcanvas() {

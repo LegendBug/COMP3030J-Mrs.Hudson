@@ -142,8 +142,39 @@ def edit_layer(request):
         return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
+@csrf_exempt
 def add_element(request):
-    pass
+    if request.method == 'POST':
+        data = json.loads(request.body)  # 假设数据以JSON格式发送
+        element_type = data.get('type')
+        layer_id = data.get('layer_id')
+        element_data = data.get('data')
+
+        layer = get_object_or_404(SpaceUnit, id=layer_id)
+        # 创建KonvaElement实例
+        konva_element = KonvaElement.objects.create(
+            name="New Konva Element",  # 可能需要从data中提取或定义默认值
+            layer=layer,
+            type=element_type,
+            data=element_data
+        )
+
+        updated_element_data = json.loads(element_data)
+        updated_element_data["attrs"]["id"] = f"{konva_element.pk}"  # 添加id属性
+        konva_element.data = json.dumps(updated_element_data)  # 更新已创建的KonvaElement实例的data字段
+        konva_element.save()
+
+        # 返回新创建的KonvaElement的信息
+        return JsonResponse({
+            'id': konva_element.id,
+            'name': konva_element.name,
+            'layer': konva_element.layer.id if konva_element.layer else None,
+            'type': konva_element.type,
+            'data': konva_element.data,
+            'image_url': konva_element.image.url if konva_element.image else None
+        }, safe=False)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
 def delete_element(request):
