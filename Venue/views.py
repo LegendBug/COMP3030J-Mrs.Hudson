@@ -22,14 +22,15 @@ def home(request):
                        'form': form})
     else:  # POST请求
         if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
-            return JsonResponse({'errors': 'Permission denied!'}, status=403)
+            return JsonResponse({'error': 'Permission denied!'}, status=403)
         form = CreateVenueForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return JsonResponse({'success': 'Venue created successfully!'})
+            return JsonResponse({'success': 'Venue created successfully!'}, status=201)
         else:
-            # {"name": [{"message": "This field is required.", "code": "required"}], "address": [{"message": "This field is required.", "code": "required"}], "floor": [{"message": "This field is required.", "code": "required"}], "image": [{"message": "This field is required.", "code": "required"}]}
-            return JsonResponse({'errors': form.errors.as_json()}, status=400)  # TODO 此处前端没有遍历errors,导致报错消息无法显示
+            first_error_key, first_error_messages = list(form.errors.items())[0]
+            first_error_message = first_error_key + ': ' + first_error_messages[0]
+            return JsonResponse({'error': first_error_message}, status=400)
 
 
 # TODO 在展览过期后，将绑定的SpaceUnit的affiliation字段置空
@@ -64,8 +65,8 @@ def venue(request, venue_id):
             exhibitions = submitted_filter_form.filter()
             messages.success(request, 'Filter exhibitions success!')
         else:
-            exhibitions = Exhibition.objects.none()
-            # messages.error(request, 'Filter exhibitions failed! Please check the form.')
+            # TODO 修复错误消息无法显示的问题
+            messages.error(request, 'Filter exhibitions failed! Please check the form.')
     # 将展览信息转换为字典
     exhibitions_data = []
     for exhibition in exhibitions:
@@ -117,23 +118,25 @@ def modify_venue(request, venue_id):
         return render(request, 'Venue/modify_venue.html', {'form': form})
     else:
         if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
-            return JsonResponse({'errors': 'Permission denied!'}, status=403)
+            return JsonResponse({'error': 'Permission denied!'}, status=403)
         venue = Venue.objects.filter(id=venue_id).first()
         if venue is None:
-            return JsonResponse({'errors': 'Venue not found!'}, status=404)
+            return JsonResponse({'error': 'Venue not found!'}, status=404)
         form = CreateVenueForm(request.POST, request.FILES, instance=venue)
         if form.is_valid():
             form.save()
-            return JsonResponse({'success': 'Venue modified successfully!'})
+            return JsonResponse({'success': 'Venue modified successfully!'}, status=201)
         else:
-            return JsonResponse({'errors': form.errors.as_json()}, status=400)
+            first_error_key, first_error_messages = list(form.errors.items())[0]
+            first_error_message = first_error_key + ': ' + first_error_messages[0]
+            return JsonResponse({'error': first_error_message}, status=400)
 
 
 def delete_venue(request, venue_id):
     if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
-        return JsonResponse({'errors': 'Permission denied!'}, status=403)
+        return JsonResponse({'error': 'Permission denied!'}, status=403)
     venue = Venue.objects.filter(id=venue_id).first()
     if venue is None:
-        return JsonResponse({'errors': 'Venue not found!'}, status=404)
+        return JsonResponse({'error': 'Venue not found!'}, status=404)
     venue.delete()
     return JsonResponse({'success': 'Venue deleted successfully!'})

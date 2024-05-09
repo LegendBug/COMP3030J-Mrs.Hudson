@@ -8,17 +8,23 @@ from .models import Venue
 class CreateVenueForm(forms.ModelForm):
     class Meta:
         model = Venue
-        fields = ['name', 'address', 'description', 'floor', 'area', 'image']
+        fields = ['name', 'description', 'address', 'area', 'floor', 'image']
         widgets = {
             'floor': forms.NumberInput(attrs={'min': 1}),
             'area': forms.NumberInput(attrs={'min': 0.01}),
+            'description': forms.Textarea(attrs={'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):
         super(CreateVenueForm, self).__init__(*args, **kwargs)
+        self.fields['name'].label = 'Venue Name'
+        self.fields['description'].label = 'Venue Description'
         self.fields['floor'].validators.append(MinValueValidator(1))
         self.fields['area'].validators.append(MinValueValidator(0.01))
+        self.fields['area'].label = 'Venue Area (m*m)'
+        self.fields['floor'].label = 'Number of Floors'
         self.fields['image'].required = True
+        self.fields['image'].label = 'Venue Poster'
 
     def save(self, commit=True):
         # 首先，保存Venue实例
