@@ -80,7 +80,8 @@ def copilot(request):
                 context['response'] = chat_response
             except Exception as e:
                 context['error'] = "Oops... Seems that a problem occurred 😅. <Error: " + str(e) + ">"
-            
-    context['user_input'] = user_input
+    else:
+        user_input = None
+    context['user_input'] = user_input if user_input is not None else ""
 
     return render(request, 'System/copilot.html', context)
