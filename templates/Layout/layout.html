@@ -6,10 +6,18 @@
 {% block extra_head %}
     <title>Layout</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/fabric"></script>
+    
+    {% comment %}为了避免客户端通过CDN获取JS资源时因网络问题导致的加载失败,我们在这里先导入本地的JS资源,之后再通过CDN导入{% endcomment %}
+    <script src="{% static 'js/CDN/Sortable.min.js' %}"></script>
+    <script src="{% static 'js/CDN/vue.min.js' %}"></script>
+    <script src="{% static 'js/CDN/konva.min.js' %}"></script>
+    <script src="{% static 'js/CDN/vue-konva.min.js' %}"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+    <script src="https://unpkg.com/vue-konva/umd/vue-konva.min.js"></script>
+
     <link rel="stylesheet" href="{% static 'css/Layout/layout.css' %}">
     <link rel="stylesheet" href="{% static 'css/Layout/canvas.css' %}">
 {% endblock %}
@@ -117,7 +125,7 @@
         </div>
         
     </div>
-
+    
 {% endblock %}
 
 
@@ -290,11 +298,10 @@
                 offcanvasOpen: false,
             },
             mounted() {
-                this.synchronizeData();  // 同步数据当组件挂载
-                this.$nextTick(() => {
-                    this.initializeKonva();
-                    this.adjustKonvaSize();  // 组件挂载时调整大小
-                    window.addEventListener('resize', this.adjustKonvaSize);  // 窗口大小变化时调整画布大小
+                this.synchronizeData().then(() => {
+                    this.initializeKonva();  // 确保在数据加载完毕后调用
+                    this.adjustKonvaSize();  // 初始化尺寸调整
+                    window.addEventListener('resize', this.adjustKonvaSize);  // 监听尺寸变化
                 });
             },
             beforeDestroy() {
@@ -330,6 +337,7 @@
                         if (response.data && response.data.id) {
                             console.log('Data synchronized:', response.data);
                             this.renderData(response.data); // 调用renderData来处理这个单一节点
+                        
                         } else {
                             console.error('Unexpected response data:', response.data);
                         }
@@ -354,36 +362,54 @@
 
                 // ----------------- konva.js -----------------
                 initializeKonva() {
+                    console.log('Initializing Konva...');
                     const width = window.innerWidth * 0.9;
-                    const height = window.innerHeight;
+                    const height = window.innerHeight * 0.9;
                     this.stage = new Konva.Stage({
                         container: 'konva-container',
                         width: width,
                         height: height,
                     });
-
-                    const layer = new Konva.Layer();
-                    this.stage.add(layer);
-
-                    this.layers.forEach((spaceUnit) => {
-                        spaceUnit.elements.forEach((element) => {
-                            if (element.type === 'Rectangle') {
-                                const rect = new Konva.Rect({
-                                    x: element.data.x,
-                                    y: element.data.y,
-                                    width: element.data.width,
-                                    height: element.data.height,
-                                    fill: element.data.fill,
-                                    stroke: element.data.stroke,
-                                    strokeWidth: element.data.strokeWidth,
-                                });
-                                layer.add(rect);
+                
+                    // 递归函数来处理每个层级的SpaceUnit和elements
+                    const processLayer = (spaceUnits, parentLayer) => {
+                        spaceUnits.forEach(spaceUnit => {
+                            console.log('Processing SpaceUnit:', spaceUnit);
+                            const layer = new Konva.Layer();
+                            this.stage.add(layer); // 将新层添加到舞台
+                
+                            // 处理当前SpaceUnit的elements
+                            spaceUnit.elements.forEach(element => {
+                                console.log('Processing element:', element);
+                                if (element.type === 'Rectangle') {
+                                    console.log('Creating rectangle: ', element.data);
+                                    const rect = new Konva.Rect({
+                                        x: element.data.x,
+                                        y: element.data.y,
+                                        width: element.data.width,
+                                        height: element.data.height,
+                                        fill: element.data.fill,
+                                        stroke: element.data.stroke,
+                                        strokeWidth: element.data.strokeWidth,
+                                    });
+                                    layer.add(rect); // 将元素添加到当前层
+                                }
+                                // TODO: 添加其他类型的元素处理
+                            });
+                
+                            layer.draw(); // 绘制当前层
+                
+                            // 如果当前SpaceUnit有子单位，则递归处理
+                            if (spaceUnit.child_units && spaceUnit.child_units.length > 0) {
+                                processLayer(spaceUnit.child_units, layer);
                             }
-                            // 添加其他类型的元素绘制代码
                         });
-                    });
-                    layer.draw();
+                    };
+                
+                    // 从根层级开始处理所有层级
+                    processLayer(this.layers, null);
                 },
+
 
                 adjustKonvaSize() {
                     // 计算应当设置的高度和宽度
