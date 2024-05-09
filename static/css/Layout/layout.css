@@ -1,21 +1,46 @@
+/* 美化上下文菜单 */
 .context-menu {
     position: absolute;
     width: 200px; /* 菜单宽度 */
     z-index: 3000; /* 设置较高的z-index值 */
     background-color: white;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border: 1px solid #ddd;  /* 浅灰色边框 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 较明显的阴影 */
+    border-radius: 0.25rem;  /* 轻微的圆角 */
 }
 
-.element-btn {
-    width: 90%;
-    height: auto; /* 高度自动，根据内容调整 */
-    padding: 10px 0; /* 提供一些内边距，可根据需要调整 */
-    background-color: #7cbfee; /* 设置背景颜色 */
-    margin: 1px auto; /* 上下边距为5px，左右自动（居中） */
-    display: block; /* 使元素以块级显示 */
-    border: none; /* 无边框 */
-    color: white; /* 文字颜色为白色 */
+/* 调整Offcanvas */
+.offcanvas-header {
+    background-color: #f8f9fa;  /* 浅灰色背景 */
+    border-bottom: 1px solid #dee2e6;  /* 底部边框 */
+    padding: 0.75rem 1rem;  /* 内边距调整 */
+}
+
+.offcanvas-body {
+    padding: 15px;  /* 更大的内边距 */
+    background-color: #ffffff;  /* 白色背景 */
+    color: #495057;  /* 深灰色文本，增加对比 */
+}
+
+
+/* 调整Accordion */
+.accordion-button {
+    background-color: #e9ecef;  /* 浅灰色背景 */
+    color: #495057;  /* 深灰色文本 */
+    border: 1px solid #dee2e6;  /* 细边框 */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);  /* 轻微的阴影 */
+    padding: 0.75rem 1.25rem;  /* 内边距调整 */
+    transition: background-color 0.3s ease;  /* 平滑的背景色过渡 */
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #d1e7dd;  /* 展开时的背景颜色 */
+    color: #0f5132;  /* 展开时的文本颜色 */
+}
+
+.accordion-item {
+    border-bottom: 1px solid #dee2e6;  /* 每个项底部边框 */
+    margin-bottom: 0.5rem;  /* 项间距 */
 }
 
 .accordion-collapse.collapse {
@@ -24,5 +49,16 @@
 
 .accordion-header {
     margin: 0;  /* 确保没有外边距 */
+}
+
+
+.list-group-item-action:hover {
+    background-color: #f8f9fa;  /* 鼠标悬浮背景颜色 */
+    color: #212529;  /* 鼠标悬浮文本颜色 */
+}
+
+/* 确保动画和过渡的平滑性 */
+* {
+    transition: all 0.2s ease-in-out;
 }
 

@@ -49,6 +49,7 @@ class Exhibition(models.Model):
     # booth_applications : List<ExhibitionApplication>, 由Django ORM的反向关系实现
     # resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现
     # unresolved_resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现
+    # usages : List<Usage>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=exhibition_upload_to, null=True, blank=True)
 
 

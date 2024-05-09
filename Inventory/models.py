@@ -35,6 +35,7 @@ class InventoryCategory(models.Model):
     description = models.TextField(blank=True, null=True)
     is_public = models.BooleanField(default=True)  # 是否公开(即,是否可以被下一级的Exhibition/Booth申请)
     cost = models.FloatField(blank=True, null=True)
+    rent = models.FloatField(blank=True, null=True, default=0) # 租金
     # items : List<Item>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=inventory_category_upload_to, null=True, blank=True)
     # origin, Django泛型, 表示该Category是在哪个Venue/Exhibition/Booth中被创建的
@@ -54,6 +55,7 @@ class Item(models.Model):
     category = models.ForeignKey("Inventory.InventoryCategory", on_delete=models.CASCADE, related_name='items')
     location = models.ForeignKey("Layout.SpaceUnit", on_delete=models.SET_NULL, null=True,
                                  related_name='items')  # Item当前正位于哪一个SpaceUnit # TODO 1
+    # usages : List<Usage>, 由Django ORM的反向关系实现
     # affiliation : Venue/Exhibition/Booth, Django泛型
     affiliation_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='items')
     affiliation_object_id = models.PositiveIntegerField()
