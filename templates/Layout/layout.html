@@ -66,7 +66,7 @@
                     </ul>
                 </div>
                 {# 按钮: Save#}
-                <button type="button" class="btn btn-primary" onclick="saveLayout()">Save</button>
+                <button type="button" class="btn btn-primary" @click="synchronizeElementsData()">Save</button>
             </div>
 
             <div class="offcanvas-body">
@@ -387,7 +387,7 @@
             },
             mounted() {
                 this.synchronizeData().then(() => {
-                    this.initializeKonva();  // 确保在数据加载完毕后调用                 
+                    this.initializeKonva();  // 确保在数据加载完毕后调用
                 });
             },
             beforeDestroy() {
@@ -468,34 +468,37 @@
                                 layer = new Konva.Group();
                                 parentLayer.add(layer);
                             }
-                
+
                             // 处理当前SpaceUnit的elements
                             spaceUnit.elements.forEach(element => {
                                 console.log('Konva.Node.create(): ', JSON.parse(element.data));
                                 const node = Konva.Node.create(JSON.parse(element.data), layer);
                                 layer.add(node);
                             });
-                
+
                             // 绘制层或组
                             layer.draw();
-                
+
                             // 如果当前SpaceUnit有子单位，则递归处理
                             if (spaceUnit.child_units && spaceUnit.child_units.length > 0) {
                                 processLayer(spaceUnit.child_units, layer);
                             }
                         });
                     };
-                
+
                     // 从根层级开始处理所有层级
                     processLayer(this.layers, null);
                 },
 
-                adjustKonvaSize() {
-                    // 计算应当设置的高度和宽度
-                    const height = window.innerHeight * 0.9
-                    const width = window.clientWidth;
-                    // 设置Konva画布的尺寸
-                    this.stage.setSize({ width, height });
+                synchronizeElementsData(){
+                    console.log('Synchronizing elements data...');
+                    return axios.post('{% url 'Layout:synchronize_elements_data' %}', {
+                        root : this.layers[0]
+                    }).then(response => {
+                        console.log('Data synchronized successfully:', response.data);
+                    }).catch(error => {
+                        console.error('Failed to synchronize elements data:', error);
+                    });
                 },
                 // ----------------- Offcanvas -----------------
                 // 控制 Offcanvas 的显示与隐藏

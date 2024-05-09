@@ -8,8 +8,8 @@ from django.http import JsonResponse
 from .forms import AddLayerForm, EditLayerForm
 from .serializers import *
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view
 
 
 def venue_layout(request):
@@ -111,10 +111,10 @@ def delete_layer(request):
         if root == layer:  # 表明当前SpaceUnit是根节点,不能删除
             return JsonResponse({'error': 'The root SpaceUnit cannot be deleted!'}, status=400)
 
-        def delete_recursive(space_unit):
+        def recursively_delete(space_unit):
             # 先递归删除所有子单位
             for child in space_unit.child_units.all():
-                delete_recursive(child)
+                recursively_delete(child)
             if not space_unit.available and not space_unit.occupied_units.exists():  # 表明当前SpaceUnit没有被预约使用
                 # 删除与此SpaceUnit相关联的所有elements
                 space_unit.elements.all().delete()
@@ -122,7 +122,7 @@ def delete_layer(request):
                 space_unit.delete()
 
         # 开始递归删除操作
-        delete_recursive(layer)
+        recursively_delete(layer)
         # 返回删除成功的信息
         return JsonResponse({'success': 'The unused Layer has been successfully deleted!'}, status=200)
     else:
@@ -156,8 +156,38 @@ def delete_element(request):
         return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
-def save_layout(request):
-    pass
+@csrf_exempt
+def synchronize_elements_data(request): # TODO 递归更新部分可能存在问题
+    if request.method == 'POST':
+        data = json.loads(request.body)  # 使用 json.loads 解析请求体中的 JSON 数据
+        root_data = data.get('root')
+        if not root_data:
+            return JsonResponse({'error': 'No root space unit provided.'}, status=400)
+
+        # 使用序列化器只对根对象进行反序列化
+        root_serializer = SpaceUnitSerializer(data=root_data)
+        if root_serializer.is_valid(raise_exception=True):
+            def update_space_unit(root, json_data):
+                # 先递归更新所有子单位
+                for child in root.child_units.all():
+                    if child.child_units.exists():
+                        update_space_unit(child, json_data)
+                    # 更新当前SpaceUnit的所有元素
+                    for element in child.elements.all():
+                        element_data = json_data.get('elements', {}).get(str(element.id))
+                        if element_data:
+                            element_serializer = KonvaElementSerializer(instance=element, data=element_data)
+                            if element_serializer.is_valid(raise_exception=True):
+                                element_serializer.save()
+                            else:
+                                raise serializers.ValidationError(element_serializer.errors)
+
+            root_space_unit = root_serializer.save()
+            update_space_unit(root_space_unit, root_data)  # 调用递归更新函数
+
+        return JsonResponse({'success': 'Data updated successfully.'})
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
 def add_fake_konva_element(request):
@@ -190,7 +220,7 @@ def add_fake_konva_element(request):
     # 在数据中添加主键信息
     updated_element_data = json.loads(element_data)
     updated_element_data["attrs"]["id"] = f"{konva_element.pk}"  # 添加id属性
-    konva_element.data = json.dumps(updated_element_data) # 更新已创建的KonvaElement实例的data字段
+    konva_element.data = json.dumps(updated_element_data)  # 更新已创建的KonvaElement实例的data字段
     konva_element.save()
 
     # 返回新创建的FabricElement的信息

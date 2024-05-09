@@ -10,6 +10,7 @@ urlpatterns = [
     path('edit_layer/', views.edit_layer, name='edit_layer'),
 
     path('delete_element/', views.delete_element, name='delete_element'),
+    path('synchronize_elements_data/', views.synchronize_elements_data, name='synchronize_elements_data'),
 
     path('add_fake_konva_element/', views.add_fake_konva_element, name='add_fake_konva_element'),
 ]
