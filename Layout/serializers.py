@@ -3,7 +3,8 @@ from .models import SpaceUnit, KonvaElement
 
 class KonvaElementSerializer(serializers.ModelSerializer):
     layer = serializers.PrimaryKeyRelatedField(read_only=True)  # 使用SpaceUnit的序列化器来展示详细信息
-    image = serializers.ImageField(use_url=True)  # 确保使用URL来展示图片
+    image = serializers.ImageField(use_url=True, required=False, allow_null=True)  # 确保使用URL来展示图片
+
     class Meta:
         model = KonvaElement
         fields = ['id', 'name', 'layer', 'type', 'data', 'image']
@@ -23,5 +24,3 @@ class SpaceUnitSerializer(serializers.ModelSerializer):
         model = SpaceUnit
         fields = ['id', 'name', 'description', 'floor', 'parent_unit', 'available', 'created_at', 'child_units',
                   'elements', 'affiliation_content_type', 'affiliation_object_id']
-
-
