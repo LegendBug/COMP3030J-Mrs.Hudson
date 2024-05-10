@@ -45,6 +45,9 @@ class Exhibition(models.Model):
     inventory_categories = GenericRelation('Inventory.InventoryCategory',
                                            content_type_field='origin_content_type',
                                            object_id_field='origin_object_id')
+    usages = GenericRelation('Statistic.Usage',
+                             content_type_field='location_content_type',
+                             object_id_field='location_object_id')
     # booths : List<Booth>, 由Django ORM的反向关系实现
     # booth_applications : List<ExhibitionApplication>, 由Django ORM的反向关系实现
     # resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现

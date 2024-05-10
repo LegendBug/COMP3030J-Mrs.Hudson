@@ -22,7 +22,7 @@ class Venue(models.Model):
         # 保存图片到新的路径
         super().save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs): # 重写了delete方法,使得删除前能够移除图片文件
+    def delete(self, *args, **kwargs):  # 重写了delete方法,使得删除前能够移除图片文件
         # 删除相关图片文件
         if self.image:
             if os.path.isfile(self.image.path):
@@ -41,6 +41,9 @@ class Venue(models.Model):
     inventory_categories = GenericRelation('Inventory.InventoryCategory',
                                            content_type_field='origin_content_type',
                                            object_id_field='origin_object_id')
+    usages = GenericRelation('Statistic.Usage',
+                             content_type_field='location_content_type',
+                             object_id_field='location_object_id')
     # exhibitions : List<Exhibition>, 由Django ORM的反向关系实现
     # exhibition_applications : List<ExhibitionApplication>, 由Django ORM的反向关系实现
     # unresolved_resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现
