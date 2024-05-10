@@ -12,8 +12,7 @@ from Statistic.models import Usage
 from User.models import Message, Manager, MessageDetail
 from Venue.models import Venue
 from datetime import timedelta, datetime
-import calendar
-from django.utils.timezone import make_aware
+from calendar import monthrange
 
 
 @login_required
@@ -172,6 +171,7 @@ def edit_item(request, item_id):
 def delete_item(request, item_id):
     item = get_object_or_404(Item, pk=item_id)
     if request.method == 'POST':
+
         item.delete()
         messages.success(request, "Item deleted successfully.")
         return redirect('Inventory:category_detail', category_id=item.category.id)
@@ -186,6 +186,7 @@ def return_item(request, item_id):
         # 修改 affiliation 至 origin
         item.affiliation_content_type = ContentType.objects.get_for_model(item.category.origin)
         item.affiliation_object_id = item.category.origin.pk
+        item.is_using = 0
         item.save()
         messages.success(request, "Item returned successfully.")
         return redirect('Inventory:category_detail', category_id=item.category.id)
@@ -229,37 +230,136 @@ def create_res_application(request):
         return HttpResponseNotAllowed(['POST'])
 
 
-def monthly_usage_report(request, year):
-    year = int(year)
-    report = []
+def get_monthly_consumption(year, venue):
+    def split_usage_by_month(usage):
+        start = usage.start_time
+        end = usage.end_time or datetime.now()
+        power = usage.item.power or 0
+        water = usage.item.water_consumption or 0
 
-    for month in range(1, 13):
-        start_of_month = make_aware(datetime(year, month, 1, 0, 0, 0))
-        _, days_in_month = calendar.monthrange(year, month)
-        end_of_month = start_of_month + timedelta(days=days_in_month - 1, hours=23, minutes=59, seconds=59)
+        monthly_data = []
+        current_month_start = start.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-        items = Item.objects.all()
-        month_report = {
-            'month': f'{year}-{month:02d}',
-            'total_power': 0,
-            'total_water': 0,
-        }
+        while start < end:
+            days_in_current_month = monthrange(current_month_start.year, current_month_start.month)[1]
+            next_month_start = (current_month_start + timedelta(days=days_in_current_month)).replace(day=1)
 
-        for item in items:
-            usages = Usage.objects.filter(item=item, start_time__lte=end_of_month, end_time__gte=start_of_month)
+            if next_month_start > end:
+                month_duration = end - start
+            else:
+                month_duration = next_month_start - start
 
-            for usage in usages:
-                usage_start = max(usage.start_time, start_of_month)
-                usage_end = min(usage.end_time or end_of_month, end_of_month)
+            month_hours = month_duration.total_seconds() / 3600
+            month_power = power * month_hours
+            month_water = water * month_hours
 
-                duration_seconds = (usage_end - usage_start).total_seconds()
-                duration_hours = duration_seconds / 3600
+            monthly_data.append({
+                'month': current_month_start,
+                'total_power': month_power,
+                'total_water': month_water
+            })
 
-                if item.power is not None:
-                    month_report['total_power'] += duration_hours * item.power
-                if item.water_consumption is not None:
-                    month_report['total_water'] += duration_hours * item.water_consumption
+            start = next_month_start
+            current_month_start = next_month_start
 
-        report.append(month_report)
+        return monthly_data
 
-    return render()
+    # 获取场馆直接使用的item的用量
+    venue_usages = Usage.objects.filter(
+        location_content_type=ContentType.objects.get_for_model(Venue),
+        location_object_id=venue.id,
+        start_time__year=year
+    ).select_related('item')
+
+    # 获取场馆中展会的用量
+    exhibitions = venue.exhibitions.all()
+    exhibition_usages = Usage.objects.filter(
+        location_content_type=ContentType.objects.get_for_model(Exhibition),
+        location_object_id__in=exhibitions.values_list('id', flat=True),
+        start_time__year=year
+    ).select_related('item')
+
+    # 合并并拆分用量
+    monthly_consumption = {}
+
+    for usage in list(venue_usages) + list(exhibition_usages):
+        for monthly_data in split_usage_by_month(usage):
+            month = monthly_data['month']
+            if month not in monthly_consumption:
+                monthly_consumption[month] = {
+                    'total_power': 0,
+                    'total_water': 0
+                }
+            monthly_consumption[month]['total_power'] += monthly_data['total_power']
+            monthly_consumption[month]['total_water'] += monthly_data['total_water']
+
+    # 将结果按月份排序
+    sorted_monthly_consumption = sorted(monthly_consumption.items(), key=lambda x: x[0])
+
+    return sorted_monthly_consumption
+
+
+def get_all_venues_monthly_consumption(year):
+    def split_usage_by_month(usage):
+        start = usage.start_time
+        end = usage.end_time or datetime.now()
+        power = usage.item.power or 0
+        water = usage.item.water_consumption or 0
+
+        monthly_data = []
+        current_month_start = start.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        while start < end:
+            days_in_current_month = monthrange(current_month_start.year, current_month_start.month)[1]
+            next_month_start = (current_month_start + timedelta(days=days_in_current_month)).replace(day=1)
+
+            if next_month_start > end:
+                month_duration = end - start
+            else:
+                month_duration = next_month_start - start
+
+            month_hours = month_duration.total_seconds() / 3600
+            month_power = power * month_hours
+            month_water = water * month_hours
+
+            monthly_data.append({
+                'month': current_month_start,
+                'total_power': month_power,
+                'total_water': month_water
+            })
+
+            start = next_month_start
+            current_month_start = next_month_start
+
+        return monthly_data
+
+    # 获取所有场馆的使用记录
+    venue_usages = Usage.objects.filter(
+        location_content_type=ContentType.objects.get_for_model(Venue),
+        start_time__year=year
+    ).select_related('item')
+
+    # 获取所有展会的使用记录
+    exhibition_usages = Usage.objects.filter(
+        location_content_type=ContentType.objects.get_for_model(Exhibition),
+        start_time__year=year
+    ).select_related('item')
+
+    # 合并并拆分用量
+    monthly_consumption = {}
+
+    for usage in list(venue_usages) + list(exhibition_usages):
+        for monthly_data in split_usage_by_month(usage):
+            month = monthly_data['month']
+            if month not in monthly_consumption:
+                monthly_consumption[month] = {
+                    'total_power': 0,
+                    'total_water': 0
+                }
+            monthly_consumption[month]['total_power'] += monthly_data['total_power']
+            monthly_consumption[month]['total_water'] += monthly_data['total_water']
+
+    # 将结果按月份排序
+    sorted_monthly_consumption = sorted(monthly_consumption.items(), key=lambda x: x[0])
+
+    return sorted_monthly_consumption
