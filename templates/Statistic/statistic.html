@@ -18,6 +18,10 @@
             font-family: 'Poppins', sans-serif;
         }
 
+        body {
+            background: #ffffff;
+        }
+
 
         .container {
             display: flex;
@@ -25,12 +29,13 @@
             gap: 10px;
         }
 
-        .chart-container_one{
+        .chart-container_one {
             flex: 1;
             width: 50%; /* 第一个图表占据 container 的 95% 宽度 */
             flex-wrap: nowrap;
         }
-        .chart-container_two{
+
+        .chart-container_two {
             flex: 1;
             padding: 50px;
 
@@ -83,7 +88,7 @@
 {% endblock %}
 
 {% block content %}
-     <div class="container">
+    <div class="container">
         <div class="chart-container_one">
             <div class="chart-container">
                 <canvas id="barChart"></canvas>
@@ -92,22 +97,22 @@
                 <canvas id="lineChart" class="chart"></canvas>
             </div>
         </div>
-         <div class="chart-container_two">
-             <canvas id="pieChart" class="chart"></canvas>
-         </div>
+        <div class="chart-container_two">
+            <canvas id="pieChart" class="chart"></canvas>
+        </div>
     </div>
     <div class="controls">
-            <input type="text" id="labelInput" class="input" placeholder="Label">
-            <input type="number" id="dataInput" class="input" placeholder="Data">
-            <button onclick="addData()" class="btn">Add Data</button>
-            <button onclick="selectDataSource()" class="btn">Select data resource</button>
-        </div>
+        <input type="text" id="labelInput" class="input" placeholder="Label">
+        <input type="number" id="dataInput" class="input" placeholder="Data">
+        <button onclick="addData()" class="btn">Add Data</button>
+        <button onclick="selectYear()" class="btn">Select year</button>
+        {#            <button onclick="selectVenue()" class="btn">Select venue</button>#}
     </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
-        let barChartData  = {
+        let barChartData = {
             labels: [],
             datasets: [{
                 data: [],
@@ -131,7 +136,7 @@
             }]
         };
 
-        let lineChartData  = {
+        let lineChartData = {
             labels: [],
             datasets: [{
                 data: [],
@@ -155,7 +160,7 @@
             }]
         };
 
-        let pieChartData  = {
+        let pieChartData = {
             labels: [],
             datasets: [{
                 data: [],
@@ -189,9 +194,9 @@
                 data: barChartData,
                 options: {
                     plugins: {
-                         legend: {
+                        legend: {
                             display: false  // 隐藏图例
-                         },
+                        },
                         title: {
                             display: true,
                             text: 'Default Title' // 设置默认标题
@@ -215,7 +220,7 @@
                     plugins: {
                         legend: {
                             display: false  // 隐藏图例
-                         },
+                        },
                         title: {
                             display: true,
                             text: 'Default Title' // 设置默认标题
@@ -239,7 +244,7 @@
                     plugins: {
                         legend: {
                             display: false  // 隐藏图例
-                         },
+                        },
                         title: {
                             display: true,
                             text: 'Default Title' // 设置默认标题
@@ -256,8 +261,7 @@
         createPieChart();
 
 
-
-       function addData() {
+        function addData() {
             const labelInput = document.getElementById('labelInput');
             const dataInput = document.getElementById('dataInput');
 
@@ -280,25 +284,25 @@
             }
         }
 
-        function removeData(datasetIndex, index){
-            if (barChartData.labels.length > index){
+        function removeData(datasetIndex, index) {
+            if (barChartData.labels.length > index) {
                 barChartData.labels.splice(index, 1);
                 barChartData.datasets[datasetIndex].data.splice(index, 1);
                 barChart.update();
             }
-            if (lineChartData.labels.length > index){
+            if (lineChartData.labels.length > index) {
                 lineChartData.labels.splice(index, 1);
                 lineChartData.datasets[datasetIndex].data.splice(index, 1);
                 lineChart.update();
             }
-            if (pieChartData.labels.length > index){
+            if (pieChartData.labels.length > index) {
                 pieChartData.labels.splice(index, 1);
                 pieChartData.datasets[datasetIndex].data.splice(index, 1);
                 pieChart.update();
             }
         }
 
-        function selectDataSource() {
+        function selectDataSource(waterStatistics, electricStatistics) {
             const selectedDataSource = prompt("Please select a data source: 'water' or 'electric' or 'object");
 
             if (selectedDataSource === 'water') {
@@ -316,7 +320,7 @@
         }
 
 
-         function updateChartTitle(title) {
+        function updateChartTitle(title) {
             barChart.options.plugins.title.text = title;
             lineChart.options.plugins.title.text = title;
             pieChart.options.plugins.title.text = title;
@@ -353,56 +357,37 @@
         }
 
 
-        const waterStatistics = {
-            "Month 1": 1200,
-            "Month 2": 1600,
-            "Month 3": 1000,
-            "Month 4": 800,
-            "Month 5": 900,
-            "Month 6": 1600,
-            "Month 7": 2100,
-            "Month 8": 2200,
-            "Month 9": 1800,
-            "Month 10": 1500,
-            "Month 11": 1300,
-            "Month 12": 900,
-        };
+        function selectYear() {
+            const selectedYear = prompt("Please enter the year (e.g., 2024):");
 
-        const electricStatistics = {
-            "Month 1": 100,
-            "Month 2": 1600,
-            "Month 3": 1000,
-            "Month 4": 800,
-            "Month 5": 900,
-            "Month 6": 1600,
-            "Month 7": 210,
-            "Month 8": 2200,
-            "Month 9": 1800,
-            "Month 10": 150,
-            "Month 11": 1300,
-            "Month 12": 900,
-        };
+            if (selectedYear && !isNaN(selectedYear)) {
+                const year = parseInt(selectedYear);
+                const url = `{% url 'Statistic:get_consumption_data' 9999 %}`.replace(9999, year);
 
-        const objectStatistics = {
-            "Month 1": 120,
-            "Month 2": 160,
-            "Month 3": 100,
-            "Month 4": 80,
-            "Month 5": 90,
-            "Month 6": 160,
-            "Month 7": 210,
-            "Month 8": 220,
-            "Month 9": 180,
-            "Month 10": 150,
-            "Month 11": 130,
-            "Month 12": 90,
-        };
+                // 发送年份到后端以获取相应年份的用水量和用电量统计数据
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        // 提取出用水量和用电量的数据并传递给 selectDataSource() 函数
+                        const waterStatistics = data.water_statistics;
+                        const electricStatistics = data.electric_statistics;
+
+                        // 询问用户选择数据源
+                        const chooseDataSource = confirm("Would you like to select a data source now?");
+                        if (chooseDataSource) {
+                            selectDataSource(waterStatistics, electricStatistics);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch data for the selected year.');
+                    });
+            } else {
+                alert('Invalid year entered!');
+            }
+        }
 
 
-        {#// 从后端获取的数据#}
-        {#const waterStatistics = {{ water_statistics|safe }};#}
-        {#const electricStatistics = {{ electric_statistics|safe }};#}
-        {#const objectStatistics = {{ object_statistics|safe }};#}
     </script>
 {% endblock %}
 
