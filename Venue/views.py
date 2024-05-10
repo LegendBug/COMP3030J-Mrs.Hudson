@@ -1,13 +1,11 @@
 from django.contrib.contenttypes.models import ContentType
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import render, redirect
 from django.utils import timezone
 
 from Exhibition.forms import ExhibApplicationForm, FilterExhibitionsForm
-from User.models import Exhibitor
 from Venue.forms import CreateVenueForm
 from Venue.models import Venue
-from Exhibition.models import Exhibition
 from django.contrib import messages
 
 
@@ -33,7 +31,7 @@ def home(request):
             return JsonResponse({'error': first_error_message}, status=400)
 
 
-# TODO 在展览过期后，将绑定的SpaceUnit的affiliation字段置空
+# TODO 在展览过期后，将绑定的SpaceUnit的affiliation字段置空（启动定时任务）
 def venue(request, venue_id):
     current_venue = Venue.objects.filter(id=venue_id).first()
     if current_venue is None:
@@ -50,7 +48,7 @@ def venue(request, venue_id):
             exhibitions = current_venue.exhibitions.all()
         elif user not in [None, ''] and hasattr(user, 'organizer'):
             exhibitions = current_venue.exhibitions.filter(organizer=user.organizer)
-        else:  # 参展方
+        else:  # TODO 参展方 筛选自己参加的展览
             exhibitions = current_venue.exhibitions.all()
             # current_exhibitions = current_venue.exhibitions.all()
             # booths = Exhibitor.objects.filter(detail=user).first().booths.all()
@@ -65,8 +63,9 @@ def venue(request, venue_id):
             exhibitions = submitted_filter_form.filter()
             messages.success(request, 'Filter exhibitions success!')
         else:
-            # TODO 修复错误消息无法显示的问题
-            messages.error(request, 'Filter exhibitions failed! Please check the form.')
+            first_error_key, first_error_messages = list(submitted_filter_form.errors.items())[0]
+            first_error_message = first_error_key + ': ' + first_error_messages[0]
+            return JsonResponse({'error': first_error_message}, status=400)
     # 将展览信息转换为字典
     exhibitions_data = []
     for exhibition in exhibitions:
@@ -110,13 +109,7 @@ def venue(request, venue_id):
 
 
 def modify_venue(request, venue_id):
-    if request.method == 'GET':
-        venue = Venue.objects.filter(id=venue_id).first()
-        if venue is None:
-            return redirect('Venue:home')
-        form = CreateVenueForm(instance=venue)
-        return render(request, 'Venue/modify_venue.html', {'form': form})
-    else:
+    if request.method == 'POST':
         if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
             return JsonResponse({'error': 'Permission denied!'}, status=403)
         venue = Venue.objects.filter(id=venue_id).first()
@@ -130,6 +123,8 @@ def modify_venue(request, venue_id):
             first_error_key, first_error_messages = list(form.errors.items())[0]
             first_error_message = first_error_key + ': ' + first_error_messages[0]
             return JsonResponse({'error': first_error_message}, status=400)
+    else:
+        return HttpResponseNotAllowed(['POST'])
 
 
 def delete_venue(request, venue_id):

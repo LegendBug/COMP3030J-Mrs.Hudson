@@ -3,12 +3,12 @@ html, body {
     margin: 0;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(rgba(224, 224, 224, 0.7), rgba(0, 0, 0, 0.7)), url('../../images/Public/poster.jpg') no-repeat;
+    background: linear-gradient(rgba(224, 224, 224, 0.4), rgba(205, 205, 205, 0.5)), url('../../images/Public/poster.jpg') no-repeat;
     background-size: cover;
     background-attachment: fixed;
 }
 
-h1, h2, h3, h4, h5, h6 {
+image, h1, h2, h3, h4, h5, h6 {
     cursor: default; /* 设置默认光标 */
     user-select: none; /* 防止文本被选中 */
 }
@@ -204,12 +204,6 @@ h2 a:hover {
 
 /*--------------------------------------------------------------*/
 /*card及其动画*/
-
-.card-columns {
-    column-count: 2; /* Adjust based on preference, 2 for two columns */
-    column-gap: 5rem;
-}
-
 .card {
     animation: fadeInUp 0.8s ease-out;
     display: inline-block;
@@ -218,8 +212,12 @@ h2 a:hover {
     background-color: rgba(255, 255, 255, 0.4);
     border-radius: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    /* 确保图片圆角 */
-    overflow: hidden; /* 新增：确保图片圆角不超出卡片边界 */
+    overflow: hidden; /* 确保图片圆角 */
+}
+
+.card-columns {
+    column-count: 2; /* Adjust based on preference, 2 for two columns */
+    column-gap: 5rem;
 }
 
 .card {

@@ -152,11 +152,6 @@
             addInventoryForm.addEventListener('submit', function (e) {
                 e.preventDefault();  // 阻止表单的默认提交行为
                 const formData = new FormData(addInventoryForm);
-                {% if not exhibition.id %}
-                    console.error('Invalid exhibition ID');
-                {% else %}
-                    console.log('Exhibition ID:', {{ exhibition.id }});
-                {% endif %}
                 axios.post('{% url 'Inventory:inventory' space_type space_id %}', formData)
                     .then(function (response) {
                         if (response.data.success) { // 如果提交成功，显示成功消息

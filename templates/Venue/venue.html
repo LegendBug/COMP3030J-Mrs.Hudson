@@ -45,11 +45,11 @@
             📦
         </a>
     {% endif %}
-    <a class="btn btn-success rounded-circle shadow" id="filter-exhibitions-btn"
-       style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-       onclick="openFilterModal();" title="Filter Exhibitions">
-        <i class="fas fa-filter mt-1"></i>
-    </a>
+{#    <a class="btn btn-success rounded-circle shadow" id="filter-exhibitions-btn"#}
+{#       style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"#}
+{#       onclick="openFilterModal();" title="Filter Exhibitions">#}
+{#        <i class="fas fa-filter mt-1"></i>#}
+{#    </a>#}
 
 
     <!-- 展览列表 -->
@@ -123,7 +123,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form method="post" action="{% url 'Venue:venue' venue.pk %}" enctype="multipart/form-data"
+                    <form id="filterFrom" method="post" action="{% url 'Venue:venue' venue.pk %}" enctype="multipart/form-data"
                           class="needs-validation" novalidate>
                         {% csrf_token %}
                         <input type="hidden" name="venue_id" id="venue_id" value="{{ venue.pk }}">
@@ -184,10 +184,40 @@
                         container.style.display = 'block';  // Make sure the message container is visible
                     });
                 }
+                
+                function submitFilter() {
+                    const filterForm = document.getElementById('filterFrom');
+                    const container = document.getElementById('filter-exhibitions-message-container');
+                    filterForm.addEventListener("submit", function (e) {
+                        e.preventDefault();
+                        const formData = new FormData(filterForm);
+                        const url = filterForm.action;
+                        axios.post(url, formData, {
+                            headers: {
+                                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        }).then(response => {
+                            if (response.data.success) {
+                                container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                                const modal = bootstrap.Modal.getInstance(document.getElementById('filterExhibitionsModal'));
+                                setTimeout(() => {
+                                    modal.hide();
+                                    window.location.reload();
+                                }, 1500);
+                            }
+                        }).catch(error => {
+                            console.error(error);
+                            container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                            container.style.display = 'block';
+                        });
+                    });
+                }
 
                 window.openExhibApplyModal = openExhibApplyModal;
                 window.submitApplication = submitApplication;
                 window.openFilterModal = openFilterModal;
+                window.submitFilter = submitFilter;
 
 
                 // konva.js-----------------------------------------------------------------------------------------------

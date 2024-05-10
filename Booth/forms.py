@@ -33,6 +33,8 @@ class BoothApplicationForm(forms.Form):
         if affiliation_object_id and affiliation_content_type:
             self.fields['booth_sector'].queryset = SpaceUnit.objects.filter(
                 affiliation_object_id=affiliation_object_id,
-                affiliation_content_type=affiliation_content_type)
+                affiliation_content_type=affiliation_content_type,
+                available=True
+            )
         else:
             self.fields['booth_sector'].queryset = SpaceUnit.objects.all()

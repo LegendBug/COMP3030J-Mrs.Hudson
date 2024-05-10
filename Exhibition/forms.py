@@ -45,7 +45,8 @@ class ExhibApplicationForm(forms.Form):
         if affiliation_object_id and affiliation_content_type:
             self.fields['exhib_sectors'].queryset = SpaceUnit.objects.filter(
                 affiliation_object_id=affiliation_object_id,
-                affiliation_content_type=affiliation_content_type)
+                affiliation_content_type=affiliation_content_type,
+                available=True)
         else:
             self.fields['exhib_sectors'].queryset = SpaceUnit.objects.all()
 

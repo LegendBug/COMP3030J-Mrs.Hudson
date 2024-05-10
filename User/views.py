@@ -363,11 +363,20 @@ def reject_application(request, application_type, application_id):
             else:
                 return JsonResponse({'error': 'Application type not found'}, status=404)
 
-            # 通过申请
+            # 拒绝申请
             if application.stage != Application.Stage.INITIAL_SUBMISSION:
                 return JsonResponse({'error': 'Application has been processed.'}, status=200)
             application.stage = Application.Stage.REJECTED
             application.save()
+
+            if application_type == 'exhibition':
+                for sector in application.exhibition.sectors.all():
+                    sector.available = True
+                    sector.save()
+            elif application_type == 'booth':
+                for sector in application.booth.sectors.all():
+                    sector.available = True
+                    sector.save()
 
             # 发送拒绝消息
             application_content_type = ContentType.objects.get_for_model(application)
@@ -410,6 +419,7 @@ def accept_application(request, application_type, application_id):
                 return JsonResponse({'error': 'Application has been processed.'}, status=200)
             application.stage = Application.Stage.ACCEPTED
             application.save()
+
             if application_type == 'resource':
                 rent_item = Item.objects.filter(category=application.category, is_using=False, is_damaged=False).first()
                 if rent_item:

@@ -31,7 +31,7 @@ def exhibition(request, exhibition_id):
         if user not in [None, ''] and not hasattr(user, 'exhibitor'):
             booths = current_exhibition.booths.all()
         else:  # 参展方
-            booths = Exhibitor.objects.filter(detail_id=user.id).first().booths.all()
+            booths = Exhibitor.objects.filter(detail_id=user.id).first().booths.filter(exhibition=current_exhibition)
         # 将展区信息转换为字典
         booth_data = []
         for booth in booths:
@@ -90,6 +90,8 @@ def create_exhibit_application(request):
                 name=name, description=description, start_at=start_at, end_at=end_at,
                 image=image, organizer=organizer, venue=venue
             )
+            for sector in sectors:
+                sector.available = False
             new_exhibition.sectors.set(sectors)  # 反向关系需要使用set方法
             new_exhib_application = ExhibitionApplication.objects.create(applicant=request.user,
                                                                          description=description,
