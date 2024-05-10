@@ -57,7 +57,7 @@
     </div>
 
     <!-- 申请库存按钮 -->
-    {% if user.is_authenticated and user_type != 'Manager' %}
+    {% if user.is_authenticated and user_type != 'Exhibitor' %}
         <a href="#" class="btn btn-success rounded-circle shadow" id="add-venue-btn"
            style="position: fixed; bottom: 170px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
            onclick="openResApplyModal();" title="Apply for resources">
