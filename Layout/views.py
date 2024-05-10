@@ -153,7 +153,7 @@ def add_element(request):
         layer = get_object_or_404(SpaceUnit, id=layer_id)
         # 创建KonvaElement实例
         konva_element = KonvaElement.objects.create(
-            name="New Konva Element",  # 可能需要从data中提取或定义默认值
+            name=f"New {element_type}",  # 可能需要从data中提取或定义默认值
             layer=layer,
             type=element_type,
             data=element_data

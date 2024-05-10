@@ -7,14 +7,9 @@
     <title>Layout</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    {% comment %}为了避免客户端通过CDN获取JS资源时因网络问题导致的加载失败,我们在这里先导入本地的JS资源,之后再通过CDN导入{% endcomment %}
-    <script src="{% static 'js/CDN/Sortable.min.js' %}"></script>
-    <script src="{% static 'js/CDN/vue.min.js' %}"></script>
-    <script src="{% static 'js/CDN/konva.min.js' %}"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
-    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>   
 
     <link rel="stylesheet" href="{% static 'css/Layout/layout.css' %}">
     <link rel="stylesheet" href="{% static 'css/Layout/canvas.css' %}">
@@ -73,7 +68,7 @@
                 <!-- Top层级Accordion -->
                 <div class="accordion" id="accordion">
                     <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" :floor="floor" 
-                    @update-current-layer="setCurrentLayer" @element-added="addElement" @data-updated="synchronizeData">   
+                    @update-current-layer="setCurrentLayer" @element-added="addElement" @data-updated="synchronizeData">
                     </layer-component>
                 </div>
 
@@ -124,26 +119,61 @@
             </div>
         </div>
         
-        <!-- Upload Image Modal -->
-        <div class="modal fade" id="uploadImageModal" tabindex="-1" role="dialog" aria-labelledby="uploadImageModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+        <!-- Element Properties Modal -->
+        <div class="modal fade" id="elementPropertiesModal" tabindex="-1" aria-labelledby="elementPropertiesModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="uploadImageModalLabel">Upload Image</h5>
+                        <h5 class="modal-title" id="elementPropertiesModalLabel">Element Properties</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <input type="file" id="imageUpload" accept="image/*">
+                        <!-- Form for element properties -->
+                        <form id="elementPropertiesForm">
+                            <!-- Fill Color -->
+                            <div v-if="newElementType !== 'Image'" class="mb-3">
+                                <label for="fillColor" class="form-label">Fill Color</label>
+                                <input type="color" id="fillColor" class="form-control form-control-color">
+                            </div>
+                            <!-- Border Style -->
+                            <div class="mb-3">
+                                <label for="borderStyle" class="form-label">Border Style</label>
+                                <select class="form-control" id="borderStyle">
+                                    <option value="none">No Border</option>
+                                    <option value="thin">Thin Border</option>
+                                    <option value="thick">Thick Border</option>
+                                </select>
+                            </div>
+                            <!-- Transformable -->
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="transformable">
+                                <label class="form-check-label" for="transformable">Transformable</label>
+                            </div>
+                            <!-- Movable -->
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="movable">
+                                <label class="form-check-label" for="movable">Movable</label>
+                            </div>
+                            <!-- Selectable -->
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="selectable">
+                                <label class="form-check-label" for="selectable">Selectable</label>
+                            </div>
+                            <!-- Image upload field, shown only for Image type -->
+                            <div v-if="newElementType === 'Image'" class="mb-3">
+                                <label for="imageUpload" class="form-label">Upload Image</label>
+                                <input type="file" id="imageUpload" class="form-control" accept="image/*">
+                            </div>
+                        </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" @click="addImage">Add Image</button>
+                        <button type="button" class="btn btn-primary" @click="confirmElementProperties">Confirm</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        
     </div>
 
 {% endblock %}
@@ -235,7 +265,6 @@
                         this.isElementMenuVisible = false;
                     }
                 },
-                
                 openContextMenu(event) { // 上下文菜单事件处理
                     event.preventDefault();
                     if (this.isContextMenuVisible) {
@@ -255,9 +284,9 @@
                 openElementMenu() {
                     const buttonRect = this.$refs.addElementButton.getBoundingClientRect();
                     this.elementMenuX = (buttonRect.left + buttonRect.width) + 'px';
-                    this.elementMenuY = (buttonRect.top) + 'px';
+                    this.elementMenuY = (buttonRect.top - 4 * buttonRect.height) + 'px';
                     this.isElementMenuVisible = true;
-                },                               
+                },
                 closeContextMenu() {
                     this.isElementMenuVisible = false;
                     this.isContextMenuVisible = false;  // 隐藏上下文菜单
@@ -345,7 +374,6 @@
                         this.closeContextMenu();
                     }
                 },
-                
                 openContextMenu(event) {                    
                     event.preventDefault();
                     if (this.isContextMenuVisible) {
@@ -428,7 +456,7 @@
             },
             methods: {
                 // ----------------- 数据加载 -----------------
-                 synchronizeData() {
+                synchronizeData() {
                     console.log('Synchronizing data...');
                     return axios.get('{% url "Layout:synchronize_data" %}', {
                         params: { 
@@ -448,6 +476,7 @@
                         console.error('Failed to synchronize data:', error);
                     });
                 },
+                
                 renderData(root) {
                     let queue = [root]; // 初始化队列，起始为根节点
                     this.layers = []; // 清空Vue实例的layers数组
@@ -516,181 +545,186 @@
                         console.error('Failed to synchronize elements data:', error);
                     });
                 },
-                
+            
                 addElement(type) {
                     this.offcanvasOpen = false; // 先收缩Offcanvas
                     this.newElementType = type;
                     console.log('Adding new element:', type, '  Current layer:', this.currentLayer);
-                    if (type === 'Image') {                        
-                        $('#uploadImageModal').modal('show'); // 如果是图片，先弹出模态框让用户上传图片
-                    } else {        
-                        document.getElementById('konva-container').style.cursor = 'crosshair'; // 设置鼠标样式为加号
-                        // 添加事件监听，只有在addingElement为true时处理
-                        this.stage.on('mousedown touchstart', (e) => {
-                            if (e.evt.button === 2) {  // 鼠标右键
-                                this.resetAddingState();
-                            } else if (e.evt.button === 0) {  // 鼠标左键
-                                this.placeElement(e);
-                            }
-                        });                        
-                    }
+                    $('#elementPropertiesModal').modal('show');
                 },
                 
+                confirmElementProperties() {
+                    const fillColor = document.getElementById('fillColor').value;
+                    const borderStyle = document.getElementById('borderStyle').value;
+                    const transformable = document.getElementById('transformable').checked;
+                    const movable = document.getElementById('movable').checked;
+                    const selectable = document.getElementById('selectable').checked;
+                
+                    this.elementProps = {
+                        fillColor,
+                        strokeWidth: borderStyle === 'thin' ? 2 : (borderStyle === 'thick' ? 4 : 0),
+                        draggable: movable,
+                        transformable,
+                        selectable,
+                    };
+                
+                    // 关闭模态框
+                    $('#elementPropertiesModal').modal('hide');
+                
+                    document.getElementById('konva-container').style.cursor = 'crosshair';
+                    this.stage.on('mousedown touchstart', (e) => {
+                        if (e.evt.button === 2) {
+                            this.resetAddingState();
+                        } else if (e.evt.button === 0) {
+                            this.placeElement(this.elementProps, e);
+                        }
+                    });
+                },
+
                 resetAddingState() {
                     this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
                     this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
+                    this.currentLayer = null;
+                    this.newElementType = null;
                 },
-                
-                placeElement(event) {
+
+                placeElement(elementProps) {
                     const pos = this.stage.getPointerPosition();
-                    let shape; 
+                    let newElement;
+                    const { fillColor, strokeWidth, draggable, transformable, selectable } = elementProps;
                     // 根据不同类型创建Konva图形实例
                     switch (this.newElementType) {
                         case 'Rect':
-                            shape = new Konva.Rect({
+                            newElement = new Konva.Rect({
                                 x: pos.x,
                                 y: pos.y,
                                 width: 100,
                                 height: 50,
                                 fill: 'red',
                                 stroke: 'black',
-                                strokeWidth: 4
+                                strokeWidth: strokeWidth,
+                                draggable: draggable,
+                                transformable: transformable,
                             });
+                            console.log('Rect:', newElement);
                             break;
                         case 'Path':
-                            shape = new Konva.Path({
+                             newElement = new Konva.Path({
                                 x: pos.x,
                                 y: pos.y,
-                                data: 'M10,10 C0,0 50,0 50,50 Z', // 示例路径
-                                fill: 'green',
+                                data: 'M10,10 C0,0 50,0 50,50 Z',
+                                fill: fillColor,
                                 stroke: 'black',
-                                strokeWidth: 3
+                                strokeWidth: strokeWidth,
+                                draggable: draggable
                             });
                             break;
                         case 'Polygon':
-                            shape = new Konva.RegularPolygon({
+                            newElement = new Konva.RegularPolygon({
                                 x: pos.x,
                                 y: pos.y,
                                 sides: 6,
                                 radius: 40,
-                                fill: 'blue',
+                                fill: fillColor,
                                 stroke: 'black',
-                                strokeWidth: 3
+                                strokeWidth: strokeWidth,
+                                draggable: draggable
                             });
                             break;
                         case 'Circle':
-                            shape = new Konva.Circle({
+                            newElement = new Konva.Circle({
                                 x: pos.x,
                                 y: pos.y,
                                 radius: 30,
-                                fill: 'yellow',
+                                fill: fillColor,
                                 stroke: 'black',
-                                strokeWidth: 3
+                                strokeWidth: strokeWidth,
+                                draggable: draggable
                             });
                             break;
                         case 'Line':
-                            shape = new Konva.Line({
+                            newElement = new Konva.Line({
                                 points: [pos.x, pos.y, pos.x + 100, pos.y + 50],
                                 stroke: 'black',
-                                strokeWidth: 5,
+                                strokeWidth: strokeWidth,
                                 lineCap: 'round',
-                                lineJoin: 'round'
+                                lineJoin: 'round',
+                                draggable: draggable
                             });
                             break;
                         case 'Arrow':
-                            shape = new Konva.Arrow({
+                            newElement = new Konva.Arrow({
                                 x: pos.x,
                                 y: pos.y,
                                 points: [0, 0, 100, 100],
                                 pointerLength: 20,
                                 pointerWidth: 20,
-                                fill: 'black',
+                                fill: fillColor,
                                 stroke: 'black',
-                                strokeWidth: 4
+                                strokeWidth: strokeWidth,
+                                draggable: draggable
                             });
                             break;
                         case 'Text':
-                            shape = new Konva.Text({
+                            newElement = new Konva.Text({
                                 x: pos.x,
                                 y: pos.y,
                                 text: 'Hello World',
                                 fontSize: 24,
                                 fontFamily: 'Calibri',
-                                fill: 'black'
+                                fill: fillColor,
+                                draggable: draggable
                             });
                             break;
                         case 'Image':
                             // 图片处理比较特殊，通常需要加载后再操作，所以这里仅做示例
                             let imageObj = new Image();
                             imageObj.onload = () => {
-                                shape = new Konva.Image({
+                                 newElement = new Konva.Image({
                                     image: imageObj,
                                     x: pos.x,
                                     y: pos.y,
                                     width: 100,
-                                    height: 100
+                                    height: 100,
+                                    draggable: draggable
                                 });
-                                this.stage.getLayers()[0].add(shape);
-                                this.stage.getLayers()[0].draw();
-                                this.uploadElement(shape);
+                                const konvaLayer = this.stage.getLayers()[0];
+                                konvaLayer.add(newElement);
+                                konvaLayer.draw();
+                                this.uploadElement(newElement);
                             };
                             imageObj.src = 'path/to/image.jpg';  // 需要替换为实际的图片路径
                             break;
                     }
-                    if (shape) { 
+                    if (newElement) {
                         this.synchronizeElementsData().then(() => { // 确保在创建新元素前更新本地数据到后端
                             const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
-                            konvaLayer.add(shape);
+                            konvaLayer.add(newElement);
                             konvaLayer.draw();
-                            this.uploadElement(shape); // 上传元素数据到服务器
+                            this.uploadElement(newElement); // 上传元素数据到服务器  
+                    
                         });
                     }
-                    this.resetAddingState(); // 重置添加状态
-                },                
-                
-                addImage() {
-                    const input = document.getElementById('imageUpload');
-                    const file = input.files[0];
-                    const reader = new FileReader();
-                    reader.onloadend = (e) => {
-                        const imageObj = new Image();
-                        imageObj.onload = () => {
-                            const img = new Konva.Image({
-                                image: imageObj,
-                                x: 50, // 可以设定一个初始位置
-                                y: 50,
-                                width: 200, // 根据实际情况调整
-                                height: 200
-                            });
-                            const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
-                            konvaLayer.add(img);
-                            konvaLayer.draw();
-                            $('#uploadImageModal').modal('hide');
-                        };
-                        imageObj.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
                 },
 
-                uploadElement(shape) {
+                uploadElement(newElement) {
                     // 示例：发送基本的矩形数据，根据需求调整发送的数据
                     const data = {
                         type: this.newElementType,
-                        data: shape.toJSON(),
+                        data: newElement.toJSON(),
                         layer_id: this.currentLayer.id,
                     };
                     axios.post('{% url "Layout:add_element" %}', data)
                         .then(response => {
                             console.log('Element added successfully:', response.data);
-                            //this.currentLayer = null;
-                            //this.newElementType = null;
                             this.synchronizeData();
+                            this.resetAddingState(); // 重置添加状态
                         })
                         .catch(error => {
                             console.error('Error adding element:', error);
                         });
                 },
-                
+
                 // ----------------- Offcanvas -----------------
                 // 控制 Offcanvas 的显示与隐藏
                 toggleOffcanvas() {
@@ -698,8 +732,8 @@
                     let offcanvasElement = document.getElementById('offcanvasScrolling');
                     offcanvasElement.style.visibility = this.offcanvasOpen ? 'visible' : 'hidden';
                 },
-                // 切换楼层
-                changeFloor(floor) {
+                
+                changeFloor(floor) { // 切换楼层
                     if (this.floor !== floor) {
                         this.floor = floor;
                         this.synchronizeData();
@@ -739,5 +773,6 @@
                 },                                
             }
         });
+        
     </script>
 {% endblock %}
