@@ -64,4 +64,5 @@ class KonvaElement(models.Model):
                               related_name='elements')  # 当前Element所在的SpaceUnit(层级)
     type = models.CharField(max_length=20, choices=ElementType.choices)
     data = models.JSONField(null=True, blank=True)  # KonvaJS的JSON数据
+    transformable = models.BooleanField(default=True)  # 是否可以被拖动、缩放、旋转等操作
     image = models.ImageField(upload_to=element_upload_to, null=True, blank=True)  # 如果是KonvaJS的Image
