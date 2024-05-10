@@ -11,14 +11,25 @@
 {% block content %}
     <div class="row">
         <div class="col-12 text-center">
-            <h1 class="logo-title">Explore Hudson Venues</h1>
+            <h1 class="logo-title">Explore Venues</h1>
         </div>
     </div>
 
     {#瀑布流卡片布局#}
     <div class="container mt-4 mb-4">
         {% if venues|length == 0 %}
-            <h2 class="message-info">Create the company's first venue!</h2>
+            <div class="card text-center">
+                <h5 class="card-header">Mrs. Hudson</h5>
+                <div class="card-body">
+                <h5 class="card-title">Create the company's first venue</h5>
+                <p class="card-text">and begin your journey towards a more sustainable business!</p>
+                {% if user.is_authenticated and user_type == 'Manager' %}
+                    <a href="#"  data-bs-toggle="modal" data-bs-target="#venueModal" class="btn btn-primary">Add your first venue!</a>
+                {% endif %}
+                </div>
+            </div>
+        
+            {% comment %} <h2 class="message-info">Create the company's first venue!</h2> {% endcomment %}
         {% else %}
 
             <div class="card-columns">
