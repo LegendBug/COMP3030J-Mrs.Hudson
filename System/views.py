@@ -15,6 +15,7 @@ def custom_404_interceptor(request, exception): # 该视图函数用于无效页
 
 def copilot(request):
     context = {}
+    user_input = None
     if request.method == 'POST':
         user_input = request.POST.get('user_input')
 
@@ -54,8 +55,6 @@ def copilot(request):
         messages.
 
         A user is asking for help, and you need to provide clear, concise, and helpful information based on your knowledge of the resource management system, "Mrs. Hudson". 
-        
-        Please provide a clear and detailed response.
         """
 
         messages = [
@@ -80,8 +79,7 @@ def copilot(request):
                 context['response'] = chat_response
             except Exception as e:
                 context['error'] = "Oops... Seems that a problem occurred 😅. <Error: " + str(e) + ">"
-    else:
-        user_input = None
-    context['user_input'] = user_input if user_input is not None else ""
+
+    context['user_input'] = user_input
 
     return render(request, 'System/copilot.html', context)
