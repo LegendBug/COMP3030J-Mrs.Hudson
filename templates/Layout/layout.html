@@ -512,8 +512,32 @@
 
                             // 处理当前SpaceUnit的elements
                             spaceUnit.elements.forEach(element => {
-                                const node = Konva.Node.create(JSON.parse(element.data), layer);
+                                const nodeData = JSON.parse(element.data);
+                                const node = Konva.Node.create(nodeData, layer);
+                                console.log('Element:', element, '  Node:', node, '  Node_JSON:', node.toJSON());
                                 layer.add(node);
+                                
+                                // 添加变换和拖拽结束的事件监听器
+                                node.on('transformend dragend', () => {
+                                    let element = this.findElementByKonvaId(this.layers, node.id());
+                                    console.log('Before Element updated:', element);
+                                    if (element) {
+                                        // 更新元素属性
+                                        let data = JSON.parse(element.data);  // 将JSON字符串转换为对象
+                                        // 更新元素属性
+                                        data.attrs.x = node.x();
+                                        data.attrs.y = node.y();
+                                        data.attrs.width = node.width();  // 乘以scaleX因为宽度在变换后可能被缩放
+                                        data.attrs.height = node.height();  // 乘以scaleY因为高度在变换后可能被缩放
+                                        data.attrs.rotation = node.rotation();
+                                        data.attrs.scaleX = node.scaleX();
+                                        data.attrs.scaleY = node.scaleY();
+                                        // 将对象转换回JSON字符串
+                                        element.data = JSON.stringify(data);
+                                    }
+                                    console.log('After Element updated:', element);
+                                });
+                                
                                 if (element.transformable) {
                                     const transformer = new Konva.Transformer({
                                         node: node,
@@ -548,9 +572,25 @@
                     // 从根层级开始处理所有层级
                     processLayer(this.layers, null);
                 },
+                
+                findElementByKonvaId(layers, elementId) {
+                    for (let layer of layers) {
+                        for (let element of layer.elements) {
+                            if (String(element.id) === String(elementId)) {
+                                return element;
+                            }
+                        }
+                        if (layer.child_units) {
+                            let found = this.findElementByKonvaId(layer.child_units, elementId);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                },
 
                 synchronizeElementsData(){
                     console.log('Synchronizing elements data...');
+                    //console.log('Element to be updated:', this.findElementByKonvaId(this.layers, 46));
                     return axios.post('{% url 'Layout:synchronize_elements_data' %}', {
                         root : this.layers[0]
                     }).then(response => {

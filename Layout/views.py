@@ -190,78 +190,31 @@ def delete_element(request):
 
 
 @csrf_exempt
-def synchronize_elements_data(request): # TODO 递归更新部分可能存在问题
+def synchronize_elements_data(request):
     if request.method == 'POST':
         data = json.loads(request.body)  # 使用 json.loads 解析请求体中的 JSON 数据
         root_data = data.get('root')
         if not root_data:
             return JsonResponse({'error': 'No root space unit provided.'}, status=400)
 
-        # 使用序列化器只对根对象进行反序列化
-        root_serializer = SpaceUnitSerializer(data=root_data)
-        if root_serializer.is_valid(raise_exception=True):
-            def update_space_unit(root, json_data):
-                # 先递归更新所有子单位
-                for child in root.child_units.all():
-                    if child.child_units.exists():
-                        update_space_unit(child, json_data)
-                    # 更新当前SpaceUnit的所有元素
-                    for element in child.elements.all():
-                        element_data = json_data.get('elements', {}).get(str(element.id))
-                        if element_data:
-                            element_serializer = KonvaElementSerializer(instance=element, data=element_data)
-                            if element_serializer.is_valid(raise_exception=True):
-                                element_serializer.save()
-                            else:
-                                raise serializers.ValidationError(element_serializer.errors)
+        def recursively_update(new_dic_data):  # 递归更新树结构的SpaceUnit其下的所有KonvaElement
+            new_elements_dic_data = new_dic_data.get('elements')
+            for i in range(len(new_elements_dic_data)):
+                old_element = get_object_or_404(KonvaElement, id=int(new_elements_dic_data[i].get('id')))
+                new_element_data = new_elements_dic_data[i]
+                # 更新KonvaElement实例
+                old_element.name = new_element_data.get('name')
+                old_element.type = new_element_data.get('type')
+                old_element.data = new_element_data.get('data')
+                old_element.transformable = new_element_data.get('transformable')
+                old_element.save()
 
-            root_space_unit = root_serializer.save()
-            update_space_unit(root_space_unit, root_data)  # 调用递归更新函数
+            # 递归更新子SpaceUnit下的所有KonvaElement
+            if (len(new_dic_data.get('child_units')) > 0):
+                for i in range(len(new_dic_data.get('child_units'))):
+                    if (len(new_dic_data.get('child_units')[i].get('elements')) > 0):
+                        recursively_update(new_dic_data.get('child_units')[i])
 
-        return JsonResponse({'success': 'Data updated successfully.'})
-    else:
-        return JsonResponse({'error': 'Invalid request'}, status=400)
-
-
-def add_fake_konva_element(request):
-    # 定义假数据
-    name = "Konva Element 1"
-    layer = get_object_or_404(SpaceUnit, id=4)
-    element_type = KonvaElement.ElementType.RECTANGLE
-    element_data = json.dumps({
-        'attrs': {
-            'x': 100,
-            'y': 300,
-            'width': 250,
-            'height': 350,
-            'fill': 'red',
-            'stroke': 'black',
-            'strokeWidth': 4,
-            'draggable': 'true',
-        },
-        'className': f'{element_type}',
-
-    })
-    # 创建FabricElement实例
-    konva_element = KonvaElement.objects.create(
-        name=name,
-        layer=layer,
-        type=element_type,
-        data=element_data
-    )
-
-    # 在数据中添加主键信息
-    updated_element_data = json.loads(element_data)
-    updated_element_data["attrs"]["id"] = f"{konva_element.pk}"  # 添加id属性
-    konva_element.data = json.dumps(updated_element_data)  # 更新已创建的KonvaElement实例的data字段
-    konva_element.save()
-
-    # 返回新创建的FabricElement的信息
-    return JsonResponse({
-        'id': konva_element.id,
-        'name': konva_element.name,
-        'layer': konva_element.layer.id if konva_element.layer else None,
-        'type': konva_element.type,
-        'data': konva_element.data,
-        'image_url': konva_element.image.url if konva_element.image else None
-    }, safe=False)
+        recursively_update(root_data)
+        return JsonResponse({'success': 'The data has been successfully synchronized!'}, status=200)
+    return JsonResponse({'error': 'Invalid request'}, status=400)

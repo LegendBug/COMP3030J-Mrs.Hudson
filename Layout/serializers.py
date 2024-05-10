@@ -9,6 +9,9 @@ class KonvaElementSerializer(serializers.ModelSerializer):
         model = KonvaElement
         fields = ['id', 'name', 'layer', 'type', 'data', 'transformable','image']
         depth = 1  # 同样适用depth以便显示更详细的关联信息
+        extra_kwargs = {
+            'id': {'read_only': False, 'required': True},  # 确保ID是必须的，用于更新
+        }
 
 class RecursiveSerializer(serializers.Serializer):
     """用于递归序列化的通用序列化器。"""
@@ -18,9 +21,12 @@ class RecursiveSerializer(serializers.Serializer):
 
 
 class SpaceUnitSerializer(serializers.ModelSerializer):
-    child_units = RecursiveSerializer(many=True, read_only=True)
-    elements = KonvaElementSerializer(many=True, read_only=True)
+    child_units = RecursiveSerializer(many=True, read_only=False)
+    elements = KonvaElementSerializer(many=True, read_only=False)
     class Meta:
         model = SpaceUnit
         fields = ['id', 'name', 'description', 'floor', 'parent_unit', 'available', 'created_at', 'child_units',
                   'elements', 'affiliation_content_type', 'affiliation_object_id']
+        extra_kwargs = {
+            'id': {'read_only': False, 'required': True},  # 确保ID是必须的，用于更新
+        }
