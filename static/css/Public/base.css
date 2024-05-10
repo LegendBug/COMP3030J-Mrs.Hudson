@@ -9,8 +9,8 @@ html, body {
 }
 
 image, h1, h2, h3, h4, h5, h6 {
-    cursor: default; /* 设置默认光标 */
     user-select: none; /* 防止文本被选中 */
+    cursor: default; /* 设置默认光标 */
 }
 
 /*导航栏样式: */
@@ -184,21 +184,12 @@ image, h1, h2, h3, h4, h5, h6 {
     display: block; /* 块级显示 */
 }
 
-h2 {
-    font-family: 'Arial', sans-serif; /* Cleaner, more modern font */
-    font-size: 36px; /* Suitable font size */
-    font-weight: bold; /* Bold for better visibility */
-    color: #f8f9fa; /* Light color for better contrast */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Soft shadow for depth */
-    margin: 20px 0; /* Adequate spacing around the title */
-}
-
-h2 a {
+h1 a {
     text-decoration: none; /* Removes underline */
     color: inherit; /* Inherits color from parent element */
 }
 
-h2 a:hover {
+h1 a:hover {
     color: #28a745; /* Inherits color from parent element */
 }
 
@@ -226,6 +217,26 @@ h2 a:hover {
 
 .card:hover {
     transform: scale(1.02); /* 当鼠标悬停时放大图片 */
+}
+
+.logo-title {
+    font-size: 48px; /* 增加字体大小 */
+    color: #2c3e50; /* 更新为更深、更专业的颜色 */
+    font-weight: 700; /* 使用700的字重，前提是字体支持 */
+    padding-top: 20px; /* 增加与页面顶部的空间 */
+    font-family: 'Montserrat', sans-serif; /* 应用Roboto字体 */
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.2); /* 添加轻微的文字阴影以增强可读性 */
+    animation: fadeInLeft 1s ease-in-out;
+}
+
+.message-info {
+    font-size: 3rem; /* 较大的字体大小 */
+    font-weight: bold; /* 使用粗体 */
+    color: #f0f0f0; /* 使用较亮的字体颜色 */
+    width: 90%; /* 宽度接近全屏，但留有边距 */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* 文本阴影，增强可读性 */
+    transition: all 0.3s ease-in-out; /* 平滑过渡效果 */
+    animation: fadeInUp 1s ease-in-out; /* 应用动画 */
 }
 
 

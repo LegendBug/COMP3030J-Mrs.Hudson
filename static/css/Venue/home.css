@@ -26,27 +26,13 @@
 }
 
 .message-info {
-    font-size: 3rem; /* 较大的字体大小 */
-    color: #f0f0f0; /* 使用较亮的字体颜色 */
-    padding: 2rem; /* 较大的内边距 */
     text-align: center; /* 内容居中对齐 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* 添加盒子阴影 */
+    padding: 2rem; /* 较大的内边距 */
     border-radius: 1rem; /* 边框圆角 */
     background-color: rgba(86, 197, 86, 0.5); /* 深色背景，提升透明度以更好的显示文本 */
-    width: 90%; /* 宽度接近全屏，但留有边距 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* 添加盒子阴影 */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* 文本阴影，增强可读性 */
-    transition: all 0.3s ease-in-out; /* 平滑过渡效果 */
-    animation: fadeInUp 1s ease-in-out; /* 应用动画 */
 }
 
-.logo-title {
-    font-size: 48px; /* 增加字体大小 */
-    color: #2c3e50; /* 更新为更深、更专业的颜色 */
-    font-weight: 700; /* 使用700的字重，前提是字体支持 */
-    padding-top: 20px; /* 增加与页面顶部的空间 */
-    font-family: 'Montserrat', sans-serif; /* 应用Roboto字体 */
-    text-shadow: 2px 2px 8px rgba(0,0,0,0.2); /* 添加轻微的文字阴影以增强可读性 */
-    animation: fadeInLeft 1s ease-in-out;
-}
+
 
 

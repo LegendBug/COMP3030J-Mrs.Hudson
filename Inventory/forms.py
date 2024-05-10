@@ -30,6 +30,7 @@ class CreateInventoryCategoryForm(forms.ModelForm):
             'origin_content_type': forms.HiddenInput(),
             'origin_object_id': forms.HiddenInput(),
             'is_public': forms.CheckboxInput(attrs={'class': 'hidden'}),  # 初始隐藏is_public字段
+            'description': forms.Textarea(attrs={'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):  # 需要传入user和venue/exhibition/booth作为参数

@@ -21,24 +21,11 @@
 }
 
 .card {
-    background-color: #009631;
+    background-color: #00963155;
 }
 
 .card-header {
-    background-color: #009631;
-}
-
-.card-body {
-    padding: 2rem;
-    background-color: #f8f9fa;
-    color: #212529;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-body {
-    background: url('../../images/User/poster.jpg') no-repeat center center fixed;
-    background-size: cover;
-    color: #f8f9fa;
+    background-color: #00963155;
 }
 
 @keyframes fadeIn {

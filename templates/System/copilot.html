@@ -23,20 +23,24 @@
 {% block content %}
     <div class="container">
         <div class="row">
-            <div class="col-md-12" >
+            <div class="col-md-12">
                 <br>
-                <div style="display: inline-block; background-color: rgba(92, 92, 92, 0.5); border-radius: 10px; padding: 10px 15px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); width: fit-content;">
-                    <h2 style="margin: 0;">Watson Copilot</h2>
+                <div>
+                    <h1 class="logo-title">Watson Copilot</h1>
                 </div>
+                <br>
                 {% comment %} <p>Enter any problem you met:</p> {% endcomment %}
                 <!-- Form for user input -->
-                <form method="post">
-                    {% csrf_token %}
-                    <br>
-                    <textarea name="user_input" class="form-control" rows="3" placeholder="Type your question here..."></textarea>
-                    <br>
-                    <button type="submit" class="btn btn-primary">Ask Watson</button>
-                </form>
+                <div class="card" style="padding: 2rem">
+                    <form method="post">
+                        {% csrf_token %}
+                        <br>
+                        <textarea name="user_input" class="form-control" rows="3"
+                                  placeholder="Type your question here..."></textarea>
+                        <br>
+                        <button type="submit" class="btn btn-success">Ask Watson</button>
+                    </form>
+                </div>
                 <br>
                 <!-- Area to display the chatbot's response -->
                 {% if error %}
@@ -45,7 +49,7 @@
                     </div>
                 {% endif %}
                 {% if user_input and response %}
-                {% comment %} <div class="card mb-3">
+                    {% comment %} <div class="card mb-3">
                     <div class="card-header">
                         <strong>You</strong>
                     </div>
@@ -53,19 +57,21 @@
                         <p class="card-text">{{ user_input }}</p>
                     </div>
                 </div> {% endcomment %}
-                <div class="card border-primary mb-3">
-                    <div class="card-header">
-                        <strong>Watson</strong>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <strong>Watson</strong>
+                        </div>
+                        <div class="card-body text-success">
+                            <h5 class="card-title">Q: {{ user_input }}</h5>
+                            <p class="card-text">A: {{ response }}</p>
+                        </div>
                     </div>
-                    <div class="card-body text-primary">
-                        <h5 class="card-title">Q: {{ user_input }}</h5>
-                        <p class="card-text">A: {{ response }}</p>
-                    </div>
-                </div>
                 {% endif %}
                 <br>
                 <div class="alert alert-warning mt-4" role="alert">
-                    <strong>Note:</strong> Watson is powered by large language model technology from OpenAI. While we strive for accuracy, the responses can be imperfect. Always verify critical information independently.
+                    <strong>Note:</strong> Watson is powered by large language model technology from OpenAI. While we
+                    strive for accuracy, the responses can be imperfect. Always verify critical information
+                    independently.
                 </div>
             </div>
         </div>

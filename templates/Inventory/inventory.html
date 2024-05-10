@@ -6,7 +6,7 @@
 {% block extra_head %}
     <title>Inventory</title>
     {% comment %} <link rel="stylesheet" href="{% static 'css/Inventory/inventory.css' %}">{% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/Inventory/inventory_styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/Inventory/inventory.css' %}">
 {% endblock %}
 
 {% block extra_nav_icons %}
@@ -27,32 +27,69 @@
 
 
 {% block content %}
+    {% if user.is_authenticated and user_type == 'Manager' %}
+        <h1 class="logo-title"><a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a> 
+            <small>Inventory</small></h1>
+    {% elif user.is_authenticated and user_type == 'Organizer' %}
+        <h1 class="logo-title"><a
+                href="{% url 'Exhibition:exhibition' current_access.pk %}">{{ current_access.name }}</a> <small>Inventory</small>
+        </h1>
+    {% elif user.is_authenticated and user_type == 'Exhibitor' %}
+        <h1 class="logo-title"><a href="{% url 'Booth:booth' current_access.pk %}">{{ current_access.name }}</a> <small>Inventory</small>
+        </h1>
+    {% endif %}
+
     <div class="container mt-3">
         <div class="row">
-            {% for category in categories %}
-                <div class="col-md-4 col-sm-6 mb-4">
-                    <div class="card">
-                        <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}"
-                             style="height: 200px; object-fit: cover;">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ category.name }}</h5>
-                            <p class="card-text"><strong>Description：</strong>{{ category.description }}</p>
-                            <p class="card-text"><small
-                                    class="text-muted"><strong>Quantity：</strong>{{ category.items_quantity }}</small>
-                            </p>
-                            <p class="card-text"><strong>Is Public：</strong>{{ category.is_public|yesno:"是,否" }}</p>
-                            <div class="d-flex justify-content-between">
-                                <a href="{% url 'Inventory:category_detail' category.pk %}" class="btn btn-info btn-sm">View</a>
-                                <a href="{% url 'Inventory:edit-category' category.pk %}"
-                                   class="btn btn-secondary btn-sm">Modify</a>
-                                <button type="button" class="btn btn-danger btn-sm"
-                                        onclick="confirmDelete({{ category.id }})">Delete
-                                </button>
+            {% if categories|length == 0 %}
+                <div class="col-12">
+                    <h2 class="message-info" style="text-align: center">💤 No resource yet.</h2>
+                </div>
+            {% else %}
+                <div class="card-columns">
+                    {% for category in categories %}
+                        <div class="card h-auto shadow-sm"
+                             style="background-color: rgba(255, 255, 255, 0.4); border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);">
+                            <a href="{% url 'Inventory:category_detail' category.pk %}" class="text-decoration-none">
+                                <img src="{{ category.image.url }}" class="card-img-top img-fluid"
+                                     alt="{{ category.name }}"
+                                     style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                            </a>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    {#文本区域#}
+                                    <div>
+                                        <h4 class="card-title" style="font-weight: bold">
+                                            <a href="{% url 'Inventory:category_detail' category.pk %}"
+                                               class="text-decoration-none"
+                                               style="color: #333;">{{ category.name }}</a>
+                                        </h4>
+                                        <p class="card-text">{{ category.description }}</p>
+                                        <p class="card-text ">
+                                            <strong>Quantity: </strong>{{ category.items_quantity }}
+                                        </p>
+                                        <p class="card-text">
+                                            <strong>Public: </strong>{{ category.is_public|yesno:"✅,❎" }}
+                                        </p>
+                                    </div>
+                                    {#按钮区域#}
+                                    <div class="d-flex flex-column">
+                                        {% if is_owner %}
+                                            <div class="btn-group">
+                                                <a href="{% url 'Inventory:edit-category' category.pk %}"
+                                                   class="btn btn-secondary btn-sm">Modify</a>
+                                                <button type="button" class="btn btn-danger btn-sm"
+                                                        onclick="confirmDelete({{ category.id }})">Delete
+                                                </button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
+            {% endif %}
         </div>
     </div>
 
@@ -67,7 +104,7 @@
     <!-- 添加库存按钮 -->
     <a href="#" class="btn btn-success rounded-circle shadow" id="add-venue-btn"
        style="position: fixed; bottom: 100px; right: 20px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-       onclick="openAddInventoryModal();" title="Add custom resources">
+       onclick="openAddInventoryModal();" title="Add Custom Resource">
         +
     </a>
 

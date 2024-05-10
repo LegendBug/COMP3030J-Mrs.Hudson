@@ -91,7 +91,7 @@ def venue(request, venue_id):
             'sectors': sectors,
             'start_at': exhibition.start_at,
             'end_at': exhibition.end_at,
-            'image': exhibition.image.url if exhibition.image else None,
+            'image': exhibition.image.url,
             'organizer': exhibition.organizer.detail.username,
             'stage': stage
         })

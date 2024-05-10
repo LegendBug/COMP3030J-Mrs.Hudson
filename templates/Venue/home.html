@@ -4,7 +4,6 @@
 {% load crispy_forms_tags %}
 {% block extra_head %}
     <title>Hudson Homepage</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/Venue/home.css' %}">
 {% endblock %}
 
@@ -31,7 +30,6 @@
         
             {% comment %} <h2 class="message-info">Create the company's first venue!</h2> {% endcomment %}
         {% else %}
-
             <div class="card-columns">
                 {% for venue in venues %}
                     <div class="card h-auto shadow-sm"
@@ -58,7 +56,7 @@
                                 {#按钮区域#}
                                 <div class="d-flex flex-column">
                                     <div class="btn-group">
-                                        <a href="#" class="btn btn-secondary mt-1" data-bs-toggle="modal"
+                                        <a href="#" class="btn btn-success mt-1" data-bs-toggle="modal"
                                            data-bs-target="#venueInfoModal"
                                            data-venue-id="{{ venue.id }}" data-venue-name="{{ venue.name }}"
                                            data-venue-address="{{ venue.address }}" data-venue-area="{{ venue.area }}"
@@ -70,7 +68,7 @@
                                     </div>
                                     {% if user.is_authenticated and user_type == 'Manager' %}
                                         <div class="btn-group" style="transform: scale(0.82);">
-                                            <a href="#" class="btn btn-success" data-bs-toggle="modal"
+                                            <a href="#" class="btn btn-secondary" data-bs-toggle="modal"
                                                data-bs-target="#venueModifyModal"
                                                data-venue-id="{{ venue.id }}">Modify</a>
                                             <a href="#" class="btn btn-danger" data-bs-toggle="modal"

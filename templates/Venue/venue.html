@@ -2,7 +2,6 @@
 {% load crispy_forms_filters %}
 {% load static %}
 {% load crispy_forms_tags %}
-{#TODO 改进意见: Canvas画板太丑陋了, 最好加上类似于飞书的画框; 展会的展示框太丑了,最好换成Card的展示方式, 同home页面#}
 {% block extra_head %}
     <title>Venue</title>
     <link rel="stylesheet" href="{% static 'css/Venue/venue.css' %}">
@@ -22,8 +21,8 @@
 
 {% block content %}
     <br>
-    <div style="display: inline-block; background-color: rgba(92, 92, 92, 0.5); border-radius: 10px; padding: 10px 15px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); width: fit-content;">
-        <h2 style="margin: 0;">{{ venue.name }}</h2>
+    <div>
+        <h1 class="logo-title">{{ venue.name }}</h1>
     </div>
     <br>
 
@@ -34,7 +33,7 @@
     {% if user.is_authenticated and user_type == 'Organizer' %}
         <a onclick="openExhibApplyModal()" class="btn btn-success rounded-circle shadow" id="createExhibApply"
            style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
-           justify-content: center; align-items: center; font-size: 30px;" title="Apply a New Exhibition">
+           justify-content: center; align-items: center; font-size: 30px;" title="Apply Exhibition">
             📝
         </a>
     {% elif user.is_authenticated and user_type == 'Manager' %}
@@ -45,45 +44,51 @@
             📦
         </a>
     {% endif %}
-{#    <a class="btn btn-success rounded-circle shadow" id="filter-exhibitions-btn"#}
-{#       style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"#}
-{#       onclick="openFilterModal();" title="Filter Exhibitions">#}
-{#        <i class="fas fa-filter mt-1"></i>#}
-{#    </a>#}
+    {#    <a class="btn btn-success rounded-circle shadow" id="filter-exhibitions-btn"#}
+    {#       style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"#}
+    {#       onclick="openFilterModal();" title="Filter Exhibitions">#}
+    {#        <i class="fas fa-filter mt-1"></i>#}
+    {#    </a>#}
 
 
     <!-- 展览列表 -->
-    <table class="table table-hover table-striped text-white shadow-sm">
-        <thead class="table-dark">
-        <tr>
-            <th>Exhibition Name</th>
-            <th>Description</th>
-            <th>Organizer</th>
-            <th>Sector</th>
-            <th>Start Time</th>
-            <th>End Time</th>
-            <th>Stage</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for exhibition in exhibitions %}
-            <tr onclick="window.location.href='{% url 'Exhibition:exhibition' exhibition.id %}';"
-                style="cursor: pointer;">
-                <td>{{ exhibition.name }}</td>
-                <td>{{ exhibition.description }}</td>
-                <td>{{ exhibition.organizer }}</td>
-                <td>{{ exhibition.sectors }}</td>
-                <td>{{ exhibition.start_at| date:"Y-m-d H:i" }}</td>
-                <td>{{ exhibition.end_at| date:"Y-m-d H:i" }}</td>
-                <td>{{ exhibition.stage }}</td>
-            </tr>
-        {% empty %}
+    <div class="table-responsive" style="margin: 1rem; user-select: none">
+        <table class="table table-hover text-white">
+            <thead class="bg-dark">
             <tr>
-                <td colspan="7" class="text-center text-white">No events found.</td>
+                <th></th>
+                <th>Exhibition Name</th>
+                <th>Description</th>
+                <th>Organizer</th>
+                <th>Sector</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Stage</th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {% for exhibition in exhibitions %}
+                <tr onclick="window.location.href='{% url 'Exhibition:exhibition' exhibition.id %}';"
+                    style="cursor: pointer;">
+                    <td><img src="{{ exhibition.image|default:'../../static/images/Public/poster.jpg' }}"
+                             alt="No Poster"
+                             class="exhibition-img" style="width: 100px; height: 80px;"></td>
+                    <td>{{ exhibition.name }}</td>
+                    <td>{{ exhibition.description }}</td>
+                    <td>{{ exhibition.organizer }}</td>
+                    <td>{{ exhibition.sectors }}</td>
+                    <td>{{ exhibition.start_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ exhibition.end_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ exhibition.stage }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">No exhibitions found. 💤</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
 
 
@@ -123,7 +128,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="filterFrom" method="post" action="{% url 'Venue:venue' venue.pk %}" enctype="multipart/form-data"
+                    <form id="filterFrom" method="post" action="{% url 'Venue:venue' venue.pk %}"
+                          enctype="multipart/form-data"
                           class="needs-validation" novalidate>
                         {% csrf_token %}
                         <input type="hidden" name="venue_id" id="venue_id" value="{{ venue.pk }}">
@@ -184,7 +190,7 @@
                         container.style.display = 'block';  // Make sure the message container is visible
                     });
                 }
-                
+
                 function submitFilter() {
                     const filterForm = document.getElementById('filterFrom');
                     const container = document.getElementById('filter-exhibitions-message-container');

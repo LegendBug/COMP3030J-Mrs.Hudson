@@ -144,7 +144,8 @@ def view_message(request):
                     items = ExhibitionApplication.objects.filter(applicant=request.user).order_by(
                         'exhibition__start_at')
                 else:
-                    raise Http404("Permission denied")
+                    # 当前是参展方，直接返回所有展台申请
+                    items = BoothApplication.objects.all().order_by('booth__start_at')
             elif applications_type == 'booth':
                 if hasattr(request.user, 'manager'):
                     items = BoothApplication.objects.all().order_by('booth__start_at')
@@ -421,10 +422,17 @@ def accept_application(request, application_type, application_id):
             application.save()
 
             if application_type == 'resource':
-                rent_item = Item.objects.filter(category=application.category, is_using=False, is_damaged=False).first()
-                if rent_item:
-                    rent_item.affiliation_content_type = ContentType.objects.get_for_model(application.booth)
-                    rent_item.affiliation_object_id = application.booth.id
+                available_items = Item.objects.filter(category=application.category,
+                                                      affiliation_content_type=application.category.origin_content_type,
+                                                      affiliation_object_id=application.category.origin_object_id,
+                                                      is_damaged=False, is_using=False)
+                print(len(available_items))
+                if len(available_items) >= application.quantity:
+                    for i in range(application.quantity):
+                        rent_item = available_items[i]
+                        rent_item.affiliation_content_type = ContentType.objects.get_for_model(application.booth)
+                        rent_item.affiliation_object_id = application.booth.id
+                        rent_item.save()
                 else:
                     return JsonResponse({'error': 'No available item found.'}, status=404)
 

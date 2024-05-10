@@ -9,7 +9,7 @@ from Exhibition.models import Exhibition
 from Inventory.forms import EditInventoryCategoryForm, CreateInventoryCategoryForm, EditItemForm, ResApplicationForm
 from Inventory.models import InventoryCategory, Item, ResourceApplication
 from Statistic.models import Usage
-from User.models import Message, Manager, MessageDetail
+from User.models import Message, Manager, MessageDetail, Exhibitor
 from Venue.models import Venue
 from datetime import timedelta, datetime
 from calendar import monthrange
@@ -28,12 +28,15 @@ def inventory(request, space_type, space_id):
         if user_type != 'Manager':
             return JsonResponse({'error': 'Permission denied!'}, status=403)
         current_access = Venue.objects.filter(pk=space_id).first()
+        owner = Manager.objects.first().detail
     elif space_type == 'exhibition':
         if user_type not in ['Manager', 'Organizer']:
             return JsonResponse({'error': 'Permission denied!'}, status=403)
         current_access = Exhibition.objects.filter(pk=space_id).first()
+        owner = current_access.organizer.detail
     elif space_type == 'booth':
         current_access = Booth.objects.filter(pk=space_id).first()
+        owner = current_access.exhibitor.detail
     else:
         return JsonResponse({'error': 'Invalid space type!'}, status=400)
 
@@ -81,9 +84,11 @@ def inventory(request, space_type, space_id):
                 initial={'origin_content_type': affiliation_type, 'origin_object_id': current_venue.pk})
         else:
             application_form = None
+
         return render(request, 'Inventory/inventory.html',
                       {
                           'user_type': user_type,
+                          'is_owner': request.user == owner,
                           'current_access': current_access,
                           'categories': categories,
                           'space_type': space_type,
@@ -93,20 +98,27 @@ def inventory(request, space_type, space_id):
                       })
 
 
+# TODO 根据用户是否为所有者,来决定是否可以编辑库存类别(为item加上创建人的信息)
 def category_detail_view(request, category_id):
     user_type = 'Manager' if hasattr(request.user, 'manager') \
         else 'Organizer' if hasattr(request.user, 'organizer') \
-        else 'Exhibitor' if hasattr(request.user, 'exhibitor') \
-        else 'Guest'  # 根据用户的类型,获取与该用户关联的所有Item
-    current_access = Venue.objects.filter(pk=request.session['venue_id']).first()
+        else 'Exhibitor'
     category = InventoryCategory.objects.filter(pk=category_id).first()
-    items = category.items.all()
+    if user_type != 'Exhibitor':
+        items = category.items.all()
+    else:
+        booth = Booth.objects.filter(pk=request.session['booth_id']).first()
+        items = Item.objects.filter(category=category,
+                                    affiliation_content_type=ContentType.objects.get_for_model(booth),
+                                    affiliation_object_id=booth.pk)
+    current_access = Venue.objects.filter(pk=request.session['venue_id']).first()
 
     return render(request, 'Inventory/category_detail.html', {
         'current_access': current_access,
         'category': category,
         'items': items,
-        'user_type': user_type
+        'user_type': user_type,
+        'origin': category.origin.name
     })
 
 
@@ -146,10 +158,10 @@ def delete_inventory_category(request, category_id):
     return redirect('Inventory:inventory', space_type=space_type, space_id=space_id)
 
 
-@login_required
-def item_detail_view(request, item_id):
-    item = get_object_or_404(Item, pk=item_id)
-    return render(request, 'Inventory/item_detail.html', {'item': item})
+# @login_required
+# def item_detail_view(request, item_id):
+#     item = get_object_or_404(Item, pk=item_id)
+#     return render(request, 'Inventory/item_detail.html', {'item': item})
 
 
 @login_required

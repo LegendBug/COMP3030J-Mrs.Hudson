@@ -42,6 +42,7 @@ def exhibition(request, exhibition_id):
                 'id': booth.id,
                 'name': booth.name,
                 'description': booth.description,
+                'image': booth.image.url,
                 'start_at': booth.start_at,
                 'end_at': booth.end_at,
                 'exhibitor': booth.exhibitor.detail.username,

@@ -1,15 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
-
-body {
-    background: url('../../images/User/poster.jpg') no-repeat center center fixed;
-    background-size: cover;
-    color: #f6f0f0; /* 设置文本颜色为白色，视您的海报而定 */
-}
-
 .container {
     max-width: 600px; /* 保持容器的最大宽度不变 */
-    margin: 1rem auto; /* 增加上下边距使容器居中，并提供空间 */
-    background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
+    margin: 7rem auto; /* 增加上下边距使容器居中，并提供空间 */
+    background-color: rgba(255, 255, 255, 0.4); /* 半透明黑色背景 */
     border-radius: 8px; /* 边角圆润 */
     padding: 40px; /* 增加更多内边距以提高高度 */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 轻微的阴影效果 */
