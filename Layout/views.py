@@ -147,8 +147,9 @@ def add_element(request):
     if request.method == 'POST':
         data = json.loads(request.body)  # 假设数据以JSON格式发送
         element_type = data.get('type')
-        layer_id = data.get('layer_id')
+        transformable = data.get('transformable', True)
         element_data = data.get('data')
+        layer_id = data.get('layer_id')
 
         layer = get_object_or_404(SpaceUnit, id=layer_id)
         # 创建KonvaElement实例
@@ -156,7 +157,8 @@ def add_element(request):
             name=f"New {element_type}",  # 可能需要从data中提取或定义默认值
             layer=layer,
             type=element_type,
-            data=element_data
+            data=element_data,
+            transformable=transformable
         )
 
         updated_element_data = json.loads(element_data)

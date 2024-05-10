@@ -7,7 +7,7 @@ class KonvaElementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = KonvaElement
-        fields = ['id', 'name', 'layer', 'type', 'data', 'image']
+        fields = ['id', 'name', 'layer', 'type', 'data', 'transformable','image']
         depth = 1  # 同样适用depth以便显示更详细的关联信息
 
 class RecursiveSerializer(serializers.Serializer):
