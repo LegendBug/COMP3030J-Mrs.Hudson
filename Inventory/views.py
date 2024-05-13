@@ -128,6 +128,7 @@ def edit_inventory_category(request, category_id):
         form = EditInventoryCategoryForm(request.POST, request.FILES, instance=category)
         if form.is_valid():
             form.save()
+
             space_type = request.session.get('space_type')
             space_id = request.session.get('space_id')
             return redirect('Inventory:inventory', space_type=space_type, space_id=space_id)

@@ -29,13 +29,10 @@
 {% endblock %}
 
 {% block content %}
+    {# TODO 完善Booth界面 #}
     <br>
-    <div>
-        <h1 class="logo-title"><small>Booth: </small>{{ booth.name }}</h1>
+    <div style="display: inline-block; background-color: rgba(92, 92, 92, 0.5); border-radius: 10px; padding: 10px 15px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); width: fit-content;">
+        <h2 style="margin: 0;">{{ booth.name }}</h2>
     </div>
     <br>
-
-    <div class="col-12">
-        <h2 class="message-info" style="text-align: center">💤 Nothing here yet.</h2>
-    </div>
 {% endblock %}
