@@ -24,22 +24,22 @@ To address the outlined issues, we’re developing a resource management system 
 
 ### Project Setup
 
-First, install all required Python packages by run this command in your terminal:
+1. Install all required Python packages by run this command in your terminal:
 
-```shell
-pip install -r requirements.txt
-```
+    ```shell
+    pip install -r requirements.txt
+    ```
 
-Then create a database schema called `hudson` in your RDBMS and run the following commands:
+2. Create a database schema called `hudson` in your RDBMS and run the following commands:
 
-``` shell
-# Generate migration files:
-python manage.py makemigrations
-# Execute migration:
-python manage.py migrate
-# Run the server:
-python manage.py runserver
-```
+    ``` shell
+    # Generate migration files:
+    python manage.py makemigrations
+    # Execute migration:
+    python manage.py migrate
+    # Run the server:
+    python manage.py runserver
+    ```
 
 Note that before running the project for the first time, you need to create a `.env` file in the root directory of your project. Format the file as shown below, replacing `your_username` and `your_password` with your actual RDBMS settings and `your_openai_api_key` with your own OpenAI API Key:
 
