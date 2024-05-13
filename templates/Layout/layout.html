@@ -590,7 +590,6 @@
 
                 synchronizeElementsData(){
                     console.log('Synchronizing elements data...');
-                    //console.log('Element to be updated:', this.findElementByKonvaId(this.layers, 46));
                     return axios.post('{% url 'Layout:synchronize_elements_data' %}', {
                         root : this.layers[0]
                     }).then(response => {
@@ -608,16 +607,18 @@
                 },
                 
                 confirmElementProperties() {
-                    const fillColor = document.getElementById('fillColor').value;
+                    const fillColor = this.newElementType !== 'Image' ?  document.getElementById('fillColor').value : null;
                     const borderStyle = document.getElementById('borderStyle').value;
                     const transformable = document.getElementById('transformable').checked;
                     const draggable = document.getElementById('draggable').checked;
-                
+                    const imageFile = this.newElementType === 'Image' ? document.getElementById('imageUpload').files[0] : null;
+                    
                     this.elementProps = {
                         fillColor,
                         strokeWidth: borderStyle === 'thin' ? 2 : (borderStyle === 'thick' ? 4 : 0),
                         draggable: draggable,
                         transformable,
+                        imageFile
                     };
                 
                     // 关闭模态框
@@ -643,7 +644,7 @@
                 placeElement(elementProps) {
                     const pos = this.stage.getPointerPosition();
                     let newElement;
-                    const { fillColor, strokeWidth, draggable, transformable} = elementProps;
+                    const { fillColor, strokeWidth, draggable, transformable, imageFile} = elementProps;
                     // 根据不同类型创建Konva图形实例
                     switch (this.newElementType) {
                         case 'Rect':
@@ -722,11 +723,9 @@
                             });
                             break;
                         case 'Image':
-                            // 图片处理比较特殊，通常需要加载后再操作，所以这里仅做示例
-                            let imageObj = new Image();
-                            imageObj.onload = () => {
+                            imageFile.onload = () => {
                                  newElement = new Konva.Image({
-                                    image: imageObj,
+                                    image: imageFile,
                                     x: pos.x,
                                     y: pos.y,
                                     width: 100,
@@ -740,8 +739,7 @@
                             const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
                             konvaLayer.add(newElement);
                             konvaLayer.draw();
-                            this.uploadElement(newElement,transformable); // 上传元素数据到服务器  
-                    
+                            this.uploadElement(newElement, transformable); // 上传元素数据到服务器                     
                         });
                     }
                 },

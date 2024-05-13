@@ -130,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization 国家化
+# Internationalization 国际化
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'

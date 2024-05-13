@@ -35,7 +35,7 @@ class InventoryCategory(models.Model):
     description = models.TextField(blank=True, null=True)
     is_public = models.BooleanField(default=True)  # 是否公开(即,是否可以被下一级的Exhibition/Booth申请)
     cost = models.FloatField(blank=True, null=True)
-    rent = models.FloatField(blank=True, null=True, default=0) # 租金
+    rent = models.FloatField(blank=True, null=True, default=0) #TODO 租金,可能需要想办法在form中限定只有Manager才能设置
     # items : List<Item>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=inventory_category_upload_to, null=True, blank=True)
     # origin, Django泛型, 表示该Category是在哪个Venue/Exhibition/Booth中被创建的
@@ -49,8 +49,8 @@ class Item(models.Model):
     name = models.CharField(max_length=255)
     is_using = models.BooleanField(default=False)  # TODO 1
     is_damaged = models.BooleanField(default=False)
-    power = models.FloatField(blank=True, null=True)
-    water_consumption = models.FloatField(blank=True, null=True)
+    power = models.FloatField(blank=True, null=True) # 每小时的功耗
+    water_consumption = models.FloatField(blank=True, null=True) # 每小时的水消耗量
     last_modified = models.DateTimeField(auto_now=True)
     category = models.ForeignKey("Inventory.InventoryCategory", on_delete=models.CASCADE, related_name='items')
     location = models.ForeignKey("Layout.SpaceUnit", on_delete=models.SET_NULL, null=True,
