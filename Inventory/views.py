@@ -13,6 +13,7 @@ from User.models import Message, Manager, MessageDetail, Exhibitor
 from Venue.models import Venue
 from datetime import timedelta, datetime
 from calendar import monthrange
+from django.utils import timezone
 
 
 @login_required
@@ -315,7 +316,7 @@ def get_monthly_consumption(year, venue):
 def get_all_venues_monthly_consumption(year):
     def split_usage_by_month(usage):
         start = usage.start_time
-        end = usage.end_time or datetime.now()
+        end = usage.end_time if usage.end_time else timezone.now()
         power = usage.item.power or 0
         water = usage.item.water_consumption or 0
 
