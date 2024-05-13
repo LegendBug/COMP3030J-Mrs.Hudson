@@ -19,7 +19,7 @@ services:
     entrypoint: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
-             gunicorn COMP3030J_Hudson.wsgi:application --bind 0.0.0.0:8000"
+             gunicorn --config gunicorn.conf.py COMP3030J_Hudson.wsgi:application"
     volumes:
       - .:/app
     ports:
