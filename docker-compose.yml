@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+
+  db:
+    image: mysql:8.0.28
+    environment:
+      MYSQL_HOST: "db"  # 设置数据库的主机地址
+      MYSQL_ROOT_PASSWORD: "admin"
+      MYSQL_DATABASE: "hudson"
+    ports:
+      - "3307:3306"  # 映射宿主机的3307端口到容器的3306端口
+    volumes:
+      - db_data:/var/lib/mysql
+
+  web:
+    build: .
+    container_name: COMP3030J_Hudson
+    entrypoint: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             gunicorn COMP3030J_Hudson.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USERNAME: root
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: hudson
+
+
+volumes:
+  db_data:
