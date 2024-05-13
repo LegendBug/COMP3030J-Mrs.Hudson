@@ -1,6 +1,7 @@
 from django import forms
 from django.db import transaction
 from django.db.models import Count
+from django.utils.timezone import now
 
 from Booth.models import Booth
 from Exhibition.models import Exhibition
@@ -8,6 +9,7 @@ from Inventory.models import InventoryCategory, Item
 from django.contrib.contenttypes.models import ContentType
 from django import forms
 
+from Statistic.models import Usage
 from . import models
 from .models import Item
 
@@ -115,6 +117,33 @@ class EditItemForm(forms.ModelForm):
             'water_consumption': forms.NumberInput(attrs={'class': 'form-control'}),
             'location': forms.Select(attrs={'class': 'form-control'}),
         }
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            # 检查原数据库表中的is_using字段是否发生变更
+            original_instance = Item.objects.get(pk=instance.pk)
+            instance.save()
+            # if original_instance.is_using != instance.is_using:
+            #     print('end')
+
+            if instance.is_using and not original_instance.is_using:
+                # is_using 从 False 变为 True，开始新的使用
+                Usage.objects.create(
+                    item=instance,
+                    start_time=now(),
+                    location_content_type=instance.affiliation_content_type,
+                    location_object_id=instance.affiliation_object_id
+                )
+            elif not instance.is_using and original_instance.is_using:
+                # is_using 从 True 变为 False，结束当前的使用
+                usage = Usage.objects.filter(item=instance).latest('start_time')
+                usage.end_time = now()
+                duration_hours = (usage.end_time - usage.start_time).total_seconds() / 3600
+                usage.water_consumption = duration_hours * instance.water_consumption if instance.water_consumption else None
+                usage.power_consumption = duration_hours * instance.power if instance.power else None
+                usage.save()
+        return instance
 
 
 class ResApplicationForm(forms.Form):
