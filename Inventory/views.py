@@ -336,7 +336,7 @@ def get_all_venues_monthly_consumption(year):
             month_water = water * month_hours
 
             monthly_data.append({
-                'month': current_month_start,
+                'month': current_month_start.month,
                 'total_power': month_power,
                 'total_water': month_water
             })

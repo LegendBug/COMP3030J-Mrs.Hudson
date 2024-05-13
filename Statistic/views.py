@@ -12,13 +12,14 @@ def get_consumption_data(request, year):
     electric_statistics = {}
 
     for month_data in combined_statistics:
-        month = month_data['month']
-        total_water = month_data['total_water']
-        total_power = month_data['total_power']
+        month_num = month_data[0]
+        formatted_month = f"Month {month_num}"
+        total_water = month_data[1]['total_water']
+        total_power = month_data[1]['total_power']
 
         # 将用水量和用电量数据分别存储在对应的字典中
-        water_statistics[month] = total_water
-        electric_statistics[month] = total_power
+        water_statistics[formatted_month] = total_water
+        electric_statistics[formatted_month] = total_power
     # water_statistics = {
     #     "Month 1": 1200,
     #     "Month 2": 1600,

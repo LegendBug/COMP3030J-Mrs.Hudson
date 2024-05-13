@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
+
 class Usage(models.Model):
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
@@ -11,4 +12,4 @@ class Usage(models.Model):
     payment = models.FloatField(blank=True, null=True)
     location_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='usages')
     location_object_id = models.PositiveIntegerField()
-    location = GenericForeignKey('location_content_type', 'location_object_id') # Venue/Exhibition
+    location = GenericForeignKey('location_content_type', 'location_object_id')  # Venue/Exhibition
