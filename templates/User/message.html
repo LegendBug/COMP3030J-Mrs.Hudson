@@ -88,7 +88,7 @@
             </nav>
         {% else %}
             <!-- 无消息说明 -->
-            <div class="message-info mt-4">
+            <div class="message-info mt-4 ms-5">
             {% if item_type == 'unread' %}
                 <p class="message-info">Great job. All messages have been addressed! 👍</p>
             {% elif item_type == 'inbox' %}
@@ -353,16 +353,16 @@
                                 'X-CSRFToken': token  // 请求头中包含 CSRF 令牌
                             }
                         }).then(response => {
-                                if (response.data.success) {
-                                    container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
-                                    setTimeout(() => {
-                                        window.location.reload();  // 重新加载页面以更新消息列表
-                                    }, 1500);
-                                } else {
-                                    container.innerHTML = `<div class="alert alert-danger">${response.data.error}</div>`;
-                                    container.style.display = 'block';  // 确保消息容器可见
-                                }
-                            })
+                            if (response.data.success) {
+                                container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                                setTimeout(() => {
+                                    window.location.reload();  // 重新加载页面以更新消息列表
+                                }, 1500);
+                            } else {
+                                container.innerHTML = `<div class="alert alert-danger">${response.data.error}</div>`;
+                                container.style.display = 'block';  // 确保消息容器可见
+                            }
+                        })
                             .catch(error => {
                                 // 记录或处理错误
                                 console.error(error);

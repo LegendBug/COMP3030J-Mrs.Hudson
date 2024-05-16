@@ -1,60 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
-*{
+* {
     margin: 0;
     padding: 0;
     outline: 0;
     font-family: 'Poppins', sans-serif;
 }
 
-body{
-    background-color: #f4f4f4;
-    color: #333;
+body {
+    background: #ffffff;
+}
+
+.container {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center; /* 水平居中 */
 }
 
-.container{
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+.chart-container_one {
+    flex: 1;
+    display: flex;
+    width: 100%; /* 调整为 100% 宽度 */
+    justify-content: space-between;
 }
 
-.controls{
+.chart-container_two {
+    flex: 1;
+    width: 100%; /* 设置宽度为 100% */
+    padding: 20px; /* 减少 padding */
+}
+
+.controls {
     margin-top: 30px;
     text-align: center;
 }
 
-.select,
-.input{
+.input {
     padding: 8px;
     margin-right: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
 
-.btn{
-    padding: 8px 15px;
-    border: none;
-    background-color: #303f9f;
-    color: #fff;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+.chart-container {
+    margin-bottom: 20px;
 }
 
-.btn:hover{
-    background-color: #0056b3;
+.card-body canvas {
+    width: 100% !important;
+    height: 400px !important; /* 设置固定高度 */
 }
-
-.navbar {
-    width: 100%; /* 设置导航栏宽度为100% */
-}
-
-.public-base-footer {
-    width: 100%; /* 设置页脚宽度为100% */
-}
-
