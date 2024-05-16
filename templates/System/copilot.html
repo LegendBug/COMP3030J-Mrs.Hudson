@@ -2,6 +2,7 @@
 {% load crispy_forms_filters %}
 {% load static %}
 {% load crispy_forms_tags %}
+{% load markdownx %}
 
 {% block extra_head %}
     <title>Watson</title>
@@ -105,7 +106,7 @@
                         </div>
                         <div class="card-body text-success">
                             <h5 class="card-title">Q: {{ conversation.user_input }}</h5>
-                            <p class="card-text">A: {{ conversation.copilot_response }}</p>
+                            <p class="card-text">A: {{ conversation.copilot_response|markdownx }}</p>
                         </div>
                     </div>
                 {% endfor %}

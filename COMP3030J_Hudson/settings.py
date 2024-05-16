@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     "crispy_bootstrap5",
     "django_extensions",
+    'markdownx',
     'gunicorn',
     'Inventory',
     'User',
@@ -38,7 +39,7 @@ INSTALLED_APPS = [
     'System',
     'Venue',
     'Exhibition',
-    'Booth'
+    'Booth',
 ]
 
 # 配置Django crispy_forms包的表单渲染模板

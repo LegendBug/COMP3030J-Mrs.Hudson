@@ -22,7 +22,8 @@ urlpatterns = [path('', RedirectView.as_view(pattern_name='User:login', permanen
                path('User/', include(('User.urls', 'User'), namespace='User')),
                path('Venue/', include(('Venue.urls', 'Venue'), namespace='Venue')),
                path('Exhibition/', include(('Exhibition.urls', 'Exhibition'), namespace='Exhibition')),
-               path('Booth/', include(('Booth.urls', 'Booth'), namespace='Booth'))
+               path('Booth/', include(('Booth.urls', 'Booth'), namespace='Booth')),
+               path('markdownx/', include('markdownx.urls')),
                ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # 添加data/的url映射
