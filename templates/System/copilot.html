@@ -48,15 +48,15 @@
                         {{ error }}
                     </div>
                 {% endif %}
-                {% if user_input and response %}
-                    {% comment %} <div class="card mb-3">
+                {% comment %} {% if user_input and response %}
+                    <div class="card mb-3">
                     <div class="card-header">
                         <strong>You</strong>
                     </div>
                     <div class="card-body">
                         <p class="card-text">{{ user_input }}</p>
                     </div>
-                </div> {% endcomment %}
+                </div>
                     <div class="card mb-3">
                         <div class="card-header">
                             <strong>Watson</strong>
@@ -66,10 +66,21 @@
                             <p class="card-text">A: {{ response }}</p>
                         </div>
                     </div>
-                {% endif %}
+                {% endif %} {% endcomment %}
+                {% for conversation in conversation_history %}
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <strong>Watson</strong>
+                        </div>
+                        <div class="card-body text-success">
+                            <h5 class="card-title">Q: {{ conversation.user_input }}</h5>
+                            <p class="card-text">A: {{ conversation.copilot_response }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
                 <br>
                 <div class="alert alert-warning mt-4" role="alert">
-                    <strong>Note:</strong> Watson is powered by large language model technology from OpenAI. While we
+                    <strong>Note:</strong> Watson Copilot is powered by LLM technology from OpenAI. While we
                     strive for accuracy, the responses can be imperfect. Always verify critical information
                     independently.
                 </div>

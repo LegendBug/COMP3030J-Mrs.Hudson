@@ -2,6 +2,7 @@ import os
 from openai import OpenAI
 from django.shortcuts import render, redirect
 from dotenv import load_dotenv
+from .models import Conversation
 
 load_dotenv()
 client = OpenAI(
@@ -71,12 +72,16 @@ def copilot(request):
         if user_input:
             try: 
                 response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o",
                     messages=messages,
                     max_tokens=300
                 )
                 chat_response = response.choices[0].message.content
-                context['response'] = chat_response
+                # save the response to the database
+                Conversation.objects.create(user=request.user, user_input=user_input, copilot_response=chat_response)
+                # context['response'] = chat_response
+                conversation_history = Conversation.objects.filter(user=request.user).order_by('-timestamp')
+                context['conversation_history'] = conversation_history
             except Exception as e:
                 context['error'] = "Oops... Seems that a problem occurred 😅. <Error: " + str(e) + ">"
 
