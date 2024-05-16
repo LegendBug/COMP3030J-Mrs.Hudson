@@ -15,16 +15,6 @@
     box-shadow: 0 4px 8px rgba(0, 123, 255, 0.5);
 }
 
-.btn-primary {
-    background-color: #009631;
-    border-color: #008129;
-}
-
-.btn-secondary {
-    background-color: #6c757d;
-    border-color: #6c757d;
-}
-
 .message-info {
     text-align: center; /* 内容居中对齐 */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* 添加盒子阴影 */

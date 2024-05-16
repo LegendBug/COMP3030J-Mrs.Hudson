@@ -225,7 +225,7 @@ h1 a:hover {
     font-weight: 700; /* 使用700的字重，前提是字体支持 */
     padding-top: 20px; /* 增加与页面顶部的空间 */
     font-family: 'Montserrat', sans-serif; /* 应用Roboto字体 */
-    text-shadow: 2px 2px 8px rgba(0,0,0,0.2); /* 添加轻微的文字阴影以增强可读性 */
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2); /* 添加轻微的文字阴影以增强可读性 */
     animation: fadeInLeft 1s ease-in-out;
 }
 
@@ -261,4 +261,31 @@ h1 a:hover {
         transform: translateY(0);
     }
 }
+
+
+.btn-primary {
+    background-color: #218838; /* 柔和的绿色 */
+    border-color: #1e7e34; /* 边框颜色略深 */
+    min-width: 80px; /* 最小宽度 */
+}
+
+.btn-secondary {
+    background-color: #6c757d; /* 更温暖的灰色 */
+    border-color: #6c757d; /* 保持不变 */
+    min-width: 80px; /* 最小宽度 */
+}
+
+.btn-danger {
+    background-color: #b52b2b; /* 更柔和的红色 */
+    border-color: #a02828; /* 边框颜色略深 */
+    min-width: 80px; /* 最小宽度 */
+}
+
+/* 统一按钮文字颜色和样式 */
+.btn {
+    color: white; /* 统一文字颜色 */
+    border-radius: 4px; /* 增加按钮圆角 */
+}
+
+
 
