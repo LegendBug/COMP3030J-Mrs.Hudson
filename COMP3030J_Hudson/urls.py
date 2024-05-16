@@ -25,5 +25,5 @@ urlpatterns = [path('', RedirectView.as_view(pattern_name='User:login', permanen
                path('Booth/', include(('Booth.urls', 'Booth'), namespace='Booth')),
                ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # 添加data/的url映射
-urlpatterns += staticfiles_urlpatterns()  # 添加static/的url映射
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# urlpatterns += staticfiles_urlpatterns()

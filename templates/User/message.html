@@ -13,29 +13,6 @@
 
 {% block content %}
     <div class="container px-10">
-        {% if item_type == 'applications' %}
-            <div class="row">
-                <div class="col-auto">
-                    <button class="btn btn-success mt-2"
-                            onclick="window.location.href='?item_type=applications&applications_type=exhibition'">
-                        Exhibition
-                    </button>
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-success mt-2"
-                            onclick="window.location.href='?item_type=applications&applications_type=booth'">
-                        Booth
-                    </button>
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-success mt-2"
-                            onclick="window.location.href='?item_type=applications&applications_type=resource'">
-                        Resource
-                    </button>
-                </div>
-            </div>
-        {% endif %}
-
         {% if page_obj %}
             <div class="list-group shadow-sm mb-4 mt-2">
                 {% if item_type == 'unread' or item_type == 'inbox' or item_type == 'sent' %}
@@ -170,6 +147,7 @@
                                 replyButtonHtml = `<button onclick="openReplyModal()" class="btn btn-success mt-3">Reply</button>`;
                             }
                             // 关联申请
+                            console.log('message related application', data.application_type, data.application_id);
                             let application_url = '{% url 'User:view_application_detail' 'exhibition' 999 %}'.replace('exhibition', data.application_type).replace('999', data.application_id);
                             // 关联消息板块
                             let relatedMessageHtml = '';

@@ -127,7 +127,7 @@ def view_message(request):
     try:
         # 消息类型默认为 'unread', 申请类型默认为 'exhibition'
         item_type = request.GET.get('item_type', 'unread')
-        applications_type = request.GET.get('applications_type', 'exhibition')
+        applications_type = request.GET.get('applications_type', '')
         # 根据请求的消息类型进行查询
         if item_type == 'unread':
             items = Message.objects.filter(recipient=request.user, is_read=False).order_by('-created_at')
@@ -144,8 +144,7 @@ def view_message(request):
                     items = ExhibitionApplication.objects.filter(applicant=request.user).order_by(
                         'exhibition__start_at')
                 else:
-                    # 当前是参展方，直接返回所有展台申请
-                    items = BoothApplication.objects.all().order_by('booth__start_at')
+                    return Http404("Permission denied")
             elif applications_type == 'booth':
                 if hasattr(request.user, 'manager'):
                     items = BoothApplication.objects.all().order_by('booth__start_at')
@@ -171,14 +170,33 @@ def view_message(request):
 
         # 自定义侧边栏链接
         custom_items = [
-            {'name': '🚨 Unread', 'url': '?item_type=unread',
-             'active_class': 'active' if item_type == 'unread' else ''},
-            {'name': '📭 Inbox', 'url': '?item_type=inbox',
-             'active_class': 'active' if item_type == 'inbox' else ''},
-            {'name': '🗳️ Sent', 'url': '?item_type=sent',
-             'active_class': 'active' if item_type == 'sent' else ''},
-            {'name': '📝 Applications', 'url': '?item_type=applications',
-             'active_class': 'active' if item_type == 'applications' else ''},
+            {'name': '📬 Unread', 'url': '?item_type=unread',
+             'active_class': 'active' if item_type == 'unread' else '',
+             'children': []},
+            {'name': '📪 Inbox', 'url': '?item_type=inbox',
+             'active_class': 'active' if item_type == 'inbox' else '',
+             'children': []},
+            {'name': '📤 Sent', 'url': '?item_type=sent',
+             'active_class': 'active' if item_type == 'sent' else '',
+             'children': []},
+            {'name': '📝 Applications', 'url': '', 'active_class': '',
+             'children': [
+                 {
+                     'name': '🖼️Exhibition',
+                     'url': '?item_type=applications&applications_type=exhibition',
+                     'active_class': 'active' if applications_type == 'exhibition' else ''
+                 },
+                 {
+                     'name': '🪑Booth',
+                     'url': '?item_type=applications&applications_type=booth',
+                     'active_class': 'active' if applications_type == 'booth' else ''
+                 },
+                 {
+                     'name': '📦Resource',
+                     'url': '?item_type=applications&applications_type=resource',
+                     'active_class': 'active' if applications_type == 'resource' else ''
+                 },
+             ]}
         ]
 
         message_form = ReplyMessageForm()
@@ -273,7 +291,6 @@ def view_application_detail(request, application_type, application_id):
             }
         elif application_type == 'booth':
             application = BoothApplication.objects.get(id=application_id)
-            print(1)
             location = application.booth.exhibition.venue.name + ' >>'
             for sector in application.booth.sectors.all():
                 location += ' ' + sector.name
