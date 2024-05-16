@@ -4,5 +4,5 @@ from django.contrib.staticfiles.handlers import StaticFilesHandler  # 添加模�
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'COMP3030J_Hudson.settings')
 
-# application = get_wsgi_application()
-application = StaticFilesHandler(get_wsgi_application())  # 修改
+application = get_wsgi_application()
+# application = StaticFilesHandler(get_wsgi_application())

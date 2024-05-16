@@ -13,3 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 收集静态文件（如果你的项目中有）
 RUN python manage.py collectstatic --noinput
+
+# 设置 entrypoint
+ENTRYPOINT ["/app/wait-for-it.sh", "db:3306", "--"]
