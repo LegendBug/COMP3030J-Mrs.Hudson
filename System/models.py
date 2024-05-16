@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
 
+
 class Chat(models.Model):
     USER = 'USER'
     ASSISTANT = 'ASSISTANT'

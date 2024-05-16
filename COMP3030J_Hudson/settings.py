@@ -30,7 +30,6 @@ INSTALLED_APPS = [
     'crispy_forms',
     "crispy_bootstrap5",
     "django_extensions",
-    'markdownx',
     'gunicorn',
     'Inventory',
     'User',
