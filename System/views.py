@@ -88,3 +88,8 @@ def copilot(request):
     context['user_input'] = user_input
 
     return render(request, 'System/copilot.html', context)
+
+def delete_all_conversation_history(request):
+    Conversation.objects.filter(user=request.user).delete()
+    return redirect('System:copilot')
+
