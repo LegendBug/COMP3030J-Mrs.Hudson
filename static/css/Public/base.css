@@ -267,13 +267,13 @@ h1 a:hover {
 .btn-primary {
     background-color: #218838; /* 柔和的绿色 */
     border-color: #1e7e34; /* 边框颜色略深 */
-    min-width: 80px; /* 最小宽度 */
+    /*min-width: 80px; TODO 跟子模板中的按钮宽度发生了冲突!!!*/
 }
 
 .btn-secondary {
     background-color: #6c757d; /* 更温暖的灰色 */
     border-color: #6c757d; /* 保持不变 */
-    min-width: 80px; /* 最小宽度 */
+    min-width: 80px;
 }
 
 .btn-danger {

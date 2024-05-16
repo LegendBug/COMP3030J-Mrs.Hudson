@@ -52,7 +52,7 @@
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
                             data-bs-toggle="dropdown" aria-expanded="false">
                         Select Floor
-                    </button>
+                    </button> 
                     <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
                         {% for floor_number in floor_range %}
                             {% comment %}我知道你想debug,但这个错误不影响程序的正常运行,单纯是IDE对Django模板渲染的错误提示,你可以忽略它{% endcomment %}
@@ -157,7 +157,7 @@
                             <!-- Image upload field, shown only for Image type -->
                             <div v-if="newElementType === 'Image'" class="mb-3">
                                 <label for="imageUpload" class="form-label">Upload Image</label>
-                                <input type="file" id="imageUpload" class="form-control" accept="image/*">
+                                <input type="file" id="imageUpload" class="form-control" accept="image/*" @change="handleImageUpload">
                             </div>
                         </form>
                     </div>
@@ -426,6 +426,7 @@
                 stage: null,
                 offcanvasOpen: false,
                 newElementType: null, // 用户选择添加的新元素的类型
+                imageSrc: null // 存储上传的图像的Data URL, 这用于在添加图像元素时直接在画板上显示图像
             },
             mounted() {
                 this.synchronizeData()
@@ -440,7 +441,7 @@
                         bottom: '45vh',
                         left: this.offcanvasOpen ? '400px' : '10px', // Adjust '400px' as needed
                         zIndex: '1040',
-                        width: '25px',
+                        width: '25px' ,
                         height: '50px',
                         display: 'flex',
                         justifyContent: 'center',
@@ -513,52 +514,25 @@
                             // 处理当前SpaceUnit的elements
                             spaceUnit.elements.forEach(element => {
                                 const nodeData = JSON.parse(element.data);
-                                const node = Konva.Node.create(nodeData, layer);
-                                console.log('Element:', element, '  Node:', node, '  Node_JSON:', node.toJSON());
-                                layer.add(node);
                                 
-                                // 添加变换和拖拽结束的事件监听器
-                                node.on('transformend dragend', () => {
-                                    let element = this.findElementByKonvaId(this.layers, node.id());
-                                    console.log('Before Element updated:', element);
-                                    if (element) {
-                                        // 更新元素属性
-                                        let data = JSON.parse(element.data);  // 将JSON字符串转换为对象
-                                        // 更新元素属性
-                                        data.attrs.x = node.x();
-                                        data.attrs.y = node.y();
-                                        data.attrs.width = node.width();  // 乘以scaleX因为宽度在变换后可能被缩放
-                                        data.attrs.height = node.height();  // 乘以scaleY因为高度在变换后可能被缩放
-                                        data.attrs.rotation = node.rotation();
-                                        data.attrs.scaleX = node.scaleX();
-                                        data.attrs.scaleY = node.scaleY();
-                                        // 将对象转换回JSON字符串
-                                        element.data = JSON.stringify(data);
-                                    }
-                                    console.log('After Element updated:', element);
-                                });
-                                
-                                if (element.transformable) {
-                                    const transformer = new Konva.Transformer({
-                                        node: node,
-                                        enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top-center', 'bottom-center', 'middle-left', 'middle-right'],
-                                        rotateEnabled: true,
-                                        keepRatio: true,
-                                        // 旋转把手偏移量
-                                        rotateAnchorOffset: 60,
-                                        // 可变形操作的视觉样式
-                                        borderStroke: 'blue',
-                                        borderDash: [3, 3],
-                                        anchorStroke: 'grey',
-                                        anchorFill: 'grey',
-                                        anchorSize: 8,
-                                        borderStrokeWidth: 2
+                                if (element.type === 'Image') { // 如果加载的是图片
+                                    Konva.Image.fromURL(element.image, (imageNode) => {
+                                        imageNode.setAttrs(nodeData.attrs);
+                                        layer.add(imageNode);
+                
+                                        // 添加变换和拖拽结束的事件监听器
+                                        this.addListeners(imageNode, element);
+                
+                                        layer.draw();
                                     });
-                                    layer.add(transformer);
-                                    transformer.attachTo(node);
-                                }
+                                } else {
+                                    const node = Konva.Node.create(nodeData, layer);
+                                    console.log('Element:', element, '  Node:', node, '  Node_JSON:', node.toJSON());
+                                    layer.add(node);                                    
+                                    // 添加变换和拖拽结束的事件监听器
+                                    this.addListeners(node, element);
+                                }                                                                                                                               
                             });
-
                             // 绘制层或组
                             layer.draw();
 
@@ -571,6 +545,49 @@
 
                     // 从根层级开始处理所有层级
                     processLayer(this.layers, null);
+                },
+                
+                addListeners(node, element){
+                    // 添加变换和拖拽结束的事件监听器
+                    node.on('transformend dragend', () => {
+                        let element = this.findElementByKonvaId(this.layers, node.id());
+                        console.log('Before Element updated:', element);
+                        if (element) {
+                            // 更新元素属性
+                            let data = JSON.parse(element.data);  // 将JSON字符串转换为对象
+                            // 更新元素属性
+                            data.attrs.x = node.x();
+                            data.attrs.y = node.y();
+                            data.attrs.width = node.width();  // 乘以scaleX因为宽度在变换后可能被缩放
+                            data.attrs.height = node.height();  // 乘以scaleY因为高度在变换后可能被缩放
+                            data.attrs.rotation = node.rotation();
+                            data.attrs.scaleX = node.scaleX();
+                            data.attrs.scaleY = node.scaleY();
+                            // 将对象转换回JSON字符串
+                            element.data = JSON.stringify(data);
+                        }
+                        console.log('After Element updated:', element);
+                    });
+                
+                    if (element.transformable) {
+                        const transformer = new Konva.Transformer({
+                            node: node,
+                            enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top-center', 'bottom-center', 'middle-left', 'middle-right'],
+                            rotateEnabled: true,
+                            keepRatio: true,
+                            // 旋转把手偏移量
+                            rotateAnchorOffset: 60,
+                            // 可变形操作的视觉样式
+                            borderStroke: 'blue',
+                            borderDash: [3, 3],
+                            anchorStroke: 'grey',
+                            anchorFill: 'grey',
+                            anchorSize: 8,
+                            borderStrokeWidth: 2
+                        });
+                        node.getLayer().add(transformer);
+                        transformer.attachTo(node);
+                    }
                 },
                 
                 findElementByKonvaId(layers, elementId) {
@@ -606,6 +623,17 @@
                     $('#elementPropertiesModal').modal('show');
                 },
                 
+                handleImageUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.imageSrc = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                },
+                
                 confirmElementProperties() {
                     const fillColor = this.newElementType !== 'Image' ?  document.getElementById('fillColor').value : null;
                     const borderStyle = document.getElementById('borderStyle').value;
@@ -618,7 +646,8 @@
                         strokeWidth: borderStyle === 'thin' ? 2 : (borderStyle === 'thick' ? 4 : 0),
                         draggable: draggable,
                         transformable,
-                        imageFile
+                        imageFile,
+                        imageSrc: this.imageSrc // 存储图像的dataURL
                     };
                 
                     // 关闭模态框
@@ -639,12 +668,13 @@
                     this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
                     this.currentLayer = null;
                     this.newElementType = null;
+                    this.imageSrc = null; // 清除图像数据
                 },
 
                 placeElement(elementProps) {
                     const pos = this.stage.getPointerPosition();
                     let newElement;
-                    const { fillColor, strokeWidth, draggable, transformable, imageFile} = elementProps;
+                    const { fillColor, strokeWidth, draggable, transformable, imageFile, imageSrc} = elementProps;
                     // 根据不同类型创建Konva图形实例
                     switch (this.newElementType) {
                         case 'Rect':
@@ -723,18 +753,27 @@
                             });
                             break;
                         case 'Image':
-                            imageFile.onload = () => {
-                                 newElement = new Konva.Image({
-                                    image: imageFile,
+                            const imageObj = new Image();
+                            imageObj.onload = () => {
+                                newElement = new Konva.Image({
+                                    image: imageObj,
                                     x: pos.x,
                                     y: pos.y,
                                     width: 100,
                                     height: 100,
+                                    draggable: draggable,
+                                });
+                                this.synchronizeElementsData().then(() => { // 确保在创建新元素前更新本地数据到后端
+                                    const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
+                                    konvaLayer.add(newElement);
+                                    konvaLayer.draw();
+                                    this.uploadElement(newElement, transformable); // 上传元素数据到服务器                     
                                 });
                             };
+                            imageObj.src = imageSrc;
                             break;
                     }
-                    if (newElement) {
+                    if (newElement && this.newElementType !== 'Image' ) {
                         this.synchronizeElementsData().then(() => { // 确保在创建新元素前更新本地数据到后端
                             const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
                             konvaLayer.add(newElement);
@@ -745,22 +784,29 @@
                 },
 
                 uploadElement(newElement, transformable) {
-                    // 示例：发送基本的矩形数据，根据需求调整发送的数据
-                    const data = {
-                        type: this.newElementType,
-                        transformable: transformable,
-                        data: newElement.toJSON(),
-                        layer_id: this.currentLayer.id,
-                    };
-                    axios.post('{% url "Layout:add_element" %}', data)
-                        .then(response => {
-                            console.log('Element added successfully:', response.data);
-                            this.synchronizeData();
-                            this.resetAddingState(); // 重置添加状态
-                        })
-                        .catch(error => {
-                            console.error('Error adding element:', error);
-                        });
+                    console.log('Uploading new element:', newElement.toJSON());
+                    const formData = new FormData();
+                    formData.append('type', this.newElementType);
+                    formData.append('transformable', transformable);
+                    formData.append('data', newElement.toJSON());
+                    formData.append('layer_id', this.currentLayer.id);
+                    if (this.newElementType === 'Image' && this.elementProps.imageFile) {
+                        formData.append('image', this.elementProps.imageFile);
+                    }
+                    
+                    axios.post('{% url "Layout:add_element" %}', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    })
+                    .then(response => {
+                        console.log('Element added successfully:', response.data);
+                        this.synchronizeData();
+                        this.resetAddingState(); // 重置添加状态
+                    })
+                    .catch(error => {
+                        console.error('Error adding element:', error);
+                    });
                 },
 
                 // ----------------- Offcanvas -----------------

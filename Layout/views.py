@@ -145,11 +145,11 @@ def edit_layer(request):
 @csrf_exempt
 def add_element(request):
     if request.method == 'POST':
-        data = json.loads(request.body)  # 假设数据以JSON格式发送
-        element_type = data.get('type')
-        transformable = data.get('transformable', True)
-        element_data = data.get('data')
-        layer_id = data.get('layer_id')
+        element_type = request.POST.get('type')
+        transformable = request.POST.get('transformable', 'true') == 'true'
+        element_data = request.POST.get('data')
+        layer_id = request.POST.get('layer_id')
+        image_file = request.FILES.get('image')  # 获取上传的图片文件
 
         layer = get_object_or_404(SpaceUnit, id=layer_id)
         # 创建KonvaElement实例
@@ -158,7 +158,8 @@ def add_element(request):
             layer=layer,
             type=element_type,
             data=element_data,
-            transformable=transformable
+            transformable=transformable,
+            image=image_file  # 将上传的图片文件保存到数据库
         )
 
         updated_element_data = json.loads(element_data)
