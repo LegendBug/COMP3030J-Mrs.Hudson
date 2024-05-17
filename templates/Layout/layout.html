@@ -68,7 +68,7 @@
                 <!-- Top层级Accordion -->
                 <div class="accordion" id="accordion">
                     <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" :floor="floor" 
-                    @update-current-layer="setCurrentLayer" @element-added="addElement" @data-updated="synchronizeData">
+                    @update-current-layer="setCurrentLayer" @update-current-element="setCurrentElement" @element-added="addElement" @data-updated="refreshData">
                     </layer-component>
                 </div>
 
@@ -119,7 +119,7 @@
             </div>
         </div>
         
-        <!-- Element Properties Modal -->
+        <!-- Set Konva Element Properties Modal -->
         <div class="modal fade" id="elementPropertiesModal" tabindex="-1" aria-labelledby="elementPropertiesModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -169,6 +169,62 @@
             </div>
         </div>
 
+        <!-- Edit Konva Element Properties Modal -->
+        <div class="modal fade" id="editElementPropertiesModal" tabindex="-1" aria-labelledby="editElementPropertiesModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editElementPropertiesModalLabel">Element Properties</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Form for element properties -->
+                        <form id="editElementPropertiesForm">
+                            <!-- Element Name -->
+                            <div class="mb-3">
+                                <label for="editedElementName" class="form-label">Element Name</label>
+                                <input type="text" id="editedElementName" class="form-control">
+                            </div>
+                        
+                            <!-- Fill Color -->
+                            <div v-if="currentElement && currentElement.type !== 'Image'" class="mb-3">
+                                <label for="editedFillColor" class="form-label">Fill Color</label>
+                                <input type="color" id="editedFillColor" class="form-control form-control-color">
+                            </div>
+                            <!-- Border Style -->
+                            <div class="mb-3">
+                                <label for="editedBorderStyle" class="form-label">Border Style</label>
+                                <select class="form-control" id="editedBorderStyle">
+                                    <option value="none">No Border</option>
+                                    <option value="thin">Thin Border</option>
+                                    <option value="thick">Thick Border</option>
+                                </select>
+                            </div>
+                            <!-- Transformable -->
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="editedTransformable" checked>
+                                <label class="form-check-label" for="editedTransformable">Transformable</label>
+                            </div>
+                            <!-- Draggable -->
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="editedDraggable" checked>
+                                <label class="form-check-label" for="editedDraggable">Draggable</label>
+                            </div>
+                            <!-- Image upload field, shown only for Image type -->
+                            <div v-if="currentElement && currentElement.type === 'Image'" class="mb-3">
+                                <label for="editedImageUpload" class="form-label">Upload Image</label>
+                                <input type="file" id="editedImageUpload" class="form-control" accept="image/*" @change="handleImageUpload">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" @click="editElementProperties">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 {% endblock %}
@@ -204,15 +260,17 @@
                 </h2>
                 <div v-if="open" class="accordion-collapse">
                   <div class="accordion-body">
-                    <layer-component v-for="(child, index) in layer.child_units" :key="index"
-                                     :layer="child" :floor="floor"
-                                     @update-current-layer="$emit('update-current-layer', $event)"
-                                     @data-updated="$emit('data-updated', $event)" @element-added="$emit('element-added', $event)">
+                    <layer-component  v-for="(child, index) in layer.child_units" :key="index"
+                                      :layer="child" :floor="floor"
+                                      @update-current-layer="$emit('update-current-layer', $event)"
+                                      @update-current-element="$emit('update-current-element', $event)"
+                                      @data-updated="$emit('data-updated', $event)" @element-added="$emit('element-added', $event)">
                     </layer-component>
 
-                    <element-component v-for="(element, index) in layer.elements" :key="index"
-                                       :element="element" :floor="floor"
-                                       @data-updated="$emit('data-updated', $event)">
+                    <element-component  v-for="(element, index) in layer.elements" :key="index"
+                                        :element="element" :floor="floor"
+                                        @update-current-element="$emit('update-current-element', $event)"
+                                        @data-updated="$emit('data-updated', $event)">
                     </element-component>
                   </div>
                 </div>
@@ -350,7 +408,7 @@
                 <!-- 上下文菜单 -->
                 <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
                      class="list-group context-menu">
-                    <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Edit Element</a>
+                    <a class="list-group-item list-group-item-action" @click="openEditElement(element); closeContextMenu()">Edit Element</a>
                     <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Delete Item</a>
                 </div>
               </div>
@@ -384,6 +442,7 @@
                             this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
                             this.isContextMenuVisible = true;  // 显示上下文菜单
                     }
+                    this.$emit('update-current-element', this.element);
                 },                
                 closeContextMenu() {
                     this.isContextMenuVisible = false;
@@ -412,7 +471,22 @@
                     this.closeContextMenu();
                     
                     
-                }
+                },
+                openEditElement(element){
+                    this.$emit('update-current-element', element);
+                    // 设置表单字段的值
+                    setTimeout(() => {
+                        const attrs = JSON.parse(element.data).attrs;
+                        document.getElementById('editedElementName').value = element.name;
+                        if (document.getElementById('editedFillColor')) {
+                            document.getElementById('editedFillColor').value = attrs.fill || '#000000'; // 默认值为黑色
+                        }
+                        document.getElementById('editedBorderStyle').value = attrs.strokeWidth === 2 ? 'thin' : (attrs.strokeWidth === 4 ? 'thick' : 'none');
+                        document.getElementById('editedTransformable').checked = element.transformable;
+                        document.getElementById('editedDraggable').checked = attrs.draggable;
+                    }, 0); // 使用 setTimeout 确保在 Vue 的 DOM 更新完成后设置表单值
+                    $('#editElementPropertiesModal').modal('show');               
+                },
             }
         });
 
@@ -423,13 +497,14 @@
                 floor: 1, // 当前楼层,默认为1
                 layers: [],
                 currentLayer: null,
+                currentElement: null,
                 stage: null,
                 offcanvasOpen: false,
                 newElementType: null, // 用户选择添加的新元素的类型
                 imageSrc: null // 存储上传的图像的Data URL, 这用于在添加图像元素时直接在画板上显示图像
             },
             mounted() {
-                this.synchronizeData()
+                this.refreshData()
             },
             beforeDestroy() {
 
@@ -452,9 +527,9 @@
             },
             methods: {
                 // ----------------- 数据加载 -----------------
-                synchronizeData() {
-                    console.log('Synchronizing data...');
-                    return axios.get('{% url "Layout:synchronize_data" %}', {
+                refreshData() {
+                    console.log('Refreshing data...');
+                    return axios.get('{% url "Layout:refresh_data" %}', {
                         params: { 
                             floor: this.floor,
                             current_access_id: {{ current_access.id }},
@@ -640,7 +715,7 @@
                     const transformable = document.getElementById('transformable').checked;
                     const draggable = document.getElementById('draggable').checked;
                     const imageFile = this.newElementType === 'Image' ? document.getElementById('imageUpload').files[0] : null;
-                    
+
                     this.elementProps = {
                         fillColor,
                         strokeWidth: borderStyle === 'thin' ? 2 : (borderStyle === 'thick' ? 4 : 0),
@@ -669,6 +744,16 @@
                     this.currentLayer = null;
                     this.newElementType = null;
                     this.imageSrc = null; // 清除图像数据
+                    
+                    // 清空文件输入字段
+                    const imageUploadInput = document.getElementById('imageUpload');
+                    if (imageUploadInput) {
+                        imageUploadInput.value = '';
+                    }
+                    const editedImageUploadInput = document.getElementById('editedImageUpload');
+                    if (editedImageUploadInput) {
+                        editedImageUploadInput.value = '';
+                    }
                 },
 
                 placeElement(elementProps) {
@@ -801,11 +886,59 @@
                     })
                     .then(response => {
                         console.log('Element added successfully:', response.data);
-                        this.synchronizeData();
+                        this.refreshData();
                         this.resetAddingState(); // 重置添加状态
                     })
                     .catch(error => {
                         console.error('Error adding element:', error);
+                    });
+                },
+
+                editElementProperties(){
+                    this.synchronizeElementsData().then(() => { // 确保在修改新元素后刷新本地数据前更新画板上的数据到后端
+                        // const element = this.findElementByKonvaId(this.layers, this.currentElement.id)   
+                        const konvaElement = this.stage.findOne('#' + this.currentElement.id);            
+                        const fillColor = this.currentElement.type !== 'Image' ?  document.getElementById('editedFillColor').value : null;
+                        const borderStyle = document.getElementById('editedBorderStyle').value;
+                        const draggable = document.getElementById('editedDraggable').checked;
+                        const elementName = document.getElementById('editedElementName').value;
+                        const transformable = document.getElementById('editedTransformable').checked;
+                        const imageFile = this.currentElement.type === 'Image' ? document.getElementById('editedImageUpload').files[0] : null;
+                        // 更新KonvaElement的属性
+                        if (fillColor) {
+                            konvaElement.fill(fillColor);
+                        }
+                        if (borderStyle) {
+                            konvaElement.strokeWidth(borderStyle === 'thin' ? 2 : (borderStyle === 'thick' ? 4 : 0));
+                        }
+                        konvaElement.draggable(draggable);                       
+
+                        const formData = new FormData();
+                        formData.append('id', this.currentElement.id);
+                        formData.append('name', elementName);
+                        formData.append('transformable', transformable);
+                        formData.append('data', konvaElement.toJSON());
+                        if (this.currentElement.type === 'Image' && imageFile) {
+                            formData.append('image', imageFile);
+                        }
+
+                        console.log('Editing element:', konvaElement.toJSON());
+                        axios.post('{% url "Layout:edit_element" %}', formData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        })
+                        .then(response => {
+                            console.log('Element edited successfully:', response.data);
+                            this.refreshData();
+                            this.resetAddingState(); // 重置添加状态
+                            
+                            // 隐藏模态框
+                            $('#editElementPropertiesModal').modal('hide');
+                        })
+                        .catch(error => {
+                            console.error('Error editing element:', error);
+                        });
                     });
                 },
 
@@ -820,7 +953,7 @@
                 changeFloor(floor) { // 切换楼层
                     if (this.floor !== floor) {
                         this.floor = floor;
-                        this.synchronizeData();
+                        this.refreshData();
                     }
                 },
                 // ----------------- Accordion的相关方法 -----------------
@@ -828,7 +961,12 @@
                     console.log('Setting current layer:', layer);
                     this.currentLayer = layer;
                 },
-                
+
+                setCurrentElement(element){
+                    console.log('Setting current element:', element);
+                    this.currentElement = element;
+                },
+
                 addSubLayer() { // 添加子层
                     let formData = new FormData(document.getElementById('addSubLayerForm'));
                     formData.append('floor', this.floor); // 确保floor字段被添加
@@ -836,7 +974,7 @@
                     formData.append('user_type', '{{ user_type }}'); // 添加user_type字段
                     formData.append('affiliation_object_id', {{ current_access.id }}); // 添加user_type字段                    
                     axios.post('{% url "Layout:add_sublayer" %}', formData).then(response => {
-                        this.synchronizeData();
+                        this.refreshData();
                         $('#addSubLayerModal').modal('hide');
                     }).catch(error => {
                         console.error('Error adding sub-layer:', error);
@@ -848,7 +986,7 @@
                     let formData = new FormData(document.getElementById('editLayerForm'));
                     formData.append('id', this.currentLayer.id); // 添加layer_id字段
                     axios.post('{% url "Layout:edit_layer" %}', formData).then(response => {
-                        this.synchronizeData();
+                        this.refreshData();
                         $('#editLayerModal').modal('hide');
                     }).catch(error => {
                         console.error('Error editing layer:', error);
