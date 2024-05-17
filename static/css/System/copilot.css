@@ -1,0 +1,9 @@
+/* Default text color for light mode */
+.card-header, .card-text {
+    color: rgb(0, 0, 0);
+}
+
+/* Override text color for dark mode */
+.card-header.dark-mode, .card-text.dark-mode {
+    color: rgb(255, 255, 255);
+}
