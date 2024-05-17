@@ -318,13 +318,17 @@ h1 a:hover {
     transition: background-color 0.3s;
 }
 
+.card {
+    transition: transform 0.5s ease; /* 添加图片缩放的过渡效果 */
+}
+
+.card.dark-mode {
+    transition: transform 0.5s ease; /* 添加图片缩放的过渡效果 */
+}
+
 .card-columns {
     column-count: 2; /* Adjust based on preference, 2 for two columns */
     column-gap: 5rem;
-}
-
-.card {
-    transition: transform 0.5s ease; /* 添加图片缩放的过渡效果 */
 }
 
 .card:hover {
