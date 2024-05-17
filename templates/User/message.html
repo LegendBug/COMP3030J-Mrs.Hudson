@@ -4,6 +4,7 @@
 {% load static %}
 
 {% block extra_head %}
+    <title> Messages </title>
     <link rel="stylesheet" href="{% static 'css/User/message.css' %}">
 {% endblock %}
 
@@ -90,13 +91,13 @@
             <!-- 无消息说明 -->
             <div class="message-info mt-4 ms-5">
             {% if item_type == 'unread' %}
-                <p class="message-info">Great job. All messages have been addressed! 👍</p>
+                <p class="message-info">Great job. All messages have been addressed 👍</p>
             {% elif item_type == 'inbox' %}
-                <p class="message-info">No message received yet. 😌</p>
+                <p class="message-info">No message received yet 😌</p>
             {% elif item_type == 'sent' %}
-                <p class="message-info">No sent messages. 😲</p>
+                <p class="message-info">No sent messages 😲</p>
             {% elif item_type == 'applications' %}
-                <p class="message-info">No Applications. 😇</p>
+                <p class="message-info">No Applications 😇</p>
             {% endif %}
         {% endif %}
         </div>

@@ -182,17 +182,17 @@ def view_message(request):
             {'name': '📝 Applications', 'url': '', 'active_class': '',
              'children': [
                  {
-                     'name': '🖼️Exhibition',
+                     'name': '🖼️ Exhibitions',
                      'url': '?item_type=applications&applications_type=exhibition',
                      'active_class': 'active' if applications_type == 'exhibition' else ''
                  },
                  {
-                     'name': '🪑Booth',
+                     'name': '🪑 Booths',
                      'url': '?item_type=applications&applications_type=booth',
                      'active_class': 'active' if applications_type == 'booth' else ''
                  },
                  {
-                     'name': '📦Resource',
+                     'name': '📦 Resources',
                      'url': '?item_type=applications&applications_type=resource',
                      'active_class': 'active' if applications_type == 'resource' else ''
                  },
