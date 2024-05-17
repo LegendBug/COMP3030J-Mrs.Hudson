@@ -138,7 +138,6 @@
                                 <label for="elementName" class="form-label">Element Name</label>
                                 <input type="text" id="elementName" class="form-control">
                             </div>
-
                             <!-- Fill Color -->
                             <div v-if="newElementType !== 'Image'" class="mb-3">
                                 <label for="fillColor" class="form-label">Fill Color</label>
@@ -152,6 +151,11 @@
                                     <option value="thin">Thin Border</option>
                                     <option value="thick">Thick Border</option>
                                 </select>
+                            </div>
+                             <!-- Border Color -->
+                            <div class="mb-3">
+                                <label for="borderColor" class="form-label">Border Color</label>
+                                <input type="color" id="borderColor" class="form-control form-control-color">
                             </div>
                             <!-- Transformable -->
                             <div class="mb-3 form-check">
@@ -183,7 +187,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="editElementPropertiesModalLabel">Element Properties</h5>
+                        <h5 class="modal-title" id="editElementPropertiesModalLabel">Edit Element Properties</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -194,7 +198,6 @@
                                 <label for="editedElementName" class="form-label">Element Name</label>
                                 <input type="text" id="editedElementName" class="form-control">
                             </div>
-
                             <!-- Fill Color -->
                             <div v-if="currentElement && currentElement.type !== 'Image'" class="mb-3">
                                 <label for="editedFillColor" class="form-label">Fill Color</label>
@@ -209,6 +212,11 @@
                                     <option value="thick">Thick Border</option>
                                 </select>
                             </div>
+                            <!-- Border Color -->
+                            <div class="mb-3">
+                                <label for="editedBorderColor" class="form-label">Border Color</label>
+                                <input type="color" id="editedBorderColor" class="form-control form-control-color">
+                            </div>                                    
                             <!-- Transformable -->
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" id="editedTransformable" checked>
@@ -220,7 +228,7 @@
                                 <label class="form-check-label" for="editedDraggable">Draggable</label>
                             </div>
                             <!-- Image upload field, shown only for Image type -->
-                            <div v-if="currentElement && currentElement.type === 'Image'" class="mb-3">
+                            <div v-if="currentElement && currentElement.type !== 'Image'" class="mb-3">
                                 <label for="editedImageUpload" class="form-label">Upload Image</label>
                                 <input type="file" id="editedImageUpload" class="form-control" accept="image/*" @change="handleImageUpload">
                             </div>
@@ -489,8 +497,13 @@
                         document.getElementById('editedElementName').value = element.name;
                         if (document.getElementById('editedFillColor')) {
                             document.getElementById('editedFillColor').value = attrs.fill || '#000000'; // 默认值为黑色
+                        } 
+                        const strokeWidth = attrs.strokeWidth || 0;
+                        const stroke = attrs.stroke || '#000000';
+                        document.getElementById('editedBorderStyle').value = strokeWidth === 1 ? 'thin' : (strokeWidth === 4 ? 'thick' : 'none');
+                        if (strokeWidth !== 0) {
+                            document.getElementById('editedBorderColor').value = stroke;
                         }
-                        document.getElementById('editedBorderStyle').value = attrs.strokeWidth === 2 ? 'thin' : (attrs.strokeWidth === 4 ? 'thick' : 'none');
                         document.getElementById('editedTransformable').checked = element.transformable;
                         document.getElementById('editedDraggable').checked = attrs.draggable;
                     }, 0); // 使用 setTimeout 确保在 Vue 的 DOM 更新完成后设置表单值
@@ -510,7 +523,7 @@
                 stage: null,
                 offcanvasOpen: false,
                 newElementType: null, // 用户选择添加的新元素的类型
-                imageSrc: null // 存储上传的图像的Data URL, 这用于在添加图像元素时直接在画板上显示图像
+                imageSrc: null, // 存储上传的图像的Data URL, 这用于在添加图像元素时直接在画板上显示图像
             },
             mounted() {
                 this.refreshData()
@@ -591,9 +604,10 @@
                             // 处理当前SpaceUnit的elements
                             spaceUnit.elements.forEach(element => {
                                 const nodeData = JSON.parse(element.data);
+                                console.log('nodeData loaded:', nodeData);
                                 if (element.type === 'Image') { // 如果加载的是图片
-                                    Konva.Image.fromURL(element.image, (imageNode) => {
-                                        imageNode.setAttrs(nodeData.attrs);
+                                    Konva.Image.fromURL(element.image, (imageNode) => {                                       
+                                        imageNode.setAttrs(nodeData);
                                         group.add(imageNode);
                                         this.addListenersForElement(imageNode, element, spaceUnit); // 添加变换和拖拽结束的事件监听器
 
@@ -674,12 +688,18 @@
                             this.currentElement = element;
                             // 设置表单字段的值
                             setTimeout(() => {
+                                this.$emit('update-current-element', element);                                               
                                 const attrs = JSON.parse(element.data).attrs;
                                 document.getElementById('editedElementName').value = element.name;
                                 if (document.getElementById('editedFillColor')) {
                                     document.getElementById('editedFillColor').value = attrs.fill || '#000000'; // 默认值为黑色
                                 }
-                                document.getElementById('editedBorderStyle').value = attrs.strokeWidth === 2 ? 'thin' : (attrs.strokeWidth === 4 ? 'thick' : 'none');
+                                const strokeWidth = attrs.strokeWidth || 0;
+                                const stroke = attrs.stroke || '#000000';                                                        
+                                document.getElementById('editedBorderStyle').value = strokeWidth === 1 ? 'thin' : (strokeWidth === 4 ? 'thick' : 'none');
+                                if (strokeWidth !== 0) {
+                                    document.getElementById('editedBorderColor').value = stroke;
+                                }                                
                                 document.getElementById('editedTransformable').checked = element.transformable;
                                 document.getElementById('editedDraggable').checked = attrs.draggable;
                             }, 0); // 使用 setTimeout 确保在 Vue 的 DOM 更新完成后设置表单值
@@ -755,6 +775,7 @@
                     const name = document.getElementById('elementName').value;
                     const fillColor = this.newElementType !== 'Image' ?  document.getElementById('fillColor').value : null;
                     const borderStyle = document.getElementById('borderStyle').value;
+                    const borderColor = borderStyle !== 'none' ? document.getElementById('borderColor').value : null;
                     const transformable = document.getElementById('transformable').checked;
                     const draggable = document.getElementById('draggable').checked;
                     const imageFile = this.newElementType === 'Image' ? document.getElementById('imageUpload').files[0] : null;
@@ -762,7 +783,8 @@
                     this.elementProps = {
                         name,
                         fillColor,
-                        strokeWidth: borderStyle === 'thin' ? 2 : (borderStyle === 'thick' ? 4 : 0),
+                        strokeWidth: borderStyle === 'thin' ? 1 : (borderStyle === 'thick' ? 4 : 0),
+                        stroke: borderColor,
                         draggable: draggable,
                         transformable,
                         imageFile,
@@ -775,14 +797,14 @@
                     document.getElementById('konva-container').style.cursor = 'crosshair';
                     this.stage.on('mousedown touchstart', (e) => {
                         if (e.evt.button === 2) {
-                            this.resetAddingState();
+                            this.resetState();
                         } else if (e.evt.button === 0) {
                             this.placeElement(this.elementProps, e);
                         }
                     });
                 },
 
-                resetAddingState() {
+                resetState() {
                     this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
                     this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
                     this.currentLayer = null;
@@ -803,7 +825,7 @@
                 placeElement(elementProps) {
                     const pos = this.stage.getPointerPosition();
                     let newElement;
-                    const { name, fillColor, strokeWidth, draggable, transformable, imageFile, imageSrc} = elementProps;
+                    const { name, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
                     // 根据不同类型创建Konva图形实例
                     switch (this.newElementType) {
                         case 'Rect':
@@ -813,7 +835,7 @@
                                 width: 100,
                                 height: 50,
                                 fill: fillColor,
-                                stroke: 'black',
+                                stroke: stroke, // 使用用户选择的stroke颜色
                                 strokeWidth: strokeWidth,
                                 draggable: draggable,
                             });
@@ -825,7 +847,7 @@
                                 y: pos.y,
                                 data: 'M10,10 C0,0 50,0 50,50 Z',
                                 fill: fillColor,
-                                stroke: 'black',
+                                stroke: stroke,
                                 strokeWidth: strokeWidth,
                             });
                             break;
@@ -836,7 +858,7 @@
                                 sides: 6,
                                 radius: 40,
                                 fill: fillColor,
-                                stroke: 'black',
+                                stroke: stroke, 
                                 strokeWidth: strokeWidth,
                             });
                             break;
@@ -846,17 +868,19 @@
                                 y: pos.y,
                                 radius: 30,
                                 fill: fillColor,
-                                stroke: 'black',
+                                stroke: stroke,
                                 strokeWidth: strokeWidth,
+                                draggable: draggable,
                             });
                             break;
                         case 'Line':
                             newElement = new Konva.Line({
                                 points: [pos.x, pos.y, pos.x + 100, pos.y + 50],
-                                stroke: 'black',
+                                 stroke: stroke,
                                 strokeWidth: strokeWidth,
                                 lineCap: 'round',
                                 lineJoin: 'round',
+                                draggable: draggable,
                             });
                             break;
                         case 'Arrow':
@@ -867,7 +891,7 @@
                                 pointerLength: 20,
                                 pointerWidth: 20,
                                 fill: fillColor,
-                                stroke: 'black',
+                                stroke: stroke, 
                                 strokeWidth: strokeWidth,
                             });
                             break;
@@ -879,6 +903,7 @@
                                 fontSize: 24,
                                 fontFamily: 'Calibri',
                                 fill: fillColor,
+                                draggable: draggable,
                             });
                             break;
                         case 'Image':
@@ -890,6 +915,8 @@
                                     y: pos.y,
                                     width: 100,
                                     height: 100,
+                                    stroke: stroke,
+                                    strokeWidth: strokeWidth,
                                     draggable: draggable,
                                 });
                                 this.synchronizeElementsData().then(() => { // 确保在创建新元素前更新本地数据到后端
@@ -914,7 +941,7 @@
 
                 uploadElement(newElement, elementProps) {
                     console.log('Uploading new element:', newElement.toJSON());
-                    const { name, fillColor, strokeWidth, draggable, transformable, imageFile, imageSrc} = elementProps;
+                    const { name, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
                     const formData = new FormData();
                     formData.append('name', name );
                     formData.append('transformable', transformable);
@@ -933,7 +960,7 @@
                     .then(response => {
                         console.log('Element added successfully:', response.data);
                         this.refreshData();
-                        this.resetAddingState(); // 重置添加状态
+                        this.resetState(); // 重置添加状态
                     })
                     .catch(error => {
                         console.error('Error adding element:', error);
@@ -946,6 +973,7 @@
                         const konvaElement = this.stage.findOne('#' + this.currentElement.id);
                         const fillColor = this.currentElement.type !== 'Image' ?  document.getElementById('editedFillColor').value : null;
                         const borderStyle = document.getElementById('editedBorderStyle').value;
+                        const borderColor = borderStyle !== 'none' ? document.getElementById('editedBorderColor').value : null;
                         const draggable = document.getElementById('editedDraggable').checked;
                         const elementName = document.getElementById('editedElementName').value;
                         const transformable = document.getElementById('editedTransformable').checked;
@@ -955,7 +983,10 @@
                             konvaElement.fill(fillColor);
                         }
                         if (borderStyle) {
-                            konvaElement.strokeWidth(borderStyle === 'thin' ? 2 : (borderStyle === 'thick' ? 4 : 0));
+                            konvaElement.strokeWidth(borderStyle === 'thin' ? 1 : (borderStyle === 'thick' ? 4 : 0));
+                        }
+                        if (borderColor) {
+                            konvaElement.stroke(borderColor);
                         }
                         konvaElement.draggable(draggable);
 
@@ -977,7 +1008,7 @@
                         .then(response => {
                             console.log('Element edited successfully:', response.data);
                             this.refreshData();
-                            this.resetAddingState(); // 重置添加状态
+                            this.resetState(); // 重置添加状态
 
                             // 隐藏模态框
                             $('#editElementPropertiesModal').modal('hide');
