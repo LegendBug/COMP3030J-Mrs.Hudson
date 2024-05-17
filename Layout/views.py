@@ -48,7 +48,7 @@ def layout(request):
                    'add_sublayer_form': add_sublayer_form, 'edit_layer_form': edit_layer_form})
 
 
-def synchronize_data(request):  # {url (Layout:get_floor_data)}
+def refresh_data(request):
     if request.method == 'GET':
         # 从GET请求中获取参数
         floor = int(request.GET.get('floor', 1))
@@ -145,25 +145,58 @@ def edit_layer(request):
 @csrf_exempt
 def add_element(request):
     if request.method == 'POST':
-        data = json.loads(request.body)  # 假设数据以JSON格式发送
-        element_type = data.get('type')
-        transformable = data.get('transformable', True)
-        element_data = data.get('data')
-        layer_id = data.get('layer_id')
+        element_type = request.POST.get('type')
+        name = request.POST.get('name')
+        transformable = request.POST.get('transformable', 'true') == 'true'
+        element_data = request.POST.get('data')
+        layer_id = request.POST.get('layer_id')
+        image_file = request.FILES.get('image')  # 获取上传的图片文件
 
         layer = get_object_or_404(SpaceUnit, id=layer_id)
         # 创建KonvaElement实例
         konva_element = KonvaElement.objects.create(
-            name=f"New {element_type}",  # 可能需要从data中提取或定义默认值
+            name=name,
             layer=layer,
             type=element_type,
             data=element_data,
-            transformable=transformable
+            transformable=transformable,
+            image=image_file  # 将上传的图片文件保存到数据库
         )
 
         updated_element_data = json.loads(element_data)
         updated_element_data["attrs"]["id"] = f"{konva_element.pk}"  # 添加id属性
         konva_element.data = json.dumps(updated_element_data)  # 更新已创建的KonvaElement实例的data字段
+        konva_element.save()
+
+        # 返回新创建的KonvaElement的信息
+        return JsonResponse({
+            'id': konva_element.id,
+            'name': konva_element.name,
+            'layer': konva_element.layer.id if konva_element.layer else None,
+            'type': konva_element.type,
+            'data': konva_element.data,
+            'image_url': konva_element.image.url if konva_element.image else None
+        }, safe=False)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@csrf_exempt
+def edit_element(request): # {url (Layout:edit_element)}
+    if request.method == 'POST':
+        element_id = request.POST.get('id')
+        name = request.POST.get('name')
+        transformable = request.POST.get('transformable', 'true') == 'true'
+        element_data = request.POST.get('data')
+        image_file = request.FILES.get('image')  # 获取上传的图片文件
+
+        konva_element = get_object_or_404(KonvaElement, id=element_id)
+        # 更新KonvaElement实例
+        konva_element.name = name
+        konva_element.transformable = transformable
+        konva_element.data = element_data
+        if image_file:
+            konva_element.image = image_file
         konva_element.save()
 
         # 返回新创建的KonvaElement的信息
@@ -190,7 +223,7 @@ def delete_element(request):
 
 
 @csrf_exempt
-def synchronize_elements_data(request):
+def synchronize_elements_data(request): # 该方法与edit_element方法的区别是, 该方法只被用于Konva对象在画板上进行位移或变换后刷新Konva对象在后端的data属性中的数据
     if request.method == 'POST':
         data = json.loads(request.body)  # 使用 json.loads 解析请求体中的 JSON 数据
         root_data = data.get('root')
