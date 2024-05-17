@@ -7,6 +7,19 @@ html, body {
     background-size: cover;
     background-attachment: fixed;
     overflow-x: hidden; /* Prevent scroll on narrow devices */
+    transition: background 0.3s;
+}
+
+body.dark-mode {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(rgba(34, 34, 34, 0.8), rgba(24, 24, 24, 0.9)), url('../../images/Public/poster.jpg') no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    overflow-x: hidden;
+    transition: background 0.3s;
 }
 
 image, h1, h2, h3, h4, h5, h6 {
@@ -18,20 +31,49 @@ image, h1, h2, h3, h4, h5, h6 {
 /*--------------------------------------------------------------*/
 /* 基础导航栏样式 */
 .navbar {
-    background-color: #343a40; /* 深灰色背景 */
-    border-bottom: 3px solid #009631; /* 添加一个橙色边框在底部 */
+    background-color: #ececec; /* 深灰色背景 */
+    border-bottom: 3px solid #62da00; /* 添加一个橙色边框在底部 */
+    transition: background-color 0.3s;
+}
+
+.navbar.dark-mode {
+    background-color: #1f1f1f;
+    border-bottom: 3px solid #009631;
 }
 
 /* 导航栏品牌LOGO样式 */
 .navbar-brand {
-    font-weight: bold; /* 加粗字体 */
-    color: #ffffff; /* 白色文字 */
+    font-weight: bold;
+    color: #1f1f1f;
+    transition: color 0.3s ease; /* 平滑颜色过渡效果 */
+}
+
+.navbar-brand.dark-mode {
+    color: #f0f0f0;
+    transition: color 0.3s ease;
+}
+
+.navbar-brand:hover, .navbar-brand:focus {
+    color: #28a745; /* 高亮 */
+    text-decoration: none; /* 去除下划线 */
+    transition: color 0.3s ease; /* 平滑颜色过渡效果 */
+}
+
+.navbar-brand.dark-mode:hover, .navbar-brand.dark-mode:focus {
+    color: #009631;
+    text-decoration: none;
+    transition: color 0.3s ease;
 }
 
 /* 导航栏链接样式 */
 .nav-link {
-    color: #f8f9fa; /* 浅灰色文字 */
+    color: #1f1f1f;
     transition: color 0.3s ease; /* 平滑颜色过渡效果 */
+}
+
+.nav-link.dark-mode {
+    color: #f0f0f0;
+    transition: color 0.3s ease;
 }
 
 /* 导航栏链接悬停与焦点样式 */
@@ -40,15 +82,29 @@ image, h1, h2, h3, h4, h5, h6 {
     text-decoration: none; /* 去除下划线 */
 }
 
+.nav-link.dark-mode:hover, .nav-link.dark-mode:focus, .nav-link.dark-mode:active {
+    color: #28a745;
+    text-decoration: none;
+}
+
 /* 导航栏当前活动链接样式 */
 .nav-item.active .nav-link {
     background-color: #009631; /* 背景 */
-    color: #fff; /* 白色文字 */
+    color: #f0f0f0;
+}
+
+.nav-item.active.dark-mode .nav-link.dark-mode {
+    background-color: #28a745;
+    color: #fff;
 }
 
 /* 响应式导航按钮样式 */
 .navbar-toggler {
     border-color: #009631; /* 边框 */
+}
+
+.navbar-toggler.dark-mode {
+    border-color: #28a745;
 }
 
 .navbar-toggler-icon {
@@ -79,12 +135,23 @@ image, h1, h2, h3, h4, h5, h6 {
 /*--------------------------------------------------------------*/
 /* 页脚样式 */
 .public-base-footer {
-    background: linear-gradient(180deg, rgba(52, 58, 64, 0.8), rgba(52, 58, 64, 1)); /* 渐变背景 */
-    color: #f8f9fa; /* 浅灰色文字 */
+    background: #ececec;
+    color: #1f1f1f;
     text-align: center;
-    border-top: 4px solid #009631; /* 边框 */
+    border-top: 4px solid #62da00; /* 边框 */
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* 向上的阴影效果 */
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 优雅的字体 */
+    transition: background 0.3s;
+}
+
+.public-base-footer.dark-mode {
+    background: #1f1f1f;
+    color: #f0f0f0;
+    text-align: center;
+    border-top: 4px solid #009631;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* 向上的阴影效果 */
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 优雅的字体 */
+    transition: background 0.3s;
 }
 
 /* 页脚链接样式 */
@@ -113,15 +180,27 @@ image, h1, h2, h3, h4, h5, h6 {
 }
 
 .toast {
-    border-left: 4px solid #009631; /* 给Toast添加左侧边框 */
+    border-left: 4px solid #62da00; /* 给Toast添加左侧边框 */
     background-color: #fff; /* 设置Toast的背景颜色 */
     color: #343a40; /* 设置Toast的文字颜色 */
+}
+
+.toast.dark-mode {
+    border-left: 4px solid #009631; /* 更深的绿色边框 */
+    background-color: #1f1f1f; /* 更深的背景颜色 */
+    color: #f0f0f0; /* 更深的文字颜色 */
 }
 
 .toast-header {
     background-color: #f8f9fa; /* 设置Toast头部的背景颜色 */
     border-bottom: 1px solid #e2e3e5; /* 设置Toast头部的底部边框 */
     color: #6c757d; /* 设置Toast头部的文字颜色 */
+}
+
+.toast-header.dark-mode {
+    background-color: #343a40; /* 更深的背景颜色 */
+    border-bottom: 1px solid #343a40; /* 更深的底部边框 */
+    color: #f0f0f0; /* 更深的文字颜色 */
 }
 
 .toast-body {
@@ -158,6 +237,12 @@ image, h1, h2, h3, h4, h5, h6 {
     background-color: rgba(183, 183, 183, 0.8); /* 表头背景半透明 */
     color: #9d9d9d; /* 表头字体颜色，使用纯白色 */
     border-radius: 0.5rem;
+    transition: background-color 0.3s;
+}
+
+.table.dark-mode thead {
+    background-color: rgba(34, 34, 34, 0.8); /* 更深的表头背景 */
+    color: #f0f0f0; /* 更深的表头字体颜色 */
 }
 
 /* 表格单元格样式 */
@@ -169,14 +254,27 @@ image, h1, h2, h3, h4, h5, h6 {
     text-align: center; /* Centers text in all cells */
 }
 
+.table.dark-mode th, .table.dark-mode td {
+    color: #f0f0f0; /* 更深的字体颜色 */
+    background-color: rgba(34, 34, 34, 0.8); /* 更深的背景 */
+    transition: background-color 0.3s;
+}
+
 /* 表格行悬停时的样式 */
 .table-hover tbody tr:hover {
     background-color: rgba(255, 255, 255, 0.2); /* 行背景变亮且半透明 */
+    color: #f0f0f0; /* 更深的字体颜色 */
+    transition: background-color 0.3s;
 }
 
-.table tbody td {
-    vertical-align: middle; /* Aligns content of table cells vertically centered */
+.table-hover.dark-mode tbody tr td:hover {
+    background-color: rgba(34, 34, 34, 0.5); /* 更深的行背景 */
+    color: #e9ecef; /* 更深的字体颜色 */
 }
+
+/*.table tbody td {*/
+/*    vertical-align: middle; !* Aligns content of table cells vertically centered *!*/
+/*}*/
 
 .table img {
     width: auto; /* 自动调整宽度以保持图片比例 */
@@ -205,6 +303,19 @@ h1 a:hover {
     border-radius: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     overflow: hidden; /* 确保图片圆角 */
+    transition: background-color 0.3s;
+}
+
+.card.dark-mode {
+    background-color: rgba(34, 34, 34, 0.8);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    animation: fadeInUp 0.8s ease-out;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    border-radius: 20px;
+    overflow: hidden; /* 确保图片圆角 */
+    transition: background-color 0.3s;
 }
 
 .card-columns {
@@ -220,6 +331,14 @@ h1 a:hover {
     transform: scale(1.02); /* 当鼠标悬停时放大图片 */
 }
 
+.card-title {
+    color: #1f1f1f;
+}
+
+.card-title.dark-mode {
+    color: #f0f0f0;
+}
+
 .logo-title {
     font-size: 48px; /* 增加字体大小 */
     color: #2c3e50; /* 更新为更深、更专业的颜色 */
@@ -228,6 +347,18 @@ h1 a:hover {
     font-family: 'Montserrat', sans-serif; /* 应用Roboto字体 */
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2); /* 添加轻微的文字阴影以增强可读性 */
     animation: fadeInLeft 1s ease-in-out;
+    transition: all 0.3s ease-in-out; /* 平滑过渡效果 */
+}
+
+.logo-title.dark-mode {
+    color: #4f7497;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+    font-size: 48px; /* 增加字体大小 */
+    font-weight: 700; /* 使用700的字重，前提是字体支持 */
+    padding-top: 20px; /* 增加与页面顶部的空间 */
+    font-family: 'Montserrat', sans-serif; /* 应用Roboto字体 */
+    animation: fadeInLeft 1s ease-in-out;
+    transition: all 0.3s ease-in-out; /* 平滑过渡效果 */
 }
 
 .message-info {
@@ -239,7 +370,6 @@ h1 a:hover {
     transition: all 0.3s ease-in-out; /* 平滑过渡效果 */
     animation: fadeInUp 1s ease-in-out; /* 应用动画 */
 }
-
 
 @keyframes fadeInLeft {
     from {
@@ -287,6 +417,3 @@ h1 a:hover {
     color: white; /* 统一文字颜色 */
     border-radius: 4px; /* 增加按钮圆角 */
 }
-
-
-
