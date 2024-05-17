@@ -37,6 +37,9 @@
         </button>
 
         <div id="konva-container"></div>
+        
+        <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
+        <div id="tooltip" style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
         <!-- Offcanvas -->
         <div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" id="offcanvasScrolling"
@@ -135,7 +138,7 @@
                                 <label for="elementName" class="form-label">Element Name</label>
                                 <input type="text" id="elementName" class="form-control">
                             </div>
-                        
+
                             <!-- Fill Color -->
                             <div v-if="newElementType !== 'Image'" class="mb-3">
                                 <label for="fillColor" class="form-label">Fill Color</label>
@@ -191,7 +194,7 @@
                                 <label for="editedElementName" class="form-label">Element Name</label>
                                 <input type="text" id="editedElementName" class="form-control">
                             </div>
-                        
+
                             <!-- Fill Color -->
                             <div v-if="currentElement && currentElement.type !== 'Image'" class="mb-3">
                                 <label for="editedFillColor" class="form-label">Fill Color</label>
@@ -491,7 +494,7 @@
                         document.getElementById('editedTransformable').checked = element.transformable;
                         document.getElementById('editedDraggable').checked = attrs.draggable;
                     }, 0); // 使用 setTimeout 确保在 Vue 的 DOM 更新完成后设置表单值
-                    $('#editElementPropertiesModal').modal('show');               
+                    $('#editElementPropertiesModal').modal('show');
                 },
             }
         });
@@ -575,58 +578,55 @@
                     this.stage = new Konva.Stage({
                         container: 'konva-container',
                         width: window.innerWidth * 0.9,
-                        height:  window.innerHeight * 0.9,
+                        height:  window.innerHeight * 0.91,
                     });
-
+                                      
                     // 递归函数来处理每个层级的SpaceUnit和elements
-                    const processLayer = (spaceUnits, parentLayer) => {
+                    const processLayer = (spaceUnits, parent) => {
                         spaceUnits.forEach(spaceUnit => {
-                            let layer;
-                            if (!parentLayer) {
-                                // 创建新的层如果没有父层
-                                layer = new Konva.Layer();
-                                this.stage.add(layer);
-                            } else {
-                                // 使用Group来模拟层嵌套
-                                layer = new Konva.Group();
-                                parentLayer.add(layer);
-                            }
+                            // 使用Group来模拟层嵌套
+                            let group = new Konva.Group();
+                            parent.add(group); // 将当前层添加到父组件中
 
                             // 处理当前SpaceUnit的elements
                             spaceUnit.elements.forEach(element => {
                                 const nodeData = JSON.parse(element.data);
-                                
                                 if (element.type === 'Image') { // 如果加载的是图片
                                     Konva.Image.fromURL(element.image, (imageNode) => {
                                         imageNode.setAttrs(nodeData.attrs);
-                                        layer.add(imageNode);
-                                        // 添加变换和拖拽结束的事件监听器
-                                        this.addListeners(imageNode, element);
-                                        layer.draw();
+                                        group.add(imageNode);
+                                        this.addListenersForElement(imageNode, element, spaceUnit); // 添加变换和拖拽结束的事件监听器
+
+                                        group.moveToTop();
+                                        group.draw();
+
                                     });
                                 } else {
-                                    const node = Konva.Node.create(nodeData, layer);
-                                    console.log('Element:', element, '  Node:', node, '  Node_JSON:', node.toJSON());
-                                    layer.add(node);                                    
-                                    // 添加变换和拖拽结束的事件监听器
-                                    this.addListeners(node, element);
-                                }                                                                                                                               
+                                    const node = Konva.Node.create(nodeData, group);
+                                    group.add(node);
+                                    this.addListenersForElement(node, element, spaceUnit); // 添加变换和拖拽结束的事件监听器
+
+                                    group.moveToTop();
+                                    group.draw();
+                                }
                             });
                             // 绘制层或组
-                            layer.draw();
+                            group.draw();
 
                             // 如果当前SpaceUnit有子单位，则递归处理
                             if (spaceUnit.child_units && spaceUnit.child_units.length > 0) {
-                                processLayer(spaceUnit.child_units, layer);
+                                processLayer(spaceUnit.child_units, group);
                             }
                         });
                     };
-
-                    // 从根层级开始处理所有层级
-                    processLayer(this.layers, null);
+                    
+                    const rootLayer = new Konva.Layer();
+                    this.stage.add(rootLayer);       
+                    processLayer(this.layers, rootLayer); // 从根层级开始处理所有层级
+                    rootLayer.draw();
                 },
                 
-                addListeners(node, element){
+                addListenersForElement(node, element, parentSpaceUnit){
                     // 添加变换和拖拽结束的事件监听器
                     node.on('transformend dragend', () => {
                         let element = this.findElementByKonvaId(this.layers, node.id());
@@ -665,7 +665,7 @@
                         node.getLayer().add(transformer);
                         transformer.attachTo(node);
                     }
-                    
+
                     // 添加右键点击监听器
                     node.on('contextmenu', (e) => {
                         e.evt.preventDefault();
@@ -683,9 +683,28 @@
                                 document.getElementById('editedTransformable').checked = element.transformable;
                                 document.getElementById('editedDraggable').checked = attrs.draggable;
                             }, 0); // 使用 setTimeout 确保在 Vue 的 DOM 更新完成后设置表单值
-                            $('#editElementPropertiesModal').modal('show'); 
-                                }
-                            });
+                            $('#editElementPropertiesModal').modal('show');
+                        }
+                    });
+                                       
+                    const tooltip = document.getElementById('tooltip');
+                    const showTooltip = (text, evt) => {
+                        tooltip.style.display = 'block';
+                        tooltip.innerText = text;
+                        tooltip.style.backgroundColor = parentSpaceUnit.available ? 'green' : 'red'; // 根据 Available 属性设置背景色
+                        const mousePos = this.stage.getPointerPosition();
+                        tooltip.style.top = `${mousePos.y + 5}px`;
+                        tooltip.style.left = `${mousePos.x + 5}px`;
+                    };
+                
+                    const hideTooltip = () => {
+                        tooltip.style.display = 'none';
+                    };
+                
+                    // 添加鼠标悬浮事件监听器
+                    node.on('mouseenter', (evt) => showTooltip(parentSpaceUnit.name, evt));
+                    node.on('mouseleave', hideTooltip);
+                    node.on('mousemove', (evt) => showTooltip(parentSpaceUnit.name, evt));
                 },
                 
                 findElementByKonvaId(layers, elementId) {
@@ -769,7 +788,7 @@
                     this.currentLayer = null;
                     this.newElementType = null;
                     this.imageSrc = null; // 清除图像数据
-                    
+
                     // 清空文件输入字段
                     const imageUploadInput = document.getElementById('imageUpload');
                     if (imageUploadInput) {
@@ -877,7 +896,7 @@
                                     const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
                                     konvaLayer.add(newElement);
                                     konvaLayer.draw();
-                                    this.uploadElement(newElement, elementProps); // 上传元素数据到服务器                     
+                                    this.uploadElement(newElement, elementProps); // 上传元素数据到服务器
                                 });
                             };
                             imageObj.src = imageSrc;
@@ -888,7 +907,7 @@
                             const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
                             konvaLayer.add(newElement);
                             konvaLayer.draw();
-                            this.uploadElement(newElement, elementProps); // 上传元素数据到服务器                     
+                            this.uploadElement(newElement, elementProps); // 上传元素数据到服务器
                         });
                     }
                 },
@@ -903,8 +922,8 @@
                         formData.append('image', imageFile);
                     }
                     formData.append('data', newElement.toJSON());
-                    formData.append('type', this.newElementType);                                      
-                    formData.append('layer_id', this.currentLayer.id);                   
+                    formData.append('type', this.newElementType);
+                    formData.append('layer_id', this.currentLayer.id);
                     
                     axios.post('{% url "Layout:add_element" %}', formData, {
                         headers: {
@@ -923,8 +942,8 @@
 
                 editElementProperties(){
                     this.synchronizeElementsData().then(() => { // 确保在修改新元素后刷新本地数据前更新画板上的数据到后端
-                        // const element = this.findElementByKonvaId(this.layers, this.currentElement.id)   
-                        const konvaElement = this.stage.findOne('#' + this.currentElement.id);            
+                        // const element = this.findElementByKonvaId(this.layers, this.currentElement.id)
+                        const konvaElement = this.stage.findOne('#' + this.currentElement.id);
                         const fillColor = this.currentElement.type !== 'Image' ?  document.getElementById('editedFillColor').value : null;
                         const borderStyle = document.getElementById('editedBorderStyle').value;
                         const draggable = document.getElementById('editedDraggable').checked;
@@ -938,7 +957,7 @@
                         if (borderStyle) {
                             konvaElement.strokeWidth(borderStyle === 'thin' ? 2 : (borderStyle === 'thick' ? 4 : 0));
                         }
-                        konvaElement.draggable(draggable);                       
+                        konvaElement.draggable(draggable);
 
                         const formData = new FormData();
                         formData.append('id', this.currentElement.id);
@@ -959,7 +978,7 @@
                             console.log('Element edited successfully:', response.data);
                             this.refreshData();
                             this.resetAddingState(); // 重置添加状态
-                            
+
                             // 隐藏模态框
                             $('#editElementPropertiesModal').modal('hide');
                         })
