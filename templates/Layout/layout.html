@@ -138,6 +138,11 @@
                                 <label for="elementName" class="form-label">Element Name</label>
                                 <input type="text" id="elementName" class="form-control">
                             </div>
+                            <!-- Text Cotent -->
+                            <div v-if="newElementType === 'Text'" class="mb-3">
+                                <label for="textContent" class="form-label">Element Name</label>
+                                <input type="text" id="textContent" class="form-control">
+                            </div>
                             <!-- Fill Color -->
                             <div v-if="newElementType !== 'Image'" class="mb-3">
                                 <label for="fillColor" class="form-label">Fill Color</label>
@@ -198,6 +203,11 @@
                                 <label for="editedElementName" class="form-label">Element Name</label>
                                 <input type="text" id="editedElementName" class="form-control">
                             </div>
+                            <!-- Text Cotent -->
+                            <div v-if="currentElement && currentElement.type === 'Text'" class="mb-3">
+                                <label for="editedTextContent" class="form-label">Text Cotent</label>
+                                <input type="text" id="editedTextContent" class="form-control">
+                            </div>
                             <!-- Fill Color -->
                             <div v-if="currentElement && currentElement.type !== 'Image'" class="mb-3">
                                 <label for="editedFillColor" class="form-label">Fill Color</label>
@@ -228,7 +238,7 @@
                                 <label class="form-check-label" for="editedDraggable">Draggable</label>
                             </div>
                             <!-- Image upload field, shown only for Image type -->
-                            <div v-if="currentElement && currentElement.type !== 'Image'" class="mb-3">
+                            <div v-if="currentElement && currentElement.type === 'Image'" class="mb-3">
                                 <label for="editedImageUpload" class="form-label">Upload Image</label>
                                 <input type="file" id="editedImageUpload" class="form-control" accept="image/*" @change="handleImageUpload">
                             </div>
@@ -585,7 +595,7 @@
                     }
                 },
 
-                // ----------------- konva.js -----------------
+                // ----------------- konva.js -----------------             
                 renderKonva() {
                     console.log('Rendering Konva...');
                     this.stage = new Konva.Stage({
@@ -593,45 +603,46 @@
                         width: window.innerWidth * 0.9,
                         height:  window.innerHeight * 0.91,
                     });
+                    
+                    const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
+                        return new Promise((resolve, reject) => {
+                            Konva.Image.fromURL(url, (imageNode) => {
+                                try {
+                                    imageNode.setAttrs(nodeData);
+                                    group.add(imageNode);
+                                    this.addListenersForElement(imageNode, element, spaceUnit);
+                                    resolve(imageNode);
+                                } catch (error) {
+                                    reject(error);
+                                }
+                            });
+                        });
+                    };
                                       
                     // 递归函数来处理每个层级的SpaceUnit和elements
-                    const processLayer = (spaceUnits, parent) => {
-                        spaceUnits.forEach(spaceUnit => {
+                    const processLayer = async (spaceUnits, parent) => {
+                        for (const spaceUnit of spaceUnits) {
                             // 使用Group来模拟层嵌套
                             let group = new Konva.Group();
                             parent.add(group); // 将当前层添加到父组件中
-
+                        
                             // 处理当前SpaceUnit的elements
-                            spaceUnit.elements.forEach(element => {
+                            for (const element of spaceUnit.elements) {
                                 const nodeData = JSON.parse(element.data);
-                                console.log('nodeData loaded:', nodeData);
                                 if (element.type === 'Image') { // 如果加载的是图片
-                                    Konva.Image.fromURL(element.image, (imageNode) => {                                       
-                                        imageNode.setAttrs(nodeData);
-                                        group.add(imageNode);
-                                        this.addListenersForElement(imageNode, element, spaceUnit); // 添加变换和拖拽结束的事件监听器
-
-                                        group.moveToTop();
-                                        group.draw();
-
-                                    });
+                                    await loadImage(element.image, nodeData, group, element, spaceUnit);
                                 } else {
                                     const node = Konva.Node.create(nodeData, group);
                                     group.add(node);
-                                    this.addListenersForElement(node, element, spaceUnit); // 添加变换和拖拽结束的事件监听器
-
-                                    group.moveToTop();
-                                    group.draw();
+                                    this.addListenersForElement(node, element, spaceUnit); // 添加变换和拖拽结束的事件监听器                      
                                 }
-                            });
-                            // 绘制层或组
-                            group.draw();
+                            }
 
                             // 如果当前SpaceUnit有子单位，则递归处理
                             if (spaceUnit.child_units && spaceUnit.child_units.length > 0) {
-                                processLayer(spaceUnit.child_units, group);
+                                await processLayer(spaceUnit.child_units, parent);
                             }
-                        });
+                        }
                     };
                     
                     const rootLayer = new Konva.Layer();
@@ -658,6 +669,7 @@
                             // 将对象转换回JSON字符串
                             element.data = JSON.stringify(data);
                         }
+                        this.synchronizeElementsData();
                     });
                 
                     if (element.transformable) {
@@ -691,8 +703,8 @@
                                 this.$emit('update-current-element', element);                                               
                                 const attrs = JSON.parse(element.data).attrs;
                                 document.getElementById('editedElementName').value = element.name;
-                                if (document.getElementById('editedFillColor')) {
-                                    document.getElementById('editedFillColor').value = attrs.fill || '#000000'; // 默认值为黑色
+                                if (document.getElementById('editedTextContent')) {
+                                    document.getElementById('editedTextContent').value = attrs.text;
                                 }
                                 const strokeWidth = attrs.strokeWidth || 0;
                                 const stroke = attrs.stroke || '#000000';                                                        
@@ -773,6 +785,7 @@
                 
                 confirmElementProperties() {
                     const name = document.getElementById('elementName').value;
+                    const textContent = this.newElementType === 'Text'? document.getElementById('textContent').value : null;
                     const fillColor = this.newElementType !== 'Image' ?  document.getElementById('fillColor').value : null;
                     const borderStyle = document.getElementById('borderStyle').value;
                     const borderColor = borderStyle !== 'none' ? document.getElementById('borderColor').value : null;
@@ -782,6 +795,7 @@
 
                     this.elementProps = {
                         name,
+                        textContent,
                         fillColor,
                         strokeWidth: borderStyle === 'thin' ? 1 : (borderStyle === 'thick' ? 4 : 0),
                         stroke: borderColor,
@@ -825,7 +839,7 @@
                 placeElement(elementProps) {
                     const pos = this.stage.getPointerPosition();
                     let newElement;
-                    const { name, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
+                    const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
                     // 根据不同类型创建Konva图形实例
                     switch (this.newElementType) {
                         case 'Rect':
@@ -899,10 +913,12 @@
                             newElement = new Konva.Text({
                                 x: pos.x,
                                 y: pos.y,
-                                text: 'Hello World',
+                                text: textContent || 'New Text',
                                 fontSize: 24,
                                 fontFamily: 'Calibri',
                                 fill: fillColor,
+                                stroke: stroke, 
+                                strokeWidth: strokeWidth,
                                 draggable: draggable,
                             });
                             break;
@@ -941,7 +957,7 @@
 
                 uploadElement(newElement, elementProps) {
                     console.log('Uploading new element:', newElement.toJSON());
-                    const { name, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
+                    const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
                     const formData = new FormData();
                     formData.append('name', name );
                     formData.append('transformable', transformable);
@@ -971,6 +987,7 @@
                     this.synchronizeElementsData().then(() => { // 确保在修改新元素后刷新本地数据前更新画板上的数据到后端
                         // const element = this.findElementByKonvaId(this.layers, this.currentElement.id)
                         const konvaElement = this.stage.findOne('#' + this.currentElement.id);
+                        const textContent = this.currentElement.type === 'Text' ? document.getElementById('editedTextContent').value : null;
                         const fillColor = this.currentElement.type !== 'Image' ?  document.getElementById('editedFillColor').value : null;
                         const borderStyle = document.getElementById('editedBorderStyle').value;
                         const borderColor = borderStyle !== 'none' ? document.getElementById('editedBorderColor').value : null;
@@ -979,6 +996,9 @@
                         const transformable = document.getElementById('editedTransformable').checked;
                         const imageFile = this.currentElement.type === 'Image' ? document.getElementById('editedImageUpload').files[0] : null;
                         // 更新KonvaElement的属性
+                        if(textContent){
+                            konvaElement.text(textContent);
+                        }
                         if (fillColor) {
                             konvaElement.fill(fillColor);
                         }
