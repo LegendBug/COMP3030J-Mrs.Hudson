@@ -62,16 +62,36 @@ main {
     overflow-y: auto;
 }
 
+.sidebar {
+    max-height: 100%;
+    background-color: #ececec;
+    width: 240px;
+    min-height: 95vh;
+    position: sticky;
+    border-right: 3px solid #62da00;
+    transition: width 0.3s ease-in-out;
+}
+
+.sidebar.dark-mode {
+    background-color: #1f1f1f;
+    border-right: 3px solid #009631;
+    color: #fff;
+}
+
 .nav-link.active {
     background-color: #009631;
     color: white; /* 文本颜色为白色 */
     border-radius: 0.25rem; /* 轻微的圆角 */
 }
 
+.nav-link.active.dark-mode {
+    background-color: #005622;
+}
+
 /* 导航栏当前活动链接样式 */
 .nav-item.active .nav-link {
     background-color: #009631; /* 背景 */
-    color: #fff; /* 白色文字 */
+    color: #f0f0f0; /* 白色文字 */
 }
 
 .sidebar {
@@ -79,16 +99,31 @@ main {
     min-height: 1000vh;
 }
 
+.sidebar-title {
+    color: #6c757d;
+}
+
+.sidebar-title:hover {
+    color: #6c757d;
+}
+
 /* 父级菜单项的样式 */
 .nav-pills .nav-link {
-    color: white;
+    color: #6c757d;;
     font-weight: bold;
+    transition: background-color 0.3s; /* 添加背景色变化的过渡效果 */
+}
+
+.nav-pills .nav-link:hover {
+    background-color: #009631;
+    color: white; /* 文本颜色为白色 */
+    transition: background-color 0.3s; /* 添加背景色变化的过渡效果 */
 }
 
 /* 子菜单项的样式 */
 .child-menu .nav-link {
-    background-color: #1e1e1e; /* 更深的背景色 */
-    color: #b5b5b5; /* 更浅的文字颜色 */
+    background-color: #b5b5b5; /* 更浅的背景色 */
+    color: #6c757d; /* 更浅的文字颜色 */
     padding-left: 20px; /* 增加缩进 */
     margin-top: 5px; /* 增加间距 */
     border-radius: 5px; /* 添加圆角 */
@@ -96,7 +131,9 @@ main {
 
 /* 子菜单项的 hover 效果 */
 .child-menu .nav-link:hover {
-    background-color: #383838;
+    /*background-color: #383838;*/
+    /*color: #1f1f1f;*/
+    background-color: #009631;
     color: white;
 }
 
@@ -109,7 +146,8 @@ main {
 
 /* 子菜单项的激活状态 */
 .child-menu .nav-link.active {
-    background-color: #005622; /* 更深的激活背景色 */
+    /*background-color: #005622; !* 更深的激活背景色 *!*/
+    background-color: #009631;
     color: white;
 }
 
