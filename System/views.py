@@ -1,6 +1,7 @@
 import os
 from openai import OpenAI
 from django.shortcuts import render, redirect
+from django.utils import timezone
 from dotenv import load_dotenv
 from .models import Conversation
 
@@ -79,15 +80,23 @@ def copilot(request):
                 chat_response = response.choices[0].message.content
                 # saving the response to the database
                 Conversation.objects.create(user=request.user, user_input=user_input, copilot_response=chat_response)
-                return redirect('System:copilot')
                 # context['response'] = chat_response
             except Exception as e:
                 context['error'] = "Oops... Seems that a problem occurred 😅. <Error: " + str(e) + ">"
 
+            return redirect('System:copilot')
+
     conversation_history = Conversation.objects.filter(user=request.user).order_by('-timestamp')
     context['conversation_history'] = conversation_history
-
     context['user_input'] = user_input
+
+    if conversation_history:
+        utc_timestamp = conversation_history[0].timestamp
+        local_timestamp = timezone.localtime(utc_timestamp)
+        context['timestamp'] = local_timestamp
+    else:
+        context['timestamp'] = None
+
 
     return render(request, 'System/copilot.html', context)
 
