@@ -41,13 +41,7 @@
                                   placeholder="Type your question here..."></textarea>
                         <br>
                         <button type="submit" class="btn btn-success">Ask Watson</button>
-                        {% comment %} <button typy="submit" class="btn btn-danger" name="clear" value="clear">Clear History</button> {% endcomment %}
-                        {% comment %} <form method="post" action="{% url 'System:delete_all_conversation_history' %}">
-                            {% csrf_token %}
-                        </form> {% endcomment %}
-
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete History</button>
-
 
                     </form>
                 </div>
@@ -81,34 +75,15 @@
                         {{ error }}
                     </div>
                 {% endif %}
-                {% comment %} {% if user_input and response %}
-                    <div class="card mb-3">
-                    <div class="card-header">
-                        <strong>You</strong>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">{{ user_input }}</p>
-                    </div>
-                </div>
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <strong>Watson</strong>
-                        </div>
-                        <div class="card-body text-success">
-                            <h5 class="card-title">Q: {{ user_input }}</h5>
-                            <p class="card-text">A: {{ response }}</p>
-                        </div>
-                    </div>
-                {% endif %} {% endcomment %}
                 {% for conversation in conversation_history %}
                     <div class="card mb-3">
                         <div class="card-header">
                             <strong>Watson</strong>
                         </div>
                         <div class="card-body text-success">
-                            <h5 class="card-title">Q: {{ conversation.user_input }}</h5>
-                            {% comment %} <p class="card-text">A: {{ conversation.copilot_response|markdownify }}</p> {% endcomment %}
-                            <p class="card-text">A: {{ conversation.copilot_response|markdown|safe }}</p>
+
+                            <h5 class="card-title"><strong>Q:</strong> {{ conversation.user_input }}</h5>
+                            <p class="card-text"><strong>A:</strong> {{ conversation.copilot_response|markdown|safe }}</p>
 
                         </div>
                     </div>

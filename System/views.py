@@ -77,17 +77,20 @@ def copilot(request):
                     max_tokens=300
                 )
                 chat_response = response.choices[0].message.content
-                # save the response to the database
+                # saving the response to the database
                 Conversation.objects.create(user=request.user, user_input=user_input, copilot_response=chat_response)
+                return redirect('System:copilot')
                 # context['response'] = chat_response
-                conversation_history = Conversation.objects.filter(user=request.user).order_by('-timestamp')
-                context['conversation_history'] = conversation_history
             except Exception as e:
                 context['error'] = "Oops... Seems that a problem occurred 😅. <Error: " + str(e) + ">"
+
+    conversation_history = Conversation.objects.filter(user=request.user).order_by('-timestamp')
+    context['conversation_history'] = conversation_history
 
     context['user_input'] = user_input
 
     return render(request, 'System/copilot.html', context)
+
 
 def delete_all_conversation_history(request):
     Conversation.objects.filter(user=request.user).delete()
