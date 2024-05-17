@@ -146,6 +146,7 @@ def edit_layer(request):
 def add_element(request):
     if request.method == 'POST':
         element_type = request.POST.get('type')
+        name = request.POST.get('name')
         transformable = request.POST.get('transformable', 'true') == 'true'
         element_data = request.POST.get('data')
         layer_id = request.POST.get('layer_id')
@@ -154,7 +155,7 @@ def add_element(request):
         layer = get_object_or_404(SpaceUnit, id=layer_id)
         # 创建KonvaElement实例
         konva_element = KonvaElement.objects.create(
-            name=f"New {element_type}",  # 可能需要从data中提取或定义默认值
+            name=name,
             layer=layer,
             type=element_type,
             data=element_data,

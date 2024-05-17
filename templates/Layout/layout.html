@@ -130,6 +130,12 @@
                     <div class="modal-body">
                         <!-- Form for element properties -->
                         <form id="elementPropertiesForm">
+                            <!-- Element Name -->
+                            <div class="mb-3">
+                                <label for="elementName" class="form-label">Element Name</label>
+                                <input type="text" id="elementName" class="form-control">
+                            </div>
+                        
                             <!-- Fill Color -->
                             <div v-if="newElementType !== 'Image'" class="mb-3">
                                 <label for="fillColor" class="form-label">Fill Color</label>
@@ -157,7 +163,7 @@
                             <!-- Image upload field, shown only for Image type -->
                             <div v-if="newElementType === 'Image'" class="mb-3">
                                 <label for="imageUpload" class="form-label">Upload Image</label>
-                                <input type="file" id="imageUpload" class="form-control" accept="image/*" @change="handleImageUpload">
+                                <input type="file" id="imageUpload" class="form-control" accept="image/*" @change="handleImageUpload" :required="newElementType === 'Image'">
                             </div>
                         </form>
                     </div>
@@ -594,10 +600,8 @@
                                     Konva.Image.fromURL(element.image, (imageNode) => {
                                         imageNode.setAttrs(nodeData.attrs);
                                         layer.add(imageNode);
-                
                                         // 添加变换和拖拽结束的事件监听器
                                         this.addListeners(imageNode, element);
-                
                                         layer.draw();
                                     });
                                 } else {
@@ -626,7 +630,6 @@
                     // 添加变换和拖拽结束的事件监听器
                     node.on('transformend dragend', () => {
                         let element = this.findElementByKonvaId(this.layers, node.id());
-                        console.log('Before Element updated:', element);
                         if (element) {
                             // 更新元素属性
                             let data = JSON.parse(element.data);  // 将JSON字符串转换为对象
@@ -641,7 +644,6 @@
                             // 将对象转换回JSON字符串
                             element.data = JSON.stringify(data);
                         }
-                        console.log('After Element updated:', element);
                     });
                 
                     if (element.transformable) {
@@ -731,6 +733,7 @@
                 },
                 
                 confirmElementProperties() {
+                    const name = document.getElementById('elementName').value;
                     const fillColor = this.newElementType !== 'Image' ?  document.getElementById('fillColor').value : null;
                     const borderStyle = document.getElementById('borderStyle').value;
                     const transformable = document.getElementById('transformable').checked;
@@ -738,6 +741,7 @@
                     const imageFile = this.newElementType === 'Image' ? document.getElementById('imageUpload').files[0] : null;
 
                     this.elementProps = {
+                        name,
                         fillColor,
                         strokeWidth: borderStyle === 'thin' ? 2 : (borderStyle === 'thick' ? 4 : 0),
                         draggable: draggable,
@@ -780,7 +784,7 @@
                 placeElement(elementProps) {
                     const pos = this.stage.getPointerPosition();
                     let newElement;
-                    const { fillColor, strokeWidth, draggable, transformable, imageFile, imageSrc} = elementProps;
+                    const { name, fillColor, strokeWidth, draggable, transformable, imageFile, imageSrc} = elementProps;
                     // 根据不同类型创建Konva图形实例
                     switch (this.newElementType) {
                         case 'Rect':
@@ -873,7 +877,7 @@
                                     const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
                                     konvaLayer.add(newElement);
                                     konvaLayer.draw();
-                                    this.uploadElement(newElement, transformable); // 上传元素数据到服务器                     
+                                    this.uploadElement(newElement, elementProps); // 上传元素数据到服务器                     
                                 });
                             };
                             imageObj.src = imageSrc;
@@ -884,21 +888,23 @@
                             const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
                             konvaLayer.add(newElement);
                             konvaLayer.draw();
-                            this.uploadElement(newElement, transformable); // 上传元素数据到服务器                     
+                            this.uploadElement(newElement, elementProps); // 上传元素数据到服务器                     
                         });
                     }
                 },
 
-                uploadElement(newElement, transformable) {
+                uploadElement(newElement, elementProps) {
                     console.log('Uploading new element:', newElement.toJSON());
+                    const { name, fillColor, strokeWidth, draggable, transformable, imageFile, imageSrc} = elementProps;
                     const formData = new FormData();
-                    formData.append('type', this.newElementType);
+                    formData.append('name', name );
                     formData.append('transformable', transformable);
-                    formData.append('data', newElement.toJSON());
-                    formData.append('layer_id', this.currentLayer.id);
-                    if (this.newElementType === 'Image' && this.elementProps.imageFile) {
-                        formData.append('image', this.elementProps.imageFile);
+                    if (this.newElementType === 'Image' && imageFile) {
+                        formData.append('image', imageFile);
                     }
+                    formData.append('data', newElement.toJSON());
+                    formData.append('type', this.newElementType);                                      
+                    formData.append('layer_id', this.currentLayer.id);                   
                     
                     axios.post('{% url "Layout:add_element" %}', formData, {
                         headers: {
