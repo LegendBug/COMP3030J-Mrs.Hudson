@@ -534,6 +534,8 @@
                 offcanvasOpen: false,
                 newElementType: null, // 用户选择添加的新元素的类型
                 imageSrc: null, // 存储上传的图像的Data URL, 这用于在添加图像元素时直接在画板上显示图像
+                elementProps : null,
+                points: []
             },
             mounted() {
                 this.refreshData()
@@ -770,7 +772,7 @@
                     this.newElementType = type;
                     console.log('Adding new element:', type, '  Current layer:', this.currentLayer);
                     $('#elementPropertiesModal').modal('show');
-                },
+                },      
                 
                 handleImageUpload(event) {
                     const file = event.target.files[0];
@@ -781,7 +783,7 @@
                         };
                         reader.readAsDataURL(file);
                     }
-                },
+                },          
                 
                 confirmElementProperties() {
                     const name = document.getElementById('elementName').value;
@@ -802,20 +804,104 @@
                         draggable: draggable,
                         transformable,
                         imageFile,
-                        imageSrc: this.imageSrc // 存储图像的dataURL
+                        imageSrc: this.imageSrc, // 存储图像的dataURL
+                        points : [],
                     };
                 
                     // 关闭模态框
                     $('#elementPropertiesModal').modal('hide');
                 
                     document.getElementById('konva-container').style.cursor = 'crosshair';
-                    this.stage.on('mousedown touchstart', (e) => {
-                        if (e.evt.button === 2) {
+                     // 阻止画布的默认右键菜单
+                    this.stage.container().addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                    });
+                    this.stage.on('mousedown touchstart',  this.handleStageClick);
+                },                
+                
+                handleStageClick(e) {                   
+                    if (e.evt.button === 2) { // Right-click to finish polygon drawing
+                        e.evt.preventDefault(); // 阻止默认上下文菜单
+                        this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
+                        this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
+                        
+                        if (this.newElementType === 'Polygon') {
+                            this.finishPolygonDrawing();
+                        } else {
                             this.resetState();
-                        } else if (e.evt.button === 0) {
+                        }
+                    } else if (e.evt.button === 0) { // Left-click to add points
+                        if (this.newElementType === 'Line') {
+                            this.handleLineDrawing(e);
+                        } else if (this.newElementType === 'Arrow') {
+                            this.handleArrowDrawing(e);
+                        } else if (this.newElementType === 'Polygon') {
+                            this.handlePolygonDrawing(e);
+                        } else {
                             this.placeElement(this.elementProps, e);
                         }
+                    }
+                },
+                
+                handleLineDrawing(e) {
+                    const pos = this.stage.getPointerPosition();
+                    if (!this.lineStartPoint) {
+                        // 记录起点
+                        this.lineStartPoint = pos;
+                    } else {
+                        // 绘制线条
+                        const lineProps = {
+                            ...this.elementProps,
+                            points: [this.lineStartPoint.x, this.lineStartPoint.y, pos.x, pos.y]
+                        };
+                        this.placeElement(lineProps, e);
+                        this.lineStartPoint = null; // 重置起点
+                    }
+                },
+                
+                handleArrowDrawing(e) {
+                    const pos = this.stage.getPointerPosition();
+                    if (!this.arrowStartPoint) {
+                        // 记录起点
+                        this.arrowStartPoint = pos;
+                    } else {
+                        // 绘制箭头
+                        const arrowProps = {
+                            ...this.elementProps,
+                            points: [this.arrowStartPoint.x, this.arrowStartPoint.y, pos.x, pos.y]
+                        };
+                        this.placeElement(arrowProps, e);
+                        this.arrowStartPoint = null; // 重置起点
+                    }
+                },
+                
+                handlePolygonDrawing(e) {
+                    const pos = this.stage.getPointerPosition();
+                    this.polygonPoints = this.polygonPoints || [];
+                    this.polygonPoints.push(pos.x, pos.y);
+                
+                    const konvaLayer = this.stage.getLayers()[0];                   
+                    const tempPolygon = new Konva.Line({
+                        points: this.polygonPoints,
+                        fill: this.elementProps.fillColor,
+                        stroke: this.elementProps.stroke,
+                        strokeWidth: this.elementProps.strokeWidth,
+                        closed: true,
+                        draggable: this.elementProps.draggable,
                     });
+                    
+                    konvaLayer.add(tempPolygon);
+                    konvaLayer.draw();
+                },
+
+                finishPolygonDrawing() {
+                    if (this.polygonPoints.length > 2) {
+                        const elementProps = {
+                            ...this.elementProps,
+                            points: this.polygonPoints
+                        };
+                        this.placeElement(elementProps);
+                    }
                 },
 
                 resetState() {
@@ -824,7 +910,11 @@
                     this.currentLayer = null;
                     this.newElementType = null;
                     this.imageSrc = null; // 清除图像数据
-
+                    this.points = []; // 清空点集合
+                    this.polygonPoints = []; // 清空点集合
+                    this.lineStartPoint = null; // 重置线条起点
+                    this.elementProps = null;
+                
                     // 清空文件输入字段
                     const imageUploadInput = document.getElementById('imageUpload');
                     if (imageUploadInput) {
@@ -839,7 +929,7 @@
                 placeElement(elementProps) {
                     const pos = this.stage.getPointerPosition();
                     let newElement;
-                    const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
+                    const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc, points} = elementProps;
                     // 根据不同类型创建Konva图形实例
                     switch (this.newElementType) {
                         case 'Rect':
@@ -866,14 +956,13 @@
                             });
                             break;
                         case 'Polygon':
-                            newElement = new Konva.RegularPolygon({
-                                x: pos.x,
-                                y: pos.y,
-                                sides: 6,
-                                radius: 40,
+                            newElement = new Konva.Line({
+                                points: points,
                                 fill: fillColor,
                                 stroke: stroke, 
                                 strokeWidth: strokeWidth,
+                                closed: true,
+                                draggable: draggable,
                             });
                             break;
                         case 'Circle':
@@ -889,8 +978,8 @@
                             break;
                         case 'Line':
                             newElement = new Konva.Line({
-                                points: [pos.x, pos.y, pos.x + 100, pos.y + 50],
-                                 stroke: stroke,
+                                points: points || [pos.x, pos.y, pos.x + 100, pos.y + 50],
+                                stroke: stroke,
                                 strokeWidth: strokeWidth,
                                 lineCap: 'round',
                                 lineJoin: 'round',
@@ -899,9 +988,7 @@
                             break;
                         case 'Arrow':
                             newElement = new Konva.Arrow({
-                                x: pos.x,
-                                y: pos.y,
-                                points: [0, 0, 100, 100],
+                                points: points || [0, 0, 100, 100],
                                 pointerLength: 20,
                                 pointerWidth: 20,
                                 fill: fillColor,
@@ -949,7 +1036,7 @@
                         this.synchronizeElementsData().then(() => { // 确保在创建新元素前更新本地数据到后端
                             const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
                             konvaLayer.add(newElement);
-                            konvaLayer.draw();
+                            konvaLayer.draw();                                                   
                             this.uploadElement(newElement, elementProps); // 上传元素数据到服务器
                         });
                     }
