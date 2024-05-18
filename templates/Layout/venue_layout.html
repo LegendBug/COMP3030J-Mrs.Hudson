@@ -7,8 +7,6 @@
     <title>Venue Layout</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
-    <link rel="stylesheet" href="{% static 'css/Layout/venue_layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/Layout/canvas.css' %}">
 
 {% endblock %}
 
@@ -107,7 +105,6 @@
 
 {% block scripts %}
     <script src="{% static 'js/Layout/venue_layout.js' %}"></script>
-    <script src="{% static 'js/Layout/canvas.js' %}"></script>
     <script>
         // 确保文档加载后运行
         document.addEventListener('DOMContentLoaded', function () {

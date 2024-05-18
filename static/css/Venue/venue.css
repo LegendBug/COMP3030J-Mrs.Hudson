@@ -1,3 +1,28 @@
+/* 以下是从layout.css迁移过来的部分样式: */
+
+/* 确保动画和过渡的平滑性 */
+* {
+    transition: all 0.2s ease-in-out;
+}
+
+#konva-container {
+    position: relative;
+    height: 90vh;
+    width: 95%;
+    box-sizing: border-box; /* 包含边框和内边距在内的总宽高 */
+    overflow: hidden; /* 防止内容溢出 */
+    margin: 2.5vh auto 0; /* Centers it vertically with top margin */
+
+    border: 1px solid #ccc;  /* 浅灰色边框 */
+    background-color: #fff;  /* 白色背景 */
+    border-radius: 10px;  /* 圆角边框 */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);  /* 轻微阴影 */
+}
+
+
+/* 以下是原样式代码: */
+
+
 .logo-title {
     margin-left: 3rem;
 }
@@ -57,5 +82,4 @@ td a {
 td a:hover {
     color: #FFFFFF;
 }
-
 

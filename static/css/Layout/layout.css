@@ -62,3 +62,17 @@
     transition: all 0.2s ease-in-out;
 }
 
+#konva-container {
+    position: relative;
+    height: 95%;
+    width: 95%;
+    box-sizing: border-box; /* 包含边框和内边距在内的总宽高 */
+    overflow: hidden; /* 防止内容溢出 */
+    margin: 0 auto; /* 居中 */
+
+    top: 2.5%;  /* 中心定位 */
+    border: 1px solid #ccc;  /* 浅灰色边框 */
+    background-color: #fff;  /* 白色背景 */
+    border-radius: 10px;  /* 圆角边框 */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);  /* 轻微阴影 */
+}

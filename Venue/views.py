@@ -102,6 +102,7 @@ def venue(request, venue_id):
     return render(request, 'Venue/venue.html', {
         'exhibitions': exhibitions_data,
         'venue': current_venue,
+        'floor_range': range(1, current_venue.floor + 1),
         'user_type': user_type,
         'application_form': application_form,
         'filter_form': filter_form

@@ -10,9 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>   
-
+    
     <link rel="stylesheet" href="{% static 'css/Layout/layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/Layout/canvas.css' %}">
 {% endblock %}
 
 {% block extra_nav_icons %}
@@ -258,7 +257,6 @@
 
 
 {% block scripts %}
-    <script src="{% static 'js/Layout/canvas.js' %}"></script>
     <script>
         Vue.component('layer-component', {
             props: ['layer','floor'],
@@ -542,6 +540,7 @@
                 if (this.stage){
                     this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
                 }                
+                window.removeEventListener('resize', this.handleResize);
             },
             computed: {
                 buttonStyle() {
@@ -608,7 +607,11 @@
                         height:  window.innerHeight * 0.91,
                     });
                     
+                    // 添加滚轮缩放事件监听器
                     this.stage.container().addEventListener('wheel', this.handleWheelZoom);
+                    // 添加窗口大小变化事件监听器
+                    window.addEventListener('resize', this.handleResize);
+                   
                     
                     const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
                         return new Promise((resolve, reject) => {
@@ -910,6 +913,12 @@
                             this.placeElement(this.elementProps, e);
                         }
                     }
+                },
+                
+                handleResize() {
+                    const width = window.innerWidth * 0.9;
+                    const height = window.innerHeight * 0.91;
+                    this.stage.size({ width, height });
                 },
                 
                 // ----------------- konva.js: 添加Konva Element到Stage -----------------

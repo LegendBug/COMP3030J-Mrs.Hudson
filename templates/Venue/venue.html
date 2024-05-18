@@ -2,8 +2,13 @@
 {% load crispy_forms_filters %}
 {% load static %}
 {% load crispy_forms_tags %}
+
 {% block extra_head %}
     <title>Venue</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+
     <link rel="stylesheet" href="{% static 'css/Venue/venue.css' %}">
 {% endblock %}
 
@@ -20,134 +25,344 @@
 {% endblock %}
 
 {% block content %}
-    <br>
-    <div>
-        <h1 class="logo-title">{{ venue.name }}</h1>
-    </div>
-    <br>
+    <div id="app">
 
-    <!-- TODO 优化Konva舞台容器显示 -->
-    <div class="container-fluid" id="stage-container"></div>
+        <div id="konva-container"></div>
 
-    <!-- Floating Action Button -->
-    {% if user.is_authenticated and user_type == 'Organizer' %}
-        <a onclick="openExhibApplyModal()" class="btn btn-success rounded-circle shadow" id="createExhibApply"
-           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
+        <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
+        <div id="tooltip"
+             style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
+
+        <!-- Floating Action Button -->
+        {% if user.is_authenticated and user_type == 'Organizer' %}
+            <a onclick="openExhibApplyModal()" class="btn btn-success rounded-circle shadow" id="createExhibApply"
+               style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
            justify-content: center; align-items: center; font-size: 30px;" title="Apply Exhibition">
-            📝
-        </a>
-    {% elif user.is_authenticated and user_type == 'Manager' %}
-        <a class="btn btn-success rounded-circle shadow"
-           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; 
+                📝
+            </a>
+        {% elif user.is_authenticated and user_type == 'Manager' %}
+            <a class="btn btn-success rounded-circle shadow"
+               style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
            justify-content: center; align-items: center; font-size: 30px;"
-           href="{% url 'Inventory:inventory' 'venue' venue.id %}" title="View Inventory">
-            📦
-        </a>
-    {% endif %}
-    {#    <a class="btn btn-success rounded-circle shadow" id="filter-exhibitions-btn"#}
-    {#       style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"#}
-    {#       onclick="openFilterModal();" title="Filter Exhibitions">#}
-    {#        <i class="fas fa-filter mt-1"></i>#}
-    {#    </a>#}
+               href="{% url 'Inventory:inventory' 'venue' venue.id %}" title="View Inventory">
+                📦
+            </a>
+        {% endif %}
 
-
-    <!-- 展览列表 -->
-    <div class="table-responsive" style="margin: 1rem; user-select: none">
-        <table class="table table-hover text-white">
-            <thead class="bg-dark">
-            <tr>
-                <th></th>
-                <th>Exhibition Name</th>
-                <th>Description</th>
-                <th>Organizer</th>
-                <th>Sector</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Stage</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for exhibition in exhibitions %}
-                <tr onclick="window.location.href='{% url 'Exhibition:exhibition' exhibition.id %}';"
-                    style="cursor: pointer;">
-                    <td><img src="{{ exhibition.image|default:'../../static/images/Public/poster.jpg' }}"
-                             alt="No Poster"
-                             class="exhibition-img" style="width: 100px; height: 80px;"></td>
-                    <td>{{ exhibition.name }}</td>
-                    <td>{{ exhibition.description }}</td>
-                    <td>{{ exhibition.organizer }}</td>
-                    <td>{{ exhibition.sectors }}</td>
-                    <td>{{ exhibition.start_at|date:"Y-m-d H:i" }}</td>
-                    <td>{{ exhibition.end_at|date:"Y-m-d H:i" }}</td>
-                    <td>{{ exhibition.stage }}</td>
-                </tr>
-                {% empty %}
+        <!-- 展览列表 -->
+        <div class="table-responsive" style="margin: 1rem; user-select: none">
+            <table class="table table-hover text-white">
+                <thead class="bg-dark">
                 <tr>
-                    <td colspan="8" class="text-center">No exhibitions found. 💤</td>
+                    <th></th>
+                    <th>Exhibition Name</th>
+                    <th>Description</th>
+                    <th>Organizer</th>
+                    <th>Sector</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Stage</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                {% for exhibition in exhibitions %}
+                    <tr onclick="window.location.href='{% url 'Exhibition:exhibition' exhibition.id %}';"
+                        style="cursor: pointer;">
+                        <td><img src="{{ exhibition.image|default:'../../static/images/Public/poster.jpg' }}"
+                                 alt="No Poster"
+                                 class="exhibition-img" style="width: 100px; height: 80px;"></td>
+                        <td>{{ exhibition.name }}</td>
+                        <td>{{ exhibition.description }}</td>
+                        <td>{{ exhibition.organizer }}</td>
+                        <td>{{ exhibition.sectors }}</td>
+                        <td>{{ exhibition.start_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ exhibition.end_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ exhibition.stage }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No exhibitions found. 💤</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-
-
-    {# 申请新展览模态框 #}
-    <div class="modal fade" id="createExhibApplyModal" tabindex="-1" aria-labelledby="createExhibApplyModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createExhibApplyModalLabel">Apply for a New Exhibition</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="application-form" method="post"
-                          action="{% url 'Exhibition:create_exhibit_application' %}" enctype="multipart/form-data"
-                          class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        {{ application_form|crispy }}
-                        <div id="application-form-container"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-success" onclick="submitApplication()">Apply</button>
-                        </div>
-                    </form>
+        {# 申请新展览模态框 #}
+        <div class="modal fade" id="createExhibApplyModal" tabindex="-1" aria-labelledby="createExhibApplyModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createExhibApplyModalLabel">Apply for a New Exhibition</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="application-form" method="post"
+                              action="{% url 'Exhibition:create_exhibit_application' %}" enctype="multipart/form-data"
+                              class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            {{ application_form|crispy }}
+                            <div id="application-form-container"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-success" onclick="submitApplication()">Apply
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    {# TODO 完善筛选模态框 #}
-    <div class="modal fade" id="filterExhibitionsModal" tabindex="-1" aria-labelledby="filterExhibitionsLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="filterExhibitionsTitle">Filter Exhibitions</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="filterFrom" method="post" action="{% url 'Venue:venue' venue.pk %}"
-                          enctype="multipart/form-data"
-                          class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        <input type="hidden" name="venue_id" id="venue_id" value="{{ venue.pk }}">
-                        {{ filter_form|crispy }}
-                        <div id="filter-exhibitions-message-container"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-success">Filter Exhibitions</button>
-                        </div>
-                    </form>
+        {# TODO 稍后完成筛选模态框 #}
+        <div class="modal fade" id="filterExhibitionsModal" tabindex="-1" aria-labelledby="filterExhibitionsLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="filterExhibitionsTitle">Filter Exhibitions</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="filterFrom" method="post" action="{% url 'Venue:venue' venue.pk %}"
+                              enctype="multipart/form-data"
+                              class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="venue_id" id="venue_id" value="{{ venue.pk }}">
+                            {{ filter_form|crispy }}
+                            <div id="filter-exhibitions-message-container"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-success">Filter Exhibitions</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
 {% endblock %}
 
 {% block scripts %}
-    <script type="text/javascript">
+    <script>
+        new Vue({
+            el: '#app',
+            delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
+            data: {
+                floor: 1, // 当前楼层,默认为1
+                layers: [],
+                stage: null,
+                currentElement: null
+            },
+            mounted() {
+                this.refreshData()
+            },
+            beforeDestroy() {
+                if (this.stage) {
+                    this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
+                }
+                window.removeEventListener('resize', this.handleResize);
+            },
+            methods: {
+                // ----------------- 数据加载 -----------------
+                refreshData() {
+                    console.log('Refreshing data...');
+                    return axios.get('{% url "Layout:refresh_data" %}', {
+                        params: {
+                            floor: this.floor,
+                            current_access_id: {{ venue.id }},
+                            user_type: '{{ user_type }}',
+                        }
+                    }).then(response => {
+                        if (response.data && response.data.id) {
+                            console.log('Data synchronized:', response.data);
+                            this.layers = []; // 清空Vue实例的layers数组
+                            this.layers = [response.data];
+                            this.renderKonva(); // 重新初始化Konva
+                        } else {
+                            console.error('Unexpected response data:', response.data);
+                        }
+                    }).catch(error => {
+                        console.error('Failed to synchronize data:', error);
+                    });
+                },
+
+                // ----------------- 以下是与konva.js相关的函数 -----------------
+
+                // ----------------- konva.js: 加载数据 -----------------
+                renderKonva() {
+                    console.log('Rendering Konva...');
+                    this.stage = new Konva.Stage({
+                        container: 'konva-container',
+                        width: window.innerWidth * 0.9,
+                        height: window.innerHeight * 0.9,
+                    });
+
+                    // 添加滚轮缩放事件监听器
+                    this.stage.container().addEventListener('wheel', this.handleWheelZoom);
+                    // 添加窗口大小变化事件监听器
+                    window.addEventListener('resize', this.handleResize);
+
+                    const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
+                        return new Promise((resolve, reject) => {
+                            Konva.Image.fromURL(url, (imageNode) => {
+                                try {
+                                    imageNode.setAttrs(nodeData);
+                                    group.add(imageNode);
+                                    this.addListenersForElement(imageNode, element, spaceUnit);
+                                    resolve(imageNode);
+                                } catch (error) {
+                                    reject(error);
+                                }
+                            });
+                        });
+                    };
+
+                    // 递归函数来处理每个层级的SpaceUnit和elements
+                    const processLayer = async (spaceUnits, parent) => {
+                        for (const spaceUnit of spaceUnits) {
+                            // 使用Group来模拟层嵌套
+                            let group = new Konva.Group();
+                            parent.add(group); // 将当前层添加到父组件中
+
+                            // 处理当前SpaceUnit的elements
+                            for (const element of spaceUnit.elements) {
+                                const nodeData = JSON.parse(element.data);
+                                if (element.type === 'Image') { // 如果加载的是图片
+                                    await loadImage(element.image, nodeData, group, element, spaceUnit);
+                                } else {
+                                    const node = Konva.Node.create(nodeData, group);
+                                    group.add(node);
+                                    this.addListenersForElement(node, element, spaceUnit); // 添加变换和拖拽结束的事件监听器
+                                }
+                            }
+
+                            // 如果当前SpaceUnit有子单位，则递归处理
+                            if (spaceUnit.child_units && spaceUnit.child_units.length > 0) {
+                                await processLayer(spaceUnit.child_units, parent);
+                            }
+                        }
+                    };
+
+                    const rootLayer = new Konva.Layer();
+                    this.stage.add(rootLayer);
+                    processLayer(this.layers, rootLayer); // 从根层级开始处理所有层级
+                    rootLayer.draw();
+                },
+
+                addListenersForElement(node, element, parentSpaceUnit) {
+                    // 添加右键点击监听器
+                    node.on('contextmenu', (e) => {
+                        e.evt.preventDefault();
+                        let element = this.findElementByKonvaId(this.layers, node.id());
+                        if (element) {
+                            this.currentElement = element;
+                            // TODO 可在此处设置右键画板上的Konva Element后的操作(比如弹出模态框并给模态框的表单赋值)
+                        }
+                    });
+
+                    const tooltip = document.getElementById('tooltip');
+                    const showTooltip = (text, evt) => {
+                        tooltip.style.display = 'block';
+                        tooltip.innerText = text;
+                        tooltip.style.backgroundColor = parentSpaceUnit.available ? 'green' : 'red'; // 根据 Available 属性设置背景色
+                        const mousePos = this.stage.getPointerPosition();
+                        tooltip.style.top = `${mousePos.y + 5}px`;
+                        tooltip.style.left = `${mousePos.x + 5}px`;
+                    };
+
+                    const hideTooltip = () => {
+                        tooltip.style.display = 'none';
+                    };
+
+                    // 添加鼠标悬浮事件监听器
+                    node.on('mouseenter', (evt) => showTooltip(parentSpaceUnit.name, evt));
+                    node.on('mouseleave', hideTooltip);
+                    node.on('mousemove', (evt) => showTooltip(parentSpaceUnit.name, evt));
+                },
+
+                findElementByKonvaId(layers, elementId) {
+                    for (let layer of layers) {
+                        for (let element of layer.elements) {
+                            if (String(element.id) === String(elementId)) {
+                                return element;
+                            }
+                        }
+                        if (layer.child_units) {
+                            let found = this.findElementByKonvaId(layer.child_units, elementId);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                },
+
+                // ----------------- konva.js: 控制Stage上的交互事件 -----------------
+
+                handleWheelZoom(event) {
+                    // 检查是否按下了Ctrl键
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+
+                        const oldScale = this.stage.scaleX();
+                        const pointer = this.stage.getPointerPosition();
+
+                        // 放大或缩小
+                        const scaleBy = 1.1;
+                        const newScale = event.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+
+                        this.stage.scale({x: newScale, y: newScale});
+
+                        const mousePointTo = {
+                            x: (pointer.x - this.stage.x()) / oldScale,
+                            y: (pointer.y - this.stage.y()) / oldScale,
+                        };
+
+                        const newPos = {
+                            x: pointer.x - mousePointTo.x * newScale,
+                            y: pointer.y - mousePointTo.y * newScale,
+                        };
+
+                        this.stage.position(newPos);
+                        this.stage.batchDraw();
+                    }
+                },
+
+                handleStageClick(e) {
+                    if (e.evt.button === 2) { // Right-click to finish polygon drawing
+                        e.evt.preventDefault(); // 阻止默认上下文菜单
+                        this.resetState();
+                    }
+                },
+
+                handleResize() {
+                    const width = window.innerWidth * 0.9;
+                    const height = window.innerHeight * 0.91;
+                    this.stage.size({width, height});
+                },
+
+                // ----------------- 其他函数 -----------------
+
+                changeFloor(floor) { // 切换楼层
+                    if (this.floor !== floor) {
+                        this.floor = floor;
+                        this.refreshData();
+                    }
+                },
+
+                setCurrentElement(element) {
+                    console.log('Setting current element:', element);
+                    this.currentElement = element;
+                },
+
+            }
+        });
+
+    </script>
+
+
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
                 function openExhibApplyModal() {
                     const myModal = new bootstrap.Modal(document.getElementById('createExhibApplyModal'));
@@ -224,76 +439,6 @@
                 window.submitApplication = submitApplication;
                 window.openFilterModal = openFilterModal;
                 window.submitFilter = submitFilter;
-
-
-                // konva.js-----------------------------------------------------------------------------------------------
-                var width = window.innerWidth * 0.9; // 获取窗口宽度
-                var height = window.innerHeight * 0.8; // 获取窗口高度
-
-                // 创建舞台并添加到舞台容器
-                var stage = new Konva.Stage({
-                    container: 'stage-container', // 容器的ID
-                    width: width,
-                    height: height,
-                    draggable: true
-                });
-
-                // 创建层级
-                var layer = new Konva.Layer();
-                stage.add(layer);
-
-                // 创建变形器并添加到层
-                var transformer = new Konva.Transformer();
-                layer.add(transformer);
-
-                // 添加shapes----------------------
-                Konva.Image.fromURL('{% static 'images/Layout/venue.jpg' %}', function (darthNode) {
-                    darthNode.setAttrs({
-                        x: 400,
-                        y: 50,
-                        scaleX: 0.8,
-                        scaleY: 0.8,
-                        cornerRadius: 20,
-                    });
-                    layer.add(darthNode);
-                });
-                // 添加shapes结束----------------------
-
-                // 实现了ctrl+鼠标滚轮能够放缩舞台的效果--------------------------------------
-                var scaleBy = 1.2;  // 定义缩放比例
-                stage.on('wheel', function (e) {
-                    e.evt.preventDefault();  // 阻止默认的滚动行为
-                    if (e.evt.ctrlKey) {  // 只有当Ctrl键被按下时才进行缩放
-                        var oldScale = stage.scaleX();  // 获取当前舞台的缩放比例
-                        var pointer = stage.getPointerPosition();  // 获取鼠标指针的位置
-
-                        var mousePointTo = {
-                            x: (pointer.x - stage.x()) / oldScale,
-                            y: (pointer.y - stage.y()) / oldScale,
-                        };
-
-                        var direction = e.evt.deltaY > 0 ? 1 : -1;  // 判断滚动方向
-                        var newScale = direction > 0 ? oldScale / scaleBy : oldScale * scaleBy;  // 计算新的缩放比例
-
-                        stage.scale({x: newScale, y: newScale});  // 设置新的缩放比例
-
-                        var newPos = {
-                            x: pointer.x - mousePointTo.x * newScale,
-                            y: pointer.y - mousePointTo.y * newScale,
-                        };
-                        stage.position(newPos);  // 更新舞台的位置以适应新的缩放
-                        layer.batchDraw();  // 重新绘制层
-                    }
-                });
-                // ----------------------------------------------------------------------
-
-
-                // 更新画布尺寸以适应窗口大小变化---------------------------------------------
-                window.addEventListener('resize', function () {
-                    stage.width(window.innerWidth);
-                    stage.height(window.innerHeight);
-                });
-                // ----------------------------------------------------------------------
             }
         );
     </script>

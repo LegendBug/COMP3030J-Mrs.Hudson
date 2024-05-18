@@ -7,8 +7,6 @@ from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect
-
-import Inventory.views
 from Booth.models import BoothApplication
 from Exhibition.models import ExhibitionApplication
 from Inventory.models import ResourceApplication, Item
