@@ -539,7 +539,9 @@
                 this.refreshData()
             },
             beforeDestroy() {
-
+                if (this.stage){
+                    this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
+                }                
             },
             computed: {
                 buttonStyle() {
@@ -595,7 +597,9 @@
                     }
                 },
 
-                // ----------------- konva.js -----------------             
+                // ----------------- 以下是与konva.js相关的函数 -----------------      
+                
+                // ----------------- konva.js: 加载数据 -----------------       
                 renderKonva() {
                     console.log('Rendering Konva...');
                     this.stage = new Konva.Stage({
@@ -603,6 +607,8 @@
                         width: window.innerWidth * 0.9,
                         height:  window.innerHeight * 0.91,
                     });
+                    
+                    this.stage.container().addEventListener('wheel', this.handleWheelZoom);
                     
                     const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
                         return new Promise((resolve, reject) => {
@@ -753,6 +759,8 @@
                     }
                     return null;
                 },
+                
+                // ----------------- konva.js: 数据上传 ----------------- 
 
                 synchronizeElementsData(){
                     console.log('Synchronizing elements data...');
@@ -764,6 +772,147 @@
                         console.error('Failed to synchronize elements data:', error);
                     });
                 },
+                
+                uploadElement(newElement, elementProps) {
+                    console.log('Uploading new element:', newElement.toJSON());
+                    const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
+                    const formData = new FormData();
+                    formData.append('name', name );
+                    formData.append('transformable', transformable);
+                    if (this.newElementType === 'Image' && imageFile) {
+                        formData.append('image', imageFile);
+                    }
+                    formData.append('data', newElement.toJSON());
+                    formData.append('type', this.newElementType);
+                    formData.append('layer_id', this.currentLayer.id);
+                    
+                    axios.post('{% url "Layout:add_element" %}', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    })
+                    .then(response => {
+                        console.log('Element added successfully:', response.data);
+                        this.refreshData();
+                        this.resetState(); // 重置添加状态
+                    })
+                    .catch(error => {
+                        console.error('Error adding element:', error);
+                    });
+                },
+                
+                editElementProperties(){
+                    this.synchronizeElementsData().then(() => { // 确保在修改新元素后刷新本地数据前更新画板上的数据到后端
+                        // const element = this.findElementByKonvaId(this.layers, this.currentElement.id)
+                        const konvaElement = this.stage.findOne('#' + this.currentElement.id);
+                        const textContent = this.currentElement.type === 'Text' ? document.getElementById('editedTextContent').value : null;
+                        const fillColor = this.currentElement.type !== 'Image' ?  document.getElementById('editedFillColor').value : null;
+                        const borderStyle = document.getElementById('editedBorderStyle').value;
+                        const borderColor = borderStyle !== 'none' ? document.getElementById('editedBorderColor').value : null;
+                        const draggable = document.getElementById('editedDraggable').checked;
+                        const elementName = document.getElementById('editedElementName').value;
+                        const transformable = document.getElementById('editedTransformable').checked;
+                        const imageFile = this.currentElement.type === 'Image' ? document.getElementById('editedImageUpload').files[0] : null;
+                        // 更新KonvaElement的属性
+                        if(textContent){
+                            konvaElement.text(textContent);
+                        }
+                        if (fillColor) {
+                            konvaElement.fill(fillColor);
+                        }
+                        if (borderStyle) {
+                            konvaElement.strokeWidth(borderStyle === 'thin' ? 1 : (borderStyle === 'thick' ? 4 : 0));
+                        }
+                        if (borderColor) {
+                            konvaElement.stroke(borderColor);
+                        }
+                        konvaElement.draggable(draggable);
+
+                        const formData = new FormData();
+                        formData.append('id', this.currentElement.id);
+                        formData.append('name', elementName);
+                        formData.append('transformable', transformable);
+                        formData.append('data', konvaElement.toJSON());
+                        if (this.currentElement.type === 'Image' && imageFile) {
+                            formData.append('image', imageFile);
+                        }
+
+                        console.log('Editing element:', konvaElement.toJSON());
+                        axios.post('{% url "Layout:edit_element" %}', formData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        })
+                        .then(response => {
+                            console.log('Element edited successfully:', response.data);
+                            this.refreshData();
+                            this.resetState(); // 重置添加状态
+
+                            // 隐藏模态框
+                            $('#editElementPropertiesModal').modal('hide');
+                        })
+                        .catch(error => {
+                            console.error('Error editing element:', error);
+                        });
+                    });
+                },
+                
+                // ----------------- konva.js: 控制Stage上的交互事件 -----------------
+                
+                handleWheelZoom(event) {
+                    // 检查是否按下了Ctrl键
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+                        
+                        const oldScale = this.stage.scaleX();
+                        const pointer = this.stage.getPointerPosition();
+            
+                        // 放大或缩小
+                        const scaleBy = 1.1;
+                        const newScale = event.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+            
+                        this.stage.scale({ x: newScale, y: newScale });
+            
+                        const mousePointTo = {
+                            x: (pointer.x - this.stage.x()) / oldScale,
+                            y: (pointer.y - this.stage.y()) / oldScale,
+                        };
+            
+                        const newPos = {
+                            x: pointer.x - mousePointTo.x * newScale,
+                            y: pointer.y - mousePointTo.y * newScale,
+                        };
+            
+                        this.stage.position(newPos);
+                        this.stage.batchDraw();
+                    }
+                },
+                
+                handleStageClick(e) {                   
+                    if (e.evt.button === 2) { // Right-click to finish polygon drawing
+                        e.evt.preventDefault(); // 阻止默认上下文菜单
+                        this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
+                        this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
+                        
+                        if (this.newElementType === 'Polygon') {
+                            this.finishPolygonDrawing();
+                        } else {
+                            this.resetState();
+                        }
+                    } else if (e.evt.button === 0) { // Left-click to add points
+                        if (this.newElementType === 'Line') {
+                            this.handleLineDrawing(e);
+                        } else if (this.newElementType === 'Arrow') {
+                            this.handleArrowDrawing(e);
+                        } else if (this.newElementType === 'Polygon') {
+                            this.handlePolygonDrawing(e);
+                        } else {
+                            this.placeElement(this.elementProps, e);
+                        }
+                    }
+                },
+                
+                // ----------------- konva.js: 添加Konva Element到Stage -----------------
             
                 addElement(type) {
                     this.offcanvasOpen = false; // 先收缩Offcanvas
@@ -816,31 +965,7 @@
                     });
                     this.stage.on('mousedown touchstart',  this.handleStageClick);
                 },                
-                
-                handleStageClick(e) {                   
-                    if (e.evt.button === 2) { // Right-click to finish polygon drawing
-                        e.evt.preventDefault(); // 阻止默认上下文菜单
-                        this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
-                        this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
-                        
-                        if (this.newElementType === 'Polygon') {
-                            this.finishPolygonDrawing();
-                        } else {
-                            this.resetState();
-                        }
-                    } else if (e.evt.button === 0) { // Left-click to add points
-                        if (this.newElementType === 'Line') {
-                            this.handleLineDrawing(e);
-                        } else if (this.newElementType === 'Arrow') {
-                            this.handleArrowDrawing(e);
-                        } else if (this.newElementType === 'Polygon') {
-                            this.handlePolygonDrawing(e);
-                        } else {
-                            this.placeElement(this.elementProps, e);
-                        }
-                    }
-                },
-                
+                               
                 handleLineDrawing(e) {
                     const pos = this.stage.getPointerPosition();
                     if (!this.lineStartPoint) {
@@ -1028,95 +1153,12 @@
                             this.uploadElement(newElement, elementProps); // 上传元素数据到服务器
                         });
                     }
-                },
+                },   
+                               
 
-                uploadElement(newElement, elementProps) {
-                    console.log('Uploading new element:', newElement.toJSON());
-                    const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
-                    const formData = new FormData();
-                    formData.append('name', name );
-                    formData.append('transformable', transformable);
-                    if (this.newElementType === 'Image' && imageFile) {
-                        formData.append('image', imageFile);
-                    }
-                    formData.append('data', newElement.toJSON());
-                    formData.append('type', this.newElementType);
-                    formData.append('layer_id', this.currentLayer.id);
-                    
-                    axios.post('{% url "Layout:add_element" %}', formData, {
-                        headers: {
-                            'Content-Type': 'multipart/form-data'
-                        }
-                    })
-                    .then(response => {
-                        console.log('Element added successfully:', response.data);
-                        this.refreshData();
-                        this.resetState(); // 重置添加状态
-                    })
-                    .catch(error => {
-                        console.error('Error adding element:', error);
-                    });
-                },
-
-                editElementProperties(){
-                    this.synchronizeElementsData().then(() => { // 确保在修改新元素后刷新本地数据前更新画板上的数据到后端
-                        // const element = this.findElementByKonvaId(this.layers, this.currentElement.id)
-                        const konvaElement = this.stage.findOne('#' + this.currentElement.id);
-                        const textContent = this.currentElement.type === 'Text' ? document.getElementById('editedTextContent').value : null;
-                        const fillColor = this.currentElement.type !== 'Image' ?  document.getElementById('editedFillColor').value : null;
-                        const borderStyle = document.getElementById('editedBorderStyle').value;
-                        const borderColor = borderStyle !== 'none' ? document.getElementById('editedBorderColor').value : null;
-                        const draggable = document.getElementById('editedDraggable').checked;
-                        const elementName = document.getElementById('editedElementName').value;
-                        const transformable = document.getElementById('editedTransformable').checked;
-                        const imageFile = this.currentElement.type === 'Image' ? document.getElementById('editedImageUpload').files[0] : null;
-                        // 更新KonvaElement的属性
-                        if(textContent){
-                            konvaElement.text(textContent);
-                        }
-                        if (fillColor) {
-                            konvaElement.fill(fillColor);
-                        }
-                        if (borderStyle) {
-                            konvaElement.strokeWidth(borderStyle === 'thin' ? 1 : (borderStyle === 'thick' ? 4 : 0));
-                        }
-                        if (borderColor) {
-                            konvaElement.stroke(borderColor);
-                        }
-                        konvaElement.draggable(draggable);
-
-                        const formData = new FormData();
-                        formData.append('id', this.currentElement.id);
-                        formData.append('name', elementName);
-                        formData.append('transformable', transformable);
-                        formData.append('data', konvaElement.toJSON());
-                        if (this.currentElement.type === 'Image' && imageFile) {
-                            formData.append('image', imageFile);
-                        }
-
-                        console.log('Editing element:', konvaElement.toJSON());
-                        axios.post('{% url "Layout:edit_element" %}', formData, {
-                            headers: {
-                                'Content-Type': 'multipart/form-data'
-                            }
-                        })
-                        .then(response => {
-                            console.log('Element edited successfully:', response.data);
-                            this.refreshData();
-                            this.resetState(); // 重置添加状态
-
-                            // 隐藏模态框
-                            $('#editElementPropertiesModal').modal('hide');
-                        })
-                        .catch(error => {
-                            console.error('Error editing element:', error);
-                        });
-                    });
-                },
-
-                // ----------------- Offcanvas -----------------
-                // 控制 Offcanvas 的显示与隐藏
-                toggleOffcanvas() {
+                // ----------------- Offcanvas ------------------
+                               
+                toggleOffcanvas() { // 控制 Offcanvas 的显示与隐藏
                     this.offcanvasOpen = !this.offcanvasOpen;
                     let offcanvasElement = document.getElementById('offcanvasScrolling');
                     offcanvasElement.style.visibility = this.offcanvasOpen ? 'visible' : 'hidden';
@@ -1128,7 +1170,9 @@
                         this.refreshData();
                     }
                 },
+                
                 // ----------------- Accordion的相关方法 -----------------
+                
                 setCurrentLayer(layer) {
                     console.log('Setting current layer:', layer);
                     this.currentLayer = layer;
