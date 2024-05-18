@@ -281,6 +281,11 @@
                     node.on('mouseenter', (evt) => showTooltip(parentSpaceUnit.name, evt));
                     node.on('mouseleave', hideTooltip);
                     node.on('mousemove', (evt) => showTooltip(parentSpaceUnit.name, evt));
+                    
+                    // 添加画板拖拽的监听器
+                    this.stage.on('mousedown', this.handleMouseDown);
+                    this.stage.on('mouseup', this.handleMouseUp);
+                    this.stage.on('mousemove', this.handleMouseMove);
                 },
 
                 findElementByKonvaId(layers, elementId) {
@@ -299,6 +304,37 @@
                 },
 
                 // ----------------- konva.js: 控制Stage上的交互事件 -----------------
+                
+                handleMouseDown(e) {
+                    // 确保是左键点击
+                    if (e.evt.button === 0) {
+                        this.isDragging = true;
+                        this.lastPointerPosition = this.stage.getPointerPosition();
+                    }
+                },
+                
+                handleMouseUp() {
+                    this.isDragging = false; // 停止拖动
+                },
+
+                handleMouseMove(e) {
+                    if (this.isDragging) {
+                        // 计算移动距离
+                        const pointerPosition = this.stage.getPointerPosition();
+                        const dx = pointerPosition.x - this.lastPointerPosition.x;
+                        const dy = pointerPosition.y - this.lastPointerPosition.y;
+            
+                        // 更新位置
+                        this.stage.x(this.stage.x() + dx);
+                        this.stage.y(this.stage.y() + dy);
+            
+                        // 更新最后的指针位置
+                        this.lastPointerPosition = pointerPosition;
+            
+                        // 重新渲染
+                        this.stage.batchDraw();
+                    }
+                },
 
                 handleWheelZoom(event) {
                     // 检查是否按下了Ctrl键
