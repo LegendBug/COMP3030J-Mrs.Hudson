@@ -2,7 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('venue_layout/', views.venue_layout, name='venue_layout'),
     path('layout/', views.layout, name='layout'),
     path('refresh_data/', views.refresh_data, name='refresh_data'),
     path('add_sublayer/', views.add_sublayer, name='add_sublayer'),

@@ -24,13 +24,27 @@
     background-repeat: no-repeat;
 }
 
-
-/* 以下是原样式代码: */
-
-
-.logo-title {
-    margin-left: 3rem;
+#venue-header {
+    width: 100%; /* 确保header占满整个容器宽度 */
+    display: flex;
+    justify-content: space-between; /* 使左右两侧内容分别对齐到各自的边缘 */
+    padding-left: 3rem; /* 根据需要调整，以匹配画板的左侧边距 */
+    padding-right: 3rem; /* 根据需要调整，以匹配画板的右侧边距 */
+    align-items: center; /* 确保所有元素在垂直方向上居中 */
 }
+
+#venue-name {
+    font-family: 'Cursive', sans-serif; /* 使用艺术字体 */
+    font-size: 28px; /* 调整字体大小以适配设计 */
+    font-weight: bold;
+}
+
+.dropdown .dropdown-toggle {
+    margin-top: 1rem; /* 调整下拉菜单按钮的上边距 */
+    font-size: 20px; /* 增加字体大小，使按钮显得更大 */
+    padding: 0.5rem 1rem; /* 增加内边距，使按钮本体更大 */
+}
+
 
 .table-responsive {
     background: linear-gradient(#00397311, #00336311);  /* 使用深蓝到浅蓝的渐变背景 */
