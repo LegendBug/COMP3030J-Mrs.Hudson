@@ -25,7 +25,25 @@
 {% endblock %}
 
 {% block content %}
-    <div id="app">
+    <div id="venue-app">
+
+        <div class="d-flex justify-content-between align-items-center mb-3" id="venue-header">
+            <div id="venue-name" class="venue-text logo-title">
+                Current Venue: {{ venue.name }}
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    Current Floor: [[this.floor]]
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
+                    {% for floor_number in floor_range %}
+                        <li><a class="dropdown-item" href="#"
+                               @click="toggleFloor({{ floor_number }})">Floor {{ floor_number }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
 
         <div id="konva-container"></div>
 
@@ -35,7 +53,7 @@
 
         <!-- Floating Action Button -->
         {% if user.is_authenticated and user_type == 'Organizer' %}
-            <a onclick="openExhibApplyModal()" class="btn btn-success rounded-circle shadow" id="createExhibApply"
+            <a @click="openExhibApplyModal()" class="btn btn-success rounded-circle shadow" id="createExhibApply"
                style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
            justify-content: center; align-items: center; font-size: 30px;" title="Apply Exhibition">
                 📝
@@ -48,6 +66,11 @@
                 📦
             </a>
         {% endif %}
+        <a class="btn btn-success rounded-circle shadow" id="filter-exhibitions-btn"
+           style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+           @click="openFilterModal();" title="Filter Exhibitions">
+            <i class="fas fa-filter mt-1"></i>
+        </a>
 
         <!-- 展览列表 -->
         <div class="table-responsive" style="margin: 1rem; user-select: none">
@@ -106,7 +129,7 @@
                             <div id="application-form-container"></div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-success" onclick="submitApplication()">Apply
+                                <button type="button" class="btn btn-success" @click="submitApplication()">Apply
                                 </button>
                             </div>
                         </form>
@@ -115,7 +138,6 @@
             </div>
         </div>
 
-        {# TODO 稍后完成筛选模态框 #}
         <div class="modal fade" id="filterExhibitionsModal" tabindex="-1" aria-labelledby="filterExhibitionsLabel"
              aria-hidden="true">
             <div class="modal-dialog">
@@ -148,18 +170,19 @@
 {% block scripts %}
     <script>
         new Vue({
-            el: '#app',
+            el: '#venue-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
                 floor: 1, // 当前楼层,默认为1
                 layers: [],
                 stage: null,
-                currentElement: null
+                currentElement: null,
+
             },
             mounted() {
-                this.refreshData()
+                this.refreshData();
             },
-            beforeDestroy() {
+            beforeDestroy() { 
                 if (this.stage) {
                     this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
                 }
@@ -169,10 +192,10 @@
                 // ----------------- 数据加载 -----------------
                 refreshData() {
                     console.log('Refreshing data...');
-                    return axios.get('{% url "Layout:refresh_data" %}', {
+                    return axios.get('{% url "Venue:refresh_data" %}', {
                         params: {
                             floor: this.floor,
-                            current_access_id: {{ venue.id }},
+                            venue_id: {{ venue.id }},
                             user_type: '{{ user_type }}',
                         }
                     }).then(response => {
@@ -272,7 +295,6 @@
                         tooltip.style.top = `${mousePos.y + 5}px`;
                         tooltip.style.left = `${mousePos.x + 5}px`;
                     };
-
                     const hideTooltip = () => {
                         tooltip.style.display = 'none';
                     };
@@ -281,7 +303,7 @@
                     node.on('mouseenter', (evt) => showTooltip(parentSpaceUnit.name, evt));
                     node.on('mouseleave', hideTooltip);
                     node.on('mousemove', (evt) => showTooltip(parentSpaceUnit.name, evt));
-                    
+
                     // 添加画板拖拽的监听器
                     this.stage.on('mousedown', this.handleMouseDown);
                     this.stage.on('mouseup', this.handleMouseUp);
@@ -304,7 +326,7 @@
                 },
 
                 // ----------------- konva.js: 控制Stage上的交互事件 -----------------
-                
+
                 handleMouseDown(e) {
                     // 确保是左键点击
                     if (e.evt.button === 0) {
@@ -312,7 +334,7 @@
                         this.lastPointerPosition = this.stage.getPointerPosition();
                     }
                 },
-                
+
                 handleMouseUp() {
                     this.isDragging = false; // 停止拖动
                 },
@@ -323,14 +345,14 @@
                         const pointerPosition = this.stage.getPointerPosition();
                         const dx = pointerPosition.x - this.lastPointerPosition.x;
                         const dy = pointerPosition.y - this.lastPointerPosition.y;
-            
+
                         // 更新位置
                         this.stage.x(this.stage.x() + dx);
                         this.stage.y(this.stage.y() + dy);
-            
+
                         // 更新最后的指针位置
                         this.lastPointerPosition = pointerPosition;
-            
+
                         // 重新渲染
                         this.stage.batchDraw();
                     }
@@ -380,7 +402,7 @@
 
                 // ----------------- 其他函数 -----------------
 
-                changeFloor(floor) { // 切换楼层
+                toggleFloor(floor) { // 切换楼层
                     if (this.floor !== floor) {
                         this.floor = floor;
                         this.refreshData();
@@ -392,28 +414,20 @@
                     this.currentElement = element;
                 },
 
-            }
-        });
-
-    </script>
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-                function openExhibApplyModal() {
+                openExhibApplyModal() {
                     const myModal = new bootstrap.Modal(document.getElementById('createExhibApplyModal'));
                     myModal.show(); // 显示模态框
-                }
+                },
 
-                function openFilterModal() {
+                openFilterModal() {
                     const filterModal = new bootstrap.Modal(document.getElementById('filterExhibitionsModal'));
                     filterModal.show();
-                }
+                },
 
-                function submitApplication() {
+                submitApplication() {
                     const formElement = document.getElementById('application-form');
                     const formData = new FormData(formElement);
-                    const url = formElement.action;  // 直接从表单元素获取action
+                    const url = formElement.action; // 直接从表单元素获取action
                     const container = document.getElementById('application-form-container');
 
                     formData.set('venue_id', {{ venue.pk }}); // 添加场馆ID
@@ -422,27 +436,27 @@
 
                     axios.post(url, formData, {
                         headers: {
-                            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,  // 在请求头中包含CSRF令牌
-                            'Content-Type': 'multipart/form-data'  // 发送文件时很重要
+                            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value, // 在请求头中包含CSRF令牌
+                            'Content-Type': 'multipart/form-data' // 发送文件时很重要
                         }
                     }).then(response => {
-                        if (response.data.success) {  // 检查响应中是否包含“success”
+                        if (response.data.success) { // 检查响应中是否包含“success”
                             container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
                             const modal = bootstrap.Modal.getInstance(document.getElementById('createExhibApplyModal'));
                             setTimeout(() => {
-                                modal.hide();  // 隐藏模态框
-                                window.location.reload();  // 重新加载页面以更新消息列表
+                                modal.hide(); // 隐藏模态框
+                                window.location.reload(); // 重新加载页面以更新消息列表
                             }, 1500);
                         }
                     }).catch(error => {
                         // 记录或处理错误
                         console.error(error);
                         container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
-                        container.style.display = 'block';  // Make sure the message container is visible
+                        container.style.display = 'block'; // Make sure the message container is visible
                     });
-                }
+                },
 
-                function submitFilter() {
+                submitFilter() {
                     const filterForm = document.getElementById('filterFrom');
                     const container = document.getElementById('filter-exhibitions-message-container');
                     filterForm.addEventListener("submit", function (e) {
@@ -469,14 +483,11 @@
                             container.style.display = 'block';
                         });
                     });
-                }
+                },
 
-                window.openExhibApplyModal = openExhibApplyModal;
-                window.submitApplication = submitApplication;
-                window.openFilterModal = openFilterModal;
-                window.submitFilter = submitFilter;
             }
-        );
+        });
+
     </script>
 {% endblock %}
 

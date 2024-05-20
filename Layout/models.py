@@ -15,6 +15,7 @@ class SpaceUnit(models.Model):
     parent_unit = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, related_name='child_units')
     available = models.BooleanField(default=False)  # boolean field: available, 用于标记当前SpaceUnit是否可被预约或使用
     created_at = models.DateTimeField(auto_now_add=True)
+    # occupied_units = List<SpaceUnit>, 由Django ORM的反向关系实现
     # elements = List<FabricElement>, 由Django ORM的反向关系实现
     # child_units = List<SpaceUnit>, 由Django ORM的反向关系实现
     # items = List<Item>, 由Django ORM的反向关系实现

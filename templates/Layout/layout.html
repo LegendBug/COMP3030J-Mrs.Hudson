@@ -28,7 +28,7 @@
 
 
 {% block content %}
-    <div id="app">
+    <div id="layout-app">
         <!-- Floating Action Button -->
         <button @click="toggleOffcanvas" class="btn btn-primary rounded shadow" id="toggle-offcanvas-btn"
                 :style="buttonStyle">
@@ -519,7 +519,7 @@
         });
 
         new Vue({
-            el: '#app',
+            el: '#layout-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
                 floor: 1, // 当前楼层,默认为1

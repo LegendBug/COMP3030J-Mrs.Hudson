@@ -11,24 +11,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 
-
-def venue_layout(request):
-    user_type = 'Manager' if hasattr(request.user, 'manager') \
-        else 'Organizer' if hasattr(request.user, 'organizer') \
-        else 'Exhibitor' if hasattr(request.user, 'exhibitor') \
-        else 'Guest'
-    # 从session中获取venue_id
-    venue_id = request.session.get('venue_id')
-    venue = Venue.objects.get(id=venue_id)
-    # 获取当前场馆的items
-    items = venue.items.all()
-    # add_layer_form
-    add_sublayer_form = AddLayerForm(initial={'parent_id': 1, 'floor': venue.floor})
-    return render(request, 'Layout/venue_layout.html',
-                  {'venue': venue, 'items': items, 'user_type': user_type, 'floor_range': range(1, venue.floor),
-                   'add_sublayer_form': add_sublayer_form})
-
-
 def layout(request):
     # 从session中获取venue_id
     venue_id = request.session.get('venue_id')
