@@ -1,11 +1,10 @@
-import datetime
 from django.utils.translation import gettext_lazy as _
 from django import forms
-
 from Exhibition.models import Exhibition
 from Layout.models import SpaceUnit
 from django.core.exceptions import ValidationError
-
+from django.utils import timezone
+from datetime import datetime, date
 
 class ExhibApplicationForm(forms.Form):
     # 关联的场馆ID
@@ -37,7 +36,7 @@ class ExhibApplicationForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ExhibApplicationForm, self).__init__(*args, **kwargs)
         # 设置默认日期为今天
-        self.fields['exhib_start_at'].initial = datetime.date.today()
+        self.fields['exhib_start_at'].initial = date.today()
         self.fields['exhib_sectors'].label_from_instance = lambda obj: f"{obj.name}"
         # 设置Sectors为某一场馆的SpaceUnits
         affiliation_object_id = self.initial.get('affiliation_object_id')
@@ -66,10 +65,10 @@ class ExhibApplicationForm(forms.Form):
 class FilterExhibitionsForm(forms.Form):
     name = forms.CharField(required=False, label="Exhibition Name")
     venue_id = forms.IntegerField(widget=forms.HiddenInput())
-    start_at = forms.DateTimeField(required=False, label="Start Date",
-                                   widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
-    end_at = forms.DateTimeField(required=False, label="End Date",
-                                 widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
+    start_at = forms.DateField(required=False, label="Start Date",
+                               widget=forms.DateInput(attrs={'type': 'date'}))
+    end_at = forms.DateField(required=False, label="End Date",
+                             widget=forms.DateInput(attrs={'type': 'date'}))
     organizer = forms.CharField(required=False, label="Organizer Name")
 
     def clean(self):
@@ -98,9 +97,11 @@ class FilterExhibitionsForm(forms.Form):
         if name:
             qs = qs.filter(name__icontains=name)
         if start_at:
-            qs = qs.filter(start_at__gte=start_at)
+            start_datetime = timezone.make_aware(datetime.combine(start_at, datetime.min.time()))
+            qs = qs.filter(start_at__gte=start_datetime)
         if end_at:
-            qs = qs.filter(end_at__lte=end_at)
+            end_datetime = timezone.make_aware(datetime.combine(end_at, datetime.max.time()))
+            qs = qs.filter(end_at__lte=end_datetime)
         if organizer:
-            qs = qs.filter(organizer__name__icontains=organizer)
+            qs = qs.filter(organizer__detail__username__icontains=organizer)
         return qs

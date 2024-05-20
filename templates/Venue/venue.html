@@ -150,9 +150,9 @@
                         <form id="filterFrom" method="post" action="{% url 'Venue:venue' venue.pk %}"
                               enctype="multipart/form-data"
                               class="needs-validation" novalidate>
-                            {% csrf_token %}
-                            <input type="hidden" name="venue_id" id="venue_id" value="{{ venue.pk }}">
+                            {% csrf_token %}       
                             {{ filter_form|crispy }}
+                            <input type="hidden" name="venue_id" id="venue_id" value="{{ venue.pk }}">
                             <div id="filter-exhibitions-message-container"></div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -182,7 +182,7 @@
             mounted() {
                 this.refreshData();
             },
-            beforeDestroy() { 
+            beforeDestroy() {
                 if (this.stage) {
                     this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
                 }

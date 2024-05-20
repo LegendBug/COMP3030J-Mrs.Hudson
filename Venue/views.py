@@ -73,8 +73,8 @@ def venue(request, venue_id): # TODO 在展览过期后, 将绑定的SpaceUnit�
     user_type = request.session.get('user_type', 'Guest')
     exhibitions = None
     if request.method == 'GET':
-        # 筛选start_at在当前时间或者之后的展览,并按照从最近开始到最远开始的顺序排序
-        exhibitions = current_venue.exhibitions.filter(start_at__gte=timezone.now()).order_by('start_at')
+        # 筛选end_at在今日或者今日之后的展会,并按照从最近开始到最远开始的顺序排序
+        exhibitions = Exhibition.objects.filter(venue_id=venue_id, end_at__gte=timezone.now()).order_by('start_at')
     elif request.method == 'POST':
         submitted_filter_form = FilterExhibitionsForm(request.POST)
         if submitted_filter_form.is_valid():

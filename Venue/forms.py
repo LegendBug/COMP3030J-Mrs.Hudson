@@ -37,7 +37,7 @@ class CreateVenueForm(forms.ModelForm):
                     name=f"Floor {floor_number} Root Layer",
                     description=f"{venue.name}'s Floor {floor_number}, this is one of the root SpaceUnits",
                     floor=floor_number,
-                    available=True,
+                    available=False,
                     parent_unit=None,  # 假设这是顶级单位
                     affiliation_content_type=ContentType.objects.get_for_model(Venue),
                     affiliation_object_id=venue.pk,
