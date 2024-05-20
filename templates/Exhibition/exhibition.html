@@ -2,14 +2,19 @@
 {% load crispy_forms_filters %}
 {% load static %}
 {% load crispy_forms_tags %}
+
 {% block extra_head %}
     <title>Exhibition</title>
-    <link rel="stylesheet" href="{% static 'css/Venue/venue.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'css/Exhibition/exhibition.css' %}">
 {% endblock %}
 
 {% block extra_nav_icons %}
     <!-- 导航栏额外按键-->
-    {% if user.is_authenticated and user_type == 'Manager' %}
+    {% if user.is_authenticated and user_type == 'Manager' or user_type == 'Organizer' %}
         <li class="nav-item">
             <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i>
                 Statistics</a>
@@ -21,101 +26,396 @@
 {% endblock %}
 
 {% block content %}
-    <!-- Floating Action Button -->
-    {% if user.is_authenticated and user_type == 'Exhibitor' %}
-        <a onclick="openBoothApplyModal()" class="btn btn-success rounded-circle shadow" id="createBoothApply"
-           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
+    <div id="exhibition-app">
+
+        <div class="d-flex justify-content-between align-items-center mb-3" id="exhibition-header">
+            <div id="exhibition-name" class="exhibition-text logo-title">
+                Current Exhibition: {{ exhibition.name }}
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    Current Sector: [[ layers.length > 0 ? layers[0].name : 'Loading...' ]]
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
+                    {% for sector in sectors %}
+                        {% comment %}你先别急, 这里是Pycharm的模板语法出现了问题, 这里其实是可以正常运行的{% endcomment %}
+                        <li><a class="dropdown-item" href="#" @click="toggleSector({{ sector.pk }})">Sector {{ sector.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div id="konva-container"></div>
+        <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
+        <div id="tooltip"
+             style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
+
+
+        <!-- Floating Action Button -->
+        {% if user.is_authenticated and user_type == 'Exhibitor' %}
+            <a onclick="openBoothApplyModal()" class="btn btn-success rounded-circle shadow" id="createBoothApply"
+               style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
            justify-content: center; align-items: center; font-size: 30px;" title="Apply Booth">
-            📝
+                📝
+            </a>
+        {% elif user.is_authenticated and user_type == 'Organizer' %}
+            <a class="btn btn-success rounded-circle shadow"
+               style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+               href="{% url 'Inventory:inventory' 'exhibition' exhibition.id %}" title="View Inventory">
+                📦
+            </a>
+        {% endif %}
+        <a class="btn btn-success rounded-circle shadow" id="filter-booths-btn"
+           style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+           @click="openFilterModal();" title="Filter Booths">
+            <i class="fas fa-filter mt-1"></i>
         </a>
-    {% elif user.is_authenticated and user_type != 'Exhibitor' %}
-        <a class="btn btn-success rounded-circle shadow"
-           style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-           href="{% url 'Inventory:inventory' 'exhibition' exhibition.id %}" title="View Inventory">
-            📦
-        </a>
-    {% endif %}
 
-    <br>
-    <div>
-        <h1 class="logo-title"><small>Exhibition: </small>{{ exhibition.name }}</h1>
-    </div>
-    <br>
-
-
-    <!-- 展览列表 -->
-    <div class="table-responsive" style="margin: 1rem; user-select: none">
-        <table class="table table-hover text-white">
-            <thead class="bg-dark">
-            <tr>
-                <th></th>
-                <th>Booth Name</th>
-                <th>Description</th>
-                <th>Exhibitor</th>
-                <th>Sector</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for booth in booths %}
-                <tr onclick="window.location.href='{% url 'Booth:booth' booth.id %}';"
-                    style="cursor: pointer;">
-                    <td><img src="{{ booth.image|default:'../../static/images/Public/poster.jpg' }}"
-                             alt="No Poster"
-                             class="booth-img" style="width: 100px; height: 80px;"></td>
-                    <td>{{ booth.name }}</td>
-                    <td>{{ booth.description }}</td>
-                    <td>{{ booth.exhibitor }}</td>
-                    <td>{{ booth.sectors }}</td>
-                    <td>{{ booth.start_at| date:"Y-m-d H:i" }}</td>
-                    <td>{{ booth.end_at| date:"Y-m-d H:i" }}</td>
-                </tr>
-            {% empty %}
+        <!-- 展览列表 -->
+        <div class="table-responsive" style="margin: 1rem; user-select: none">
+            <table class="table table-hover text-white">
+                <thead class="bg-dark">
                 <tr>
-                    <td colspan="7" class="text-center text-white">No booths found. 💤</td>
+                    <th></th>
+                    <th>Booth Name</th>
+                    <th>Description</th>
+                    <th>Exhibitor</th>
+                    <th>Sector</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                {% for booth in booths %}
+                    <tr onclick="window.location.href='{% url 'Booth:booth' booth.id %}';"
+                        style="cursor: pointer;">
+                        <td><img src="{{ booth.image|default:'../../static/images/Public/poster.jpg' }}"
+                                 alt="No Poster"
+                                 class="booth-img" style="width: 100px; height: 80px;"></td>
+                        <td>{{ booth.name }}</td>
+                        <td>{{ booth.description }}</td>
+                        <td>{{ booth.exhibitor }}</td>
+                        <td>{{ booth.sectors }}</td>
+                        <td>{{ booth.start_at| date:"Y-m-d H:i" }}</td>
+                        <td>{{ booth.end_at| date:"Y-m-d H:i" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-white">No booths found. 💤</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-    {# 申请新展台模态框 #}
-    <div class="modal fade" id="createBoothApplyModal" tabindex="-1" aria-labelledby="createBoothApplyModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createBoothApplyModalLabel">Apply for a New Booth</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="application-form" method="post"
-                          action="{% url 'Booth:create_booth_application' %}" enctype="multipart/form-data"
-                          class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        {{ application_form|crispy }}
-                        <div id="application-form-container"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-success" onclick="submitApplication()">Apply</button>
-                        </div>
-                    </form>
+        {# 申请新展台模态框 #}
+        <div class="modal fade" id="createBoothApplyModal" tabindex="-1" aria-labelledby="createBoothApplyModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createBoothApplyModalLabel">Apply for a New Booth</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="application-form" method="post"
+                              action="{% url 'Booth:create_booth_application' %}" enctype="multipart/form-data"
+                              class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            {{ application_form|crispy }}
+                            <div id="application-form-container"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-success" onclick="submitApplication()">Apply
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
+
+        {# 筛选展台模态框 #}
+        <div class="modal fade" id="filterBoothsModal" tabindex="-1" aria-labelledby="filterBoothsLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="filterBoothsTitle">Filter Exhibitions</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="filterFrom" method="post" action="{% url 'Exhibition:exhibition' exhibition.pk %}"
+                              enctype="multipart/form-data"
+                              class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            {{ filter_form|crispy }}
+                            <input type="hidden" name="exhibition_id" id="exhibition_id" value="{{ exhibition.pk }}">
+                            <div id="filter-booths-message-container"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-success">Filter Booths</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 {% endblock %}
 
 {% block scripts %}
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function () {
-                function openBoothApplyModal() {
+    <script>
+        new Vue({
+            el: '#exhibition-app',
+            delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
+            data: {
+                layers: [],
+                stage: null,
+                currentElement: null,
+            },
+            mounted() {
+                this.refreshData(0);
+            },
+            beforeDestroy() {
+                if (this.stage) {
+                    this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
+                }
+                window.removeEventListener('resize', this.handleResize);
+            },
+            methods: {
+                // ----------------- 数据加载 -----------------
+                refreshData(sectorId) {
+                    console.log('Refreshing data...');
+                    return axios.get('{% url "Exhibition:refresh_data" %}', {
+                        params: {
+                            sector_id: sectorId,
+                            exhibition_id: {{ exhibition.id }},
+                            user_type: '{{ user_type }}',
+                        }
+                    }).then(response => {
+                        if (response.data && response.data.id) {
+                            console.log('Data synchronized:', response.data);
+                            this.layers = []; // 清空Vue实例的layers数组
+                            this.layers = [response.data];
+                            this.renderKonva(); // 重新初始化Konva
+                        } else {
+                            console.error('Unexpected response data:', response.data);
+                        }
+                    }).catch(error => {
+                        console.error('Failed to synchronize data:', error);
+                    });
+                },
+
+                // ----------------- 以下是与konva.js相关的函数 -----------------
+
+                // ----------------- konva.js: 加载数据 -----------------
+                renderKonva() {
+                    console.log('Rendering Konva...');
+                    this.stage = new Konva.Stage({
+                        container: 'konva-container',
+                        width: window.innerWidth * 0.9,
+                        height: window.innerHeight * 0.9,
+                    });
+
+                    // 添加滚轮缩放事件监听器
+                    this.stage.container().addEventListener('wheel', this.handleWheelZoom);
+                    // 添加窗口大小变化事件监听器
+                    window.addEventListener('resize', this.handleResize);
+
+                    const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
+                        return new Promise((resolve, reject) => {
+                            Konva.Image.fromURL(url, (imageNode) => {
+                                try {
+                                    imageNode.setAttrs(nodeData);
+                                    group.add(imageNode);
+                                    this.addListenersForElement(imageNode, element, spaceUnit);
+                                    resolve(imageNode);
+                                } catch (error) {
+                                    reject(error);
+                                }
+                            });
+                        });
+                    };
+
+                    // 递归函数来处理每个层级的SpaceUnit和elements
+                    const processLayer = async (spaceUnits, parent) => {
+                        for (const spaceUnit of spaceUnits) {
+                            // 使用Group来模拟层嵌套
+                            let group = new Konva.Group();
+                            parent.add(group); // 将当前层添加到父组件中
+
+                            // 处理当前SpaceUnit的elements
+                            for (const element of spaceUnit.elements) {
+                                const nodeData = JSON.parse(element.data);
+                                if (element.type === 'Image') { // 如果加载的是图片
+                                    await loadImage(element.image, nodeData, group, element, spaceUnit);
+                                } else {
+                                    const node = Konva.Node.create(nodeData, group);
+                                    group.add(node);
+                                    this.addListenersForElement(node, element, spaceUnit); // 添加变换和拖拽结束的事件监听器
+                                }
+                            }
+
+                            // 如果当前SpaceUnit有子单位，则递归处理
+                            if (spaceUnit.child_units && spaceUnit.child_units.length > 0) {
+                                await processLayer(spaceUnit.child_units, parent);
+                            }
+                        }
+                    };
+
+                    const rootLayer = new Konva.Layer();
+                    this.stage.add(rootLayer);
+                    processLayer(this.layers, rootLayer); // 从根层级开始处理所有层级
+                    rootLayer.draw();
+                },
+
+                addListenersForElement(node, element, parentSpaceUnit) {
+                    // 添加右键点击监听器
+                    node.on('contextmenu', (e) => {
+                        e.evt.preventDefault();
+                        let element = this.findElementByKonvaId(this.layers, node.id());
+                        if (element) {
+                            this.currentElement = element;
+                            // TODO 可在此处设置右键画板上的Konva Element后的操作(比如弹出模态框并给模态框的表单赋值)
+                        }
+                    });
+
+                    const tooltip = document.getElementById('tooltip');
+                    const showTooltip = (text, evt) => {
+                        tooltip.style.display = 'block';
+                        tooltip.innerText = text;
+                        tooltip.style.backgroundColor = parentSpaceUnit.available ? 'green' : 'red'; // 根据 Available 属性设置背景色
+                        const mousePos = this.stage.getPointerPosition();
+                        tooltip.style.top = `${mousePos.y + 5}px`;
+                        tooltip.style.left = `${mousePos.x + 5}px`;
+                    };
+                    const hideTooltip = () => {
+                        tooltip.style.display = 'none';
+                    };
+
+                    // 添加鼠标悬浮事件监听器
+                    node.on('mouseenter', (evt) => showTooltip(parentSpaceUnit.name, evt));
+                    node.on('mouseleave', hideTooltip);
+                    node.on('mousemove', (evt) => showTooltip(parentSpaceUnit.name, evt));
+
+                    // 添加画板拖拽的监听器
+                    this.stage.on('mousedown', this.handleMouseDown);
+                    this.stage.on('mouseup', this.handleMouseUp);
+                    this.stage.on('mousemove', this.handleMouseMove);
+                },
+
+                findElementByKonvaId(layers, elementId) {
+                    for (let layer of layers) {
+                        for (let element of layer.elements) {
+                            if (String(element.id) === String(elementId)) {
+                                return element;
+                            }
+                        }
+                        if (layer.child_units) {
+                            let found = this.findElementByKonvaId(layer.child_units, elementId);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                },
+
+                // ----------------- konva.js: 控制Stage上的交互事件 -----------------
+
+                handleMouseDown(e) {
+                    // 确保是左键点击
+                    if (e.evt.button === 0) {
+                        this.isDragging = true;
+                        this.lastPointerPosition = this.stage.getPointerPosition();
+                    }
+                },
+
+                handleMouseUp() {
+                    this.isDragging = false; // 停止拖动
+                },
+
+                handleMouseMove(e) {
+                    if (this.isDragging) {
+                        // 计算移动距离
+                        const pointerPosition = this.stage.getPointerPosition();
+                        const dx = pointerPosition.x - this.lastPointerPosition.x;
+                        const dy = pointerPosition.y - this.lastPointerPosition.y;
+
+                        // 更新位置
+                        this.stage.x(this.stage.x() + dx);
+                        this.stage.y(this.stage.y() + dy);
+
+                        // 更新最后的指针位置
+                        this.lastPointerPosition = pointerPosition;
+
+                        // 重新渲染
+                        this.stage.batchDraw();
+                    }
+                },
+
+                handleWheelZoom(event) {
+                    // 检查是否按下了Ctrl键
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+
+                        const oldScale = this.stage.scaleX();
+                        const pointer = this.stage.getPointerPosition();
+
+                        // 放大或缩小
+                        const scaleBy = 1.1;
+                        const newScale = event.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+
+                        this.stage.scale({x: newScale, y: newScale});
+
+                        const mousePointTo = {
+                            x: (pointer.x - this.stage.x()) / oldScale,
+                            y: (pointer.y - this.stage.y()) / oldScale,
+                        };
+
+                        const newPos = {
+                            x: pointer.x - mousePointTo.x * newScale,
+                            y: pointer.y - mousePointTo.y * newScale,
+                        };
+
+                        this.stage.position(newPos);
+                        this.stage.batchDraw();
+                    }
+                },
+
+                handleStageClick(e) {
+                    if (e.evt.button === 2) { // Right-click to finish polygon drawing
+                        e.evt.preventDefault(); // 阻止默认上下文菜单
+                        //this.resetState();
+                    }
+                },
+
+                handleResize() {
+                    const width = window.innerWidth * 0.9;
+                    const height = window.innerHeight * 0.91;
+                    this.stage.size({width, height});
+                },
+
+                // ----------------- 其他函数 -----------------
+
+                toggleSector(sectorId) { // 切换楼层
+                    if (this.layers[0].id !== sectorId) {
+                        this.refreshData(sectorId);
+                    }
+                },
+
+                openBoothApplyModal() {
                     const myModal = new bootstrap.Modal(document.getElementById('createBoothApplyModal'));
                     myModal.show(); // 显示模态框
-                }
+                },
 
-                function submitApplication() {
+                openFilterModal() {
+                    const filterModal = new bootstrap.Modal(document.getElementById('filterBoothsModal'));
+                    filterModal.show();
+                },
+
+                submitApplication() {
                     const formElement = document.getElementById('application-form');
                     const formData = new FormData(formElement);
                     const url = formElement.action;  // 直接从表单元素获取action
@@ -145,11 +445,39 @@
                         container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
                         container.style.display = 'block';  // Make sure the message container is visible
                     });
-                }
+                },
 
-                window.openBoothApplyModal = openBoothApplyModal;
-                window.submitApplication = submitApplication;
+                submitFilter() {
+                    const filterForm = document.getElementById('filterFrom');
+                    const container = document.getElementById('filter-booths-message-container');
+                    filterForm.addEventListener("submit", function (e) {
+                        e.preventDefault();
+                        const formData = new FormData(filterForm);
+                        const url = filterForm.action;
+                        axios.post(url, formData, {
+                            headers: {
+                                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        }).then(response => {
+                            if (response.data.success) {
+                                container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                                const modal = bootstrap.Modal.getInstance(document.getElementById('filterBoothsModal'));
+                                setTimeout(() => {
+                                    modal.hide();
+                                    window.location.reload();
+                                }, 1500);
+                            }
+                        }).catch(error => {
+                            console.error(error);
+                            container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                            container.style.display = 'block';
+                        });
+                    });
+                },
+
             }
-        );
+        });
+
     </script>
 {% endblock %}

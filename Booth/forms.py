@@ -1,8 +1,10 @@
-import datetime
-
 from django import forms
-
+from Booth.models import Booth
 from Layout.models import SpaceUnit
+from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import datetime, date
 
 
 class BoothApplicationForm(forms.Form):
@@ -38,3 +40,48 @@ class BoothApplicationForm(forms.Form):
             )
         else:
             self.fields['booth_sector'].queryset = SpaceUnit.objects.all()
+
+
+class FilterBoothsForm(forms.Form):
+    name = forms.CharField(required=False, label="Booth Name")
+    exhibition_id = forms.IntegerField(widget=forms.HiddenInput())
+    start_at = forms.DateField(required=False, label="Start Date",
+                               widget=forms.DateInput(attrs={'type': 'date'}))
+    end_at = forms.DateField(required=False, label="End Date",
+                             widget=forms.DateInput(attrs={'type': 'date'}))
+    exhibitor_name = forms.CharField(required=False, label="Exhibitor Name")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_at = cleaned_data.get("start_at")
+        end_at = cleaned_data.get("end_at")
+
+        if start_at and end_at:
+            if end_at <= start_at:
+                raise ValidationError(_("End date must be after the start date."))
+        return cleaned_data
+
+    def filter(self):
+        if not self.is_valid():
+            return Booth.objects.none()  # 如果表单数据无效，则返回空查询集
+
+        cleaned_data = self.cleaned_data
+        name = cleaned_data.get('name')
+        exhibition_id = cleaned_data.get('exhibition_id')
+        start_at = cleaned_data.get('start_at')
+        end_at = cleaned_data.get('end_at')
+        exhibitor_name = cleaned_data.get('exhibitor_name')
+
+        # 建立基础查询
+        qs = Booth.objects.all().filter(exhibition_id=exhibition_id)
+        if name:
+            qs = qs.filter(name__icontains=name)
+        if start_at:
+            start_datetime = timezone.make_aware(datetime.combine(start_at, datetime.min.time()))
+            qs = qs.filter(start_at__gte=start_datetime)
+        if end_at:
+            end_datetime = timezone.make_aware(datetime.combine(end_at, datetime.max.time()))
+            qs = qs.filter(end_at__lte=end_datetime)
+        if exhibitor_name:
+            qs = qs.filter(organizer__detail__username__icontains=exhibitor_name)
+        return qs

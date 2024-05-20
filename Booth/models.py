@@ -1,10 +1,8 @@
 import os
 import uuid
-
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-
 from User.models import Application
 
 

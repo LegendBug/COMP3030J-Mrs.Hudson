@@ -1,16 +1,16 @@
-import datetime
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
-
 from django.http import JsonResponse, HttpResponseNotAllowed
-from django.shortcuts import redirect, render
-
-from Booth.forms import BoothApplicationForm
+from django.shortcuts import redirect, render, get_object_or_404
+from rest_framework import status
+from django.utils import timezone
+from Booth.forms import BoothApplicationForm, FilterBoothsForm
 from Exhibition.forms import ExhibApplicationForm
 from Exhibition.models import Exhibition, ExhibitionApplication
+from Layout.serializers import SpaceUnitSerializer
 from User.models import Message, MessageDetail, Organizer, Manager, Exhibitor
 from Venue.models import Venue
+from django.contrib import messages
 
 
 @login_required
@@ -24,41 +24,74 @@ def exhibition(request, exhibition_id):
             return redirect('Venue:home')
     request.session['exhibition_id'] = exhibition_id  # 将exhibition_id存入session
 
-    user = request.user
-    user_type = request.session.get('user_type', 'Manager')
+    user_type = request.session.get('user_type', 'Guest')
+    booths = None
     if request.method == 'GET':
-        # 根据用户类型筛选展区信息
-        if user not in [None, ''] and not hasattr(user, 'exhibitor'):
-            booths = current_exhibition.booths.all()
-        else:  # 参展方
-            booths = Exhibitor.objects.filter(detail_id=user.id).first().booths.filter(exhibition=current_exhibition)
-        # 将展区信息转换为字典
-        booth_data = []
-        for booth in booths:
-            sectors = ''
-            for sector in booth.sectors.all():
-                sectors += sector.name + ' '
-            booth_data.append({
-                'id': booth.id,
-                'name': booth.name,
-                'description': booth.description,
-                'image': booth.image.url,
-                'start_at': booth.start_at,
-                'end_at': booth.end_at,
-                'exhibitor': booth.exhibitor.detail.username,
-                'sectors': sectors,
-            })
-        affiliation_type = ContentType.objects.get_for_model(current_exhibition)  # 获取场馆的ContentType
-        application_form = BoothApplicationForm(
-            initial={'affiliation_content_type': affiliation_type, 'affiliation_object_id': exhibition_id})  # 传入当前Type和场馆的id
-        return render(request, 'Exhibition/exhibition.html', {
-            'booths': booth_data,
-            'exhibition': current_exhibition,
-            'user_type': user_type,
-            'application_form': application_form,
+        # 筛选end_at在今日或者今日之后的展台,并按照从最近开始到最远开始的顺序排序
+        booths = current_exhibition.booths.filter(start_at__lte=timezone.now()).order_by('-start_at')
+    elif request.method == 'POST':
+        submitted_filter_form = FilterBoothsForm(request.POST)
+        if submitted_filter_form.is_valid():
+            booths = submitted_filter_form.filter()
+            messages.success(request, 'Filter exhibitions success!')
+        else:
+            first_error_key, first_error_messages = list(submitted_filter_form.errors.items())[0]
+            first_error_message = first_error_key + ': ' + first_error_messages[0]
+            return JsonResponse({'error': first_error_message}, status=400)
+
+    # 将展区信息转换为字典
+    booth_list = []
+    for booth in booths:
+        sectors = ''
+        for sector in booth.sectors.all():
+            sectors += sector.name + ' '
+        booth_list.append({
+            'id': booth.id,
+            'name': booth.name,
+            'description': booth.description,
+            'image': booth.image.url,
+            'start_at': booth.start_at,
+            'end_at': booth.end_at,
+            'exhibitor': booth.exhibitor.detail.username,
+            'sectors': sectors,
         })
+
+    return render(request, 'Exhibition/exhibition.html', {
+        'exhibition': current_exhibition,
+        'booths': booth_list,
+        'sectors': current_exhibition.sectors.all(),
+        'user_type': user_type,
+        'filter_form': FilterBoothsForm(),
+        'application_form': BoothApplicationForm(
+            initial={'affiliation_content_type': ContentType.objects.get_for_model(current_exhibition),
+                     'affiliation_object_id': exhibition_id}),
+    })
+
+
+def refresh_data(request):
+    if request.method == 'GET':
+        # 从GET请求中获取参数
+        sector_id = int(request.GET.get('sector_id', 0))
+        exhibition_id = int(request.GET.get('exhibition_id', 0))
+        user_type = request.GET.get('user_type')
+        # 验证数据有效性
+        if (sector_id is None) or (exhibition_id is None) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
+            return JsonResponse({'error': 'Invalid request'}, status=400)
+        current_exhibition = get_object_or_404(Exhibition, pk=exhibition_id)
+        if sector_id == 0: # 说明当前请求时用户初次进入展览页面, 返回当前展会的第一个Sector
+            sector_id = current_exhibition.sectors.first().id
+        # 获取当前场馆的当前楼层的Root SpaceUnit节点(parent_unit=None 且创建时间最早)
+        root = current_exhibition.sectors.filter(pk=sector_id).order_by('created_at').first()
+        # 返回JSON化的root数据
+        if root is not None:
+            # 使用Serializer序列化root
+            serializer = SpaceUnitSerializer(root)
+            return JsonResponse(serializer.data)  # 使用Django的JsonResponse返回数据
+        else:
+            return JsonResponse({'error': 'No root SpaceUnit found for the specified floor'},
+                                status=status.HTTP_404_NOT_FOUND)
     else:
-        return HttpResponseNotAllowed(['GET'])
+        return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 创建展览申请

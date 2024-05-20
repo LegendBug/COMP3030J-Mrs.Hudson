@@ -6,6 +6,9 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import datetime, date
 
+from Venue.models import Venue
+
+
 class ExhibApplicationForm(forms.Form):
     # 关联的场馆ID
     venue_id = forms.IntegerField(widget=forms.HiddenInput())
@@ -69,16 +72,18 @@ class FilterExhibitionsForm(forms.Form):
                                widget=forms.DateInput(attrs={'type': 'date'}))
     end_at = forms.DateField(required=False, label="End Date",
                              widget=forms.DateInput(attrs={'type': 'date'}))
-    organizer = forms.CharField(required=False, label="Organizer Name")
+    organizer_name = forms.CharField(required=False, label="Organizer Name")
 
     def clean(self):
         cleaned_data = super().clean()
         start_at = cleaned_data.get("start_at")
         end_at = cleaned_data.get("end_at")
-
+        venue_id = cleaned_data.get("venue_id")
         if start_at and end_at:
             if end_at <= start_at:
                 raise ValidationError(_("End date must be after the start date."))
+        if not Venue.objects.filter(pk=venue_id).exists():
+            raise ValidationError(_("Invalid venue ID."))
         return cleaned_data
 
     def filter(self):
@@ -90,7 +95,7 @@ class FilterExhibitionsForm(forms.Form):
         venue_id = cleaned_data.get('venue_id')
         start_at = cleaned_data.get('start_at')
         end_at = cleaned_data.get('end_at')
-        organizer = cleaned_data.get('organizer')
+        organizer_name = cleaned_data.get('organizer_name')
 
         # 建立基础查询
         qs = Exhibition.objects.all().filter(venue_id=venue_id)
@@ -102,6 +107,6 @@ class FilterExhibitionsForm(forms.Form):
         if end_at:
             end_datetime = timezone.make_aware(datetime.combine(end_at, datetime.max.time()))
             qs = qs.filter(end_at__lte=end_datetime)
-        if organizer:
-            qs = qs.filter(organizer__detail__username__icontains=organizer)
+        if organizer_name:
+            qs = qs.filter(organizer__detail__username__icontains=organizer_name)
         return qs

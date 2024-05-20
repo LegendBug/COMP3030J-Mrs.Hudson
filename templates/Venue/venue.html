@@ -46,7 +46,6 @@
         </div>
 
         <div id="konva-container"></div>
-
         <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
         <div id="tooltip"
              style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
@@ -137,7 +136,8 @@
                 </div>
             </div>
         </div>
-
+    
+        {# 筛选展台模态框 #}
         <div class="modal fade" id="filterExhibitionsModal" tabindex="-1" aria-labelledby="filterExhibitionsLabel"
              aria-hidden="true">
             <div class="modal-dialog">
@@ -390,7 +390,7 @@
                 handleStageClick(e) {
                     if (e.evt.button === 2) { // Right-click to finish polygon drawing
                         e.evt.preventDefault(); // 阻止默认上下文菜单
-                        this.resetState();
+                        //this.resetState();
                     }
                 },
 

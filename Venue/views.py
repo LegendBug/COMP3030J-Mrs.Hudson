@@ -68,8 +68,8 @@ def venue(request, venue_id): # TODO 在展览过期后, 将绑定的SpaceUnit�
     current_venue = Venue.objects.filter(id=venue_id).first()
     if current_venue is None:
         return redirect('Venue:home')
-
     request.session['venue_id'] = venue_id  # 将venue_id存入session
+
     user_type = request.session.get('user_type', 'Guest')
     exhibitions = None
     if request.method == 'GET':
