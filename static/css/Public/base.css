@@ -41,11 +41,10 @@ image, h1, h2, h3, h4, h5, h6 {
     border-bottom: 3px solid #009631;
 }
 
-/* 导航栏品牌LOGO样式 */
 .navbar-brand {
     font-weight: bold;
     color: #1f1f1f;
-    transition: color 0.3s ease; /* 平滑颜色过渡效果 */
+    transition: color 0.3s ease;
 }
 
 .navbar-brand.dark-mode {
@@ -54,9 +53,9 @@ image, h1, h2, h3, h4, h5, h6 {
 }
 
 .navbar-brand:hover, .navbar-brand:focus {
-    color: #28a745; /* 高亮 */
-    text-decoration: none; /* 去除下划线 */
-    transition: color 0.3s ease; /* 平滑颜色过渡效果 */
+    color: #28a745;
+    text-decoration: none;
+    transition: color 0.3s ease;
 }
 
 .navbar-brand.dark-mode:hover, .navbar-brand.dark-mode:focus {
@@ -65,10 +64,9 @@ image, h1, h2, h3, h4, h5, h6 {
     transition: color 0.3s ease;
 }
 
-/* 导航栏链接样式 */
 .nav-link {
     color: #1f1f1f;
-    transition: color 0.3s ease; /* 平滑颜色过渡效果 */
+    transition: color 0.3s ease;
 }
 
 .nav-link.dark-mode {
@@ -76,10 +74,9 @@ image, h1, h2, h3, h4, h5, h6 {
     transition: color 0.3s ease;
 }
 
-/* 导航栏链接悬停与焦点样式 */
 .nav-link:hover, .nav-link:focus, .nav-link:active {
-    color: #009631; /* 高亮 */
-    text-decoration: none; /* 去除下划线 */
+    color: #009631;
+    text-decoration: none;
 }
 
 .nav-link.dark-mode:hover, .nav-link.dark-mode:focus, .nav-link.dark-mode:active {
@@ -87,9 +84,8 @@ image, h1, h2, h3, h4, h5, h6 {
     text-decoration: none;
 }
 
-/* 导航栏当前活动链接样式 */
 .nav-item.active .nav-link {
-    background-color: #009631; /* 背景 */
+    background-color: #009631;
     color: #f0f0f0;
 }
 
@@ -98,9 +94,8 @@ image, h1, h2, h3, h4, h5, h6 {
     color: #fff;
 }
 
-/* 响应式导航按钮样式 */
 .navbar-toggler {
-    border-color: #009631; /* 边框 */
+    border-color: #009631;
 }
 
 .navbar-toggler.dark-mode {
@@ -108,16 +103,38 @@ image, h1, h2, h3, h4, h5, h6 {
 }
 
 .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(00, 96, 31, 0.7)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); /* 自定义导航按钮图标颜色 */
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(00, 96, 31, 0.7)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
 }
 
-/* 提示：确保导航栏容器使用正确的CSS类 */
 .public-base-navigation .container-fluid {
     padding-right: 15px;
     padding-left: 15px;
     margin-right: auto;
     margin-left: auto;
-    width: 100%; /* 确保容器宽度为100% */
+    width: 100%;
+}
+
+.breadcrumb {
+    background-color: transparent;
+    margin-bottom: 0;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    color: #6c757d;
+    padding: 0 0.5rem;
+}
+
+.breadcrumb-item a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
 }
 
 
@@ -420,37 +437,4 @@ h1 a:hover {
 .btn {
     color: white; /* 统一文字颜色 */
     border-radius: 4px; /* 增加按钮圆角 */
-}
-
-/*--------------------------------------------------------------*/
-/*Breadcrumb样式*/
-.breadcrumb-container {
-    background-color: #f8f9fa;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    position: absolute;
-    top: 5rem; /* Adjusted to be below the navbar */
-    right: 1rem;
-    z-index: 1000;
-    max-width: 500px;
-}
-
-.breadcrumb {
-    margin-bottom: 0;
-    background-color: transparent;
-}
-
-.breadcrumb-item + .breadcrumb-item::before {
-    content: ">";
-    color: #6c757d;
-}
-
-.breadcrumb-item a {
-    color: #007bff;
-    text-decoration: none;
-}
-
-.breadcrumb-item a:hover {
-    text-decoration: underline;
 }
