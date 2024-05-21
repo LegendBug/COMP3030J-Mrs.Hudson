@@ -56,7 +56,8 @@ def copilot(request):
         allocation or wastage, the system will automatically adjust resources and notify the holders through system
         messages.
 
-        A user is asking for help, and you need to provide clear, concise, and helpful information based on your knowledge of the resource management system, "Mrs. Hudson". 
+        A user is asking for help, and you need to provide clear, concise, and helpful information based on your knowledge of the resource management system, "Mrs. Hudson".
+        You should only answer questions related to the system and its modules. 
         """
 
         messages = [
