@@ -7,6 +7,9 @@ from Venue.models import Venue
 
 
 class AddLayerForm(forms.ModelForm):
+    # TODO 需要考虑两个问题:
+    # 1. 当用户类型为Exhibitor时, 所有layer的available字段都应该为False
+    # 2. 当用户类型不是Exhibitor时, 如果某个祖先layer的available字段为True, 则其子孙layer的available字段应该全为False
     user_type = forms.CharField(widget=forms.HiddenInput())
 
     class Meta:
@@ -37,6 +40,7 @@ class AddLayerForm(forms.ModelForm):
         elif user_type == 'Organizer':
             affiliation = Exhibition.objects.get(id=self.cleaned_data.get('affiliation_object_id'))
         else:
+            space_unit.available = False # 如果是展台, 默认不可用
             affiliation = Booth.objects.get(id=self.cleaned_data.get('affiliation_object_id'))
 
         space_unit.floor = floor
@@ -50,6 +54,9 @@ class AddLayerForm(forms.ModelForm):
 
 
 class EditLayerForm(forms.ModelForm):
+    # TODO 需要考虑两个问题:
+    # 1. 当用户类型为Exhibitor时, 所有layer的available字段都应该为False
+    # 2. 当用户类型不是Exhibitor时, 如果某个祖先layer的available字段为True, 则其子孙layer的available字段应该全为False
     class Meta:
         model = SpaceUnit
         fields = ['name', 'description', 'available', ]

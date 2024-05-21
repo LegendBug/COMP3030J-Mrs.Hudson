@@ -14,11 +14,13 @@
 
 {% block extra_nav_icons %}
     <!-- 导航栏额外按键-->
-    {% if user.is_authenticated and user_type == 'Manager' or user_type == 'Organizer' %}
+    {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
             <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i>
                 Statistics</a>
         </li>
+    {% endif %}
+    {% if user.is_authenticated and user_type != 'Exhibitor' and user_type != 'Guest' %}
         <li class="nav-item">
             <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
         </li>
@@ -29,8 +31,9 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' exhibition.venue.id %}">{{ exhibition.venue.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Inventory</li>
+            <li class="breadcrumb-item"><a
+                    href="{% url 'Venue:venue' exhibition.venue.id %}">{{ exhibition.venue.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ exhibition.name }}</li>
         </ol>
     </nav>
 {% endblock %}
@@ -50,7 +53,8 @@
                 <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
                     {% for sector in sectors %}
                         {% comment %}你先别急, 这里是Pycharm的模板语法出现了问题, 这里其实是可以正常运行的{% endcomment %}
-                        <li><a class="dropdown-item" href="#" @click="toggleSector({{ sector.pk }})">Sector {{ sector.name }}</a></li>
+                        <li><a class="dropdown-item" href="#"
+                               @click="toggleSector({{ sector.pk }})">Sector {{ sector.name }}</a></li>
                     {% endfor %}
                 </ul>
             </div>

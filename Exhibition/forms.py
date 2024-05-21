@@ -1,5 +1,5 @@
 from uuid import uuid4
-from User.models import Message, MessageDetail, Organizer, Manager, Exhibitor
+from User.models import Message, Manager
 from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _

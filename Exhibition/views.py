@@ -1,9 +1,5 @@
-import os
-from uuid import uuid4
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
-from django.core.files.base import ContentFile
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect, render, get_object_or_404
 from rest_framework import status

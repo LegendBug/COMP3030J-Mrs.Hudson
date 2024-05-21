@@ -387,10 +387,12 @@ def reject_application(request, application_type, application_id):
 
             if application_type == 'exhibition':
                 for sector in application.exhibition.sectors.all():
+                    sector.inherit_from = None
                     sector.parent_unit.available = True
                     sector.save()
             elif application_type == 'booth':
                 for sector in application.booth.sectors.all():
+                    sector.inherit_from = None
                     sector.parent_unit.available = True
                     sector.save()
 
