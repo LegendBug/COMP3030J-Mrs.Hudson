@@ -10,11 +10,8 @@ from rest_framework import status
 from django.utils import timezone
 from Booth.forms import BoothApplicationForm, FilterBoothsForm
 from Exhibition.forms import ExhibApplicationForm
-from Exhibition.models import Exhibition, ExhibitionApplication
-from Layout.models import SpaceUnit, KonvaElement
+from Exhibition.models import Exhibition
 from Layout.serializers import SpaceUnitSerializer
-from User.models import Message, MessageDetail, Organizer, Manager, Exhibitor
-from Venue.models import Venue
 from django.contrib import messages
 
 

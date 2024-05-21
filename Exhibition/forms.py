@@ -65,6 +65,17 @@ class ExhibApplicationForm(forms.Form):
             # 验证开始日期是否早于结束日期
             if exhib_start_at >= exhib_end_at:
                 self.add_error('exhib_start_at', 'Start date must be earlier than end date.')
+
+        # 保证用户预约区域不会与已有展会冲突
+        if self.cleaned_data['exhib_sectors'].count() != 0:
+            for sector in self.cleaned_data['exhib_sectors']:
+                # 如果被选择的sector的occupied_units的Exhibition的日期与当前申请的日期有重叠,则抛出错误
+                if sector.occupied_units.filter(affiliation_content_type=ContentType.objects.get_for_model(Exhibition)).exists():
+                    for occupied_unit in sector.occupied_units.filter(affiliation_content_type=ContentType.objects.get_for_model(Exhibition)):
+                        if (occupied_unit.affiliation.start_at <= exhib_start_at and exhib_start_at <= occupied_unit.affiliation.end_at) or (occupied_unit.affiliation.start_at <= exhib_end_at and exhib_end_at <= occupied_unit.affiliation.end_at):
+                            self.add_error('exhib_sectors', f'The selected sector {sector.name} has been occupied during the selected period.')
+                            break
+
         return cleaned_data
 
     def create_application(self, request):

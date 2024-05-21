@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     "crispy_bootstrap5",
     "django_extensions",
+    'django_select2',
     'gunicorn',
     'Inventory',
     'User',
@@ -113,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization 国际化
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Shanghai' # TODO 部署的时候要改成 TIME_ZONE = 'Europe/Dublin'
+TIME_ZONE = 'Asia/Shanghai'  # TODO 部署的时候要改成 TIME_ZONE = 'Europe/Dublin'
 USE_I18N = True
 USE_TZ = True
 
@@ -153,7 +154,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True  # 为True时, 404拦截器将不会生效, 这样便于debug
-#DEBUG = False  # 当 DEBUG 设置为 True 时，Django 会自动服务静态文件，但在生产环境中，你应该通过 Web 服务器来处理静态文件的服务。确保在生产环境将 DEBUG 设置为 False 并正确配置静态文件服务
+# DEBUG = False  # 当 DEBUG 设置为 True 时，Django 会自动服务静态文件，但在生产环境中，你应该通过 Web 服务器来处理静态文件的服务。确保在生产环境将 DEBUG 设置为 False 并正确配置静态文件服务
 
 # --------------------------------------------------------- Media Settings ---------------------------------------------------------
 # 配置ImageField的上传路径
