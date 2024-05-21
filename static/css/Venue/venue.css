@@ -40,10 +40,14 @@
 }
 
 .dropdown .dropdown-toggle {
-    margin-top: 1rem; /* 调整下拉菜单按钮的上边距 */
-    font-size: 20px; /* 增加字体大小，使按钮显得更大 */
-    padding: 0.5rem 1rem; /* 增加内边距，使按钮本体更大 */
+    margin-top: 1rem; /* Adjust top margin */
+    font-size: 20px; /* Increase font size */
+    padding: 0.5rem 1rem; /* Increase padding */
+    margin-left: auto; /* Push the button to the right */
+    margin-right: 75rem; /* Add margin to the right to avoid overlap with the breadcrumb bar */
+    display: block; /* Ensure the button is displayed as a block element */
 }
+
 
 
 .table-responsive {

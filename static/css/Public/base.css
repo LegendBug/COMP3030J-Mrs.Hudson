@@ -421,3 +421,36 @@ h1 a:hover {
     color: white; /* 统一文字颜色 */
     border-radius: 4px; /* 增加按钮圆角 */
 }
+
+/*--------------------------------------------------------------*/
+/*Breadcrumb样式*/
+.breadcrumb-container {
+    background-color: #f8f9fa;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 5rem; /* Adjusted to be below the navbar */
+    right: 1rem;
+    z-index: 1000;
+    max-width: 500px;
+}
+
+.breadcrumb {
+    margin-bottom: 0;
+    background-color: transparent;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    color: #6c757d;
+}
+
+.breadcrumb-item a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
