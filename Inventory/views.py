@@ -114,12 +114,22 @@ def category_detail_view(request, category_id):
                                     affiliation_object_id=booth.pk)
     current_access = Venue.objects.filter(pk=request.session['venue_id']).first()
 
+    space_type = request.session.get('space_type')
+    space_id = request.session.get('space_id')
+
+    if not space_type or not space_id:
+        # Handle the case where these values are not in the session
+        return JsonResponse({'error': 'Space type or ID not found in session'}, status=400)
+
+
     return render(request, 'Inventory/category_detail.html', {
         'current_access': current_access,
         'category': category,
         'items': items,
         'user_type': user_type,
-        'origin': category.origin.name
+        'origin': category.origin.name,
+        'space_type': space_type,
+        'space_id': space_id
     })
 
 

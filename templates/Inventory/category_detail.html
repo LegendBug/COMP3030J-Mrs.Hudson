@@ -21,6 +21,17 @@
     {#</li>#}
 {% endblock %}
 
+{% block breadcrumbs %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'Inventory:inventory' space_type space_id %}">Inventory</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Category</li>
+        </ol>
+    </nav>
+{% endblock %}
+
 {% block content %}
     <div class="table-responsive" style="margin: 1rem; user-select: none">
         <table class="table table-hover text-white">

@@ -24,6 +24,15 @@
     {#    </li>#}
 {% endblock %}
 
+{% block breadcrumbs %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Inventory</li>
+        </ol>
+    </nav>
+{% endblock %}
 
 {% block content %}
     {% if user.is_authenticated and user_type == 'Manager' %}
