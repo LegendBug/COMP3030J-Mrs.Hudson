@@ -84,8 +84,8 @@
                                     <div class="d-flex flex-column">
                                         {% if is_owner %}
                                             <div class="btn-group">
-                                                <a href="{% url 'Inventory:edit-category' category.pk %}"
-                                                   class="btn btn-secondary btn-sm">Modify</a>
+                                                <button type="button" class="btn btn-secondary btn-sm" 
+                                                        onclick="openEditCategoryModal({{ category.pk }})">Modify</button>
                                                 <button type="button" class="btn btn-danger btn-sm"
                                                         onclick="confirmDelete({{ category.id }})">Delete
                                                 </button>
@@ -169,11 +169,107 @@
             </div>
         </div>
     </div>
+    
+    <!-- 修改库存类别的模态框 -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCategoryModalLabel">Edit Inventory Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editCategoryForm" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="edit_name" class="form-label">Name</label>
+                            <input type="text" name="name" id="edit_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_description" class="form-label">Description</label>
+                            <textarea name="description" id="edit_description" class="form-control" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_image" class="form-label">Image</label>
+                            <input type="file" name="image" id="edit_image" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_cost" class="form-label">Cost</label>
+                            <input type="number" step="0.01" name="cost" id="edit_cost" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_rent" class="form-label">Rent</label>
+                            <input type="number" step="0.01" name="rent" id="edit_rent" class="form-control">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="is_public" id="edit_is_public" class="form-check-input">
+                            <label for="edit_is_public" class="form-check-label">Is Public</label>
+                        </div>
+                        <input type="hidden" name="category_id" id="edit_category_id">
+                        <div id="edit_category_message_container"></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
 
 
 {% block scripts %}
+    <script>
+        function openEditCategoryModal(categoryId) {
+            const url = `{% url 'Inventory:edit-category' 0 %}`.replace('/0/', '/' + categoryId + '/');
+            axios.get(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => {
+                    const category = response.data;
+                    document.getElementById('edit_name').value = category.name;
+                    document.getElementById('edit_description').value = category.description;
+                    document.getElementById('edit_cost').value = category.cost;
+                    document.getElementById('edit_rent').value = category.rent;
+                    document.getElementById('edit_is_public').checked = category.is_public;
+                    document.getElementById('edit_category_id').value = categoryId;
+                    
+                    const editModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+                    editModal.show();
+                })
+                .catch(error => {
+                    console.error('There was an error fetching the category details:', error);
+                });
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            const editCategoryForm = document.getElementById('editCategoryForm');
+            const container = document.getElementById('edit_category_message_container');
+            editCategoryForm.addEventListener('submit', function (e) {
+                e.preventDefault();  // 阻止表单的默认提交行为
+                const formData = new FormData(editCategoryForm);
+                const categoryId = document.getElementById('edit_category_id').value;
+                axios.post(`{% url 'Inventory:edit-category' 0 %}`.replace('/0/', '/' + categoryId + '/'), formData, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (response) {
+                        if (response.data.success) { // 如果提交成功，显示成功消息
+                            container.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
+                            container.style.display = 'block';
+                            // 设置定时器等待1.5秒后关闭模态框并刷新页面
+                            setTimeout(function () {
+                                const editModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+                                editModal.hide(); // 关闭模态框
+                                window.location.reload(); // 刷新页面
+                            }, 1500); // 1500毫秒后执行
+                        }
+                    }).catch(error => {
+                    // 记录或处理错误
+                    console.error(error);
+                    container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                    container.style.display = 'block';  // 确保消息容器可见
+                });
+            });
+        });
+    </script>
+    
     <script>
         function confirmDelete(categoryId) {
             if (confirm('Are you sure to delete this category and all its items?')) {
@@ -190,7 +286,8 @@
             const filterModal = new bootstrap.Modal(document.getElementById('createResApplyModal'));
             filterModal.show();
         }
-
+        
+        
         document.addEventListener('DOMContentLoaded', function () {
             const addInventoryForm = document.getElementById('addInventoryForm');
             const container = document.getElementById('add_inventory-message-container');

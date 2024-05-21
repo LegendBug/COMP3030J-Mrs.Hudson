@@ -64,7 +64,7 @@
 
         <!-- Floating Action Button -->
         {% if user.is_authenticated and user_type == 'Exhibitor' %}
-            <a onclick="openBoothApplyModal()" class="btn btn-success rounded-circle shadow" id="createBoothApply"
+            <a @click="openBoothApplyModal" class="btn btn-success rounded-circle shadow" id="createBoothApply"
                style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
            justify-content: center; align-items: center; font-size: 30px;" title="Apply Booth">
                 📝
@@ -78,7 +78,7 @@
         {% endif %}
         <a class="btn btn-success rounded-circle shadow" id="filter-booths-btn"
            style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-           @click="openFilterModal();" title="Filter Booths">
+           @click="openFilterModal;" title="Filter Booths">
             <i class="fas fa-filter mt-1"></i>
         </a>
 
@@ -137,7 +137,7 @@
                             <div id="application-form-container"></div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-success" onclick="submitApplication()">Apply
+                                <button type="button" class="btn btn-success" @click="submitApplication">Apply
                                 </button>
                             </div>
                         </form>
@@ -152,7 +152,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="filterBoothsTitle">Filter Exhibitions</h5>
+                        <h5 class="modal-title" id="filterBoothsTitle">Filter Booths</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">

@@ -64,9 +64,7 @@
                     <td>{{ item.water_consumption }} Liters</td>
                     {#                    <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>#}
                     <td>
-                        <button class="btn btn-secondary mt-1"
-                                onclick="location.href='{% url 'Inventory:edit_item' item.id %}';">Modify
-                        </button>
+                        <button class="btn btn-secondary mt-1" onclick="openEditItemModal({{ item.id }})">Modify</button>
                         {# TODO 优化筛选用户条件 #}
                         {% if item.affiliation != item.category.origin and user_type == 'Exhibitor' %}
                             <!-- 显示 Return 按钮 -->
@@ -90,4 +88,108 @@
             </tbody>
         </table>
     </div>
+    
+    <!-- Edit Item Modal -->
+    <div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editItemModalLabel">Edit Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editItemForm" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="edit_name" class="form-label">Name</label>
+                            <input type="text" name="name" id="edit_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_is_using" class="form-label">Is Using</label>
+                            <input type="checkbox" name="is_using" id="edit_is_using" class="form-check-input">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_is_damaged" class="form-label">Is Damaged</label>
+                            <input type="checkbox" name="is_damaged" id="edit_is_damaged" class="form-check-input">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_power" class="form-label">Power Consumption (Watts)</label>
+                            <input type="number" step="0.01" name="power" id="edit_power" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_water" class="form-label">Water Consumption (Liters)</label>
+                            <input type="number" step="0.01" name="water_consumption" id="edit_water" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_location" class="form-label">Location</label>
+                            <select name="location" id="edit_location" class="form-control">
+                                {% for location in locations %}
+                                    <option value="{{ location.id }}">{{ location.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <input type="hidden" name="item_id" id="edit_item_id">
+                        <div id="edit_item_message_container"></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function openEditItemModal(itemId) {
+            const url = `{% url 'Inventory:edit_item' 0 %}`.replace('/0/', '/' + itemId + '/');
+            axios.get(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => {
+                    const item = response.data;
+                    document.getElementById('edit_name').value = item.name;
+                    document.getElementById('edit_is_using').checked = item.is_using;
+                    document.getElementById('edit_is_damaged').checked = item.is_damaged;
+                    document.getElementById('edit_power').value = item.power;
+                    document.getElementById('edit_water').value = item.water_consumption;
+                    document.getElementById('edit_location').value = item.location;
+                    document.getElementById('edit_item_id').value = itemId;
+        
+                    const editModal = new bootstrap.Modal(document.getElementById('editItemModal'));
+                    editModal.show();
+                })
+                .catch(error => {
+                    console.error('There was an error fetching the item details:', error);
+                });
+        }
+    
+        document.addEventListener('DOMContentLoaded', function () {
+            const editItemForm = document.getElementById('editItemForm');
+            const container = document.getElementById('edit_item_message_container');
+            editItemForm.addEventListener('submit', function (e) {
+                e.preventDefault();  // 阻止表单的默认提交行为
+                const formData = new FormData(editItemForm);
+                const itemId = document.getElementById('edit_item_id').value;
+                axios.post(`{% url 'Inventory:edit_item' 0 %}`.replace('/0/', '/' + itemId + '/'), formData, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (response) {
+                        if (response.data.success) { // 如果提交成功，显示成功消息
+                            container.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
+                            container.style.display = 'block';
+                            // 设置定时器等待1.5秒后关闭模态框并刷新页面
+                            setTimeout(function () {
+                                const editModal = new bootstrap.Modal(document.getElementById('editItemModal'));
+                                editModal.hide(); // 关闭模态框
+                                window.location.reload(); // 刷新页面
+                            }, 1500); // 1500毫秒后执行
+                        }
+                    }).catch(error => {
+                    // 记录或处理错误
+                    console.error(error);
+                    container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                    container.style.display = 'block';  // 确保消息容器可见
+                });
+            });
+        });
+    </script>
 {% endblock %}

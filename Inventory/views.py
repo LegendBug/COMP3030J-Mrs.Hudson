@@ -135,19 +135,30 @@ def category_detail_view(request, category_id):
 
 def edit_inventory_category(request, category_id):
     category = get_object_or_404(InventoryCategory, pk=category_id)
+
+    if request.method == 'GET':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            data = {
+                'name': category.name,
+                'description': category.description,
+                'cost': category.cost,
+                'rent': category.rent,
+                'is_public': category.is_public,
+            }
+            return JsonResponse(data)
+        else:
+            return JsonResponse({'error': 'Invalid request headers'}, status=400)
+
     if request.method == 'POST':
         form = EditInventoryCategoryForm(request.POST, request.FILES, instance=category)
         if form.is_valid():
             form.save()
+            return JsonResponse({'success': 'Category updated successfully!'})
+        else:
+            errors = {field: error for field, error in form.errors.items()}
+            return JsonResponse({'error': errors}, status=400)
 
-            space_type = request.session.get('space_type')
-            space_id = request.session.get('space_id')
-            return redirect('Inventory:inventory', space_type=space_type, space_id=space_id)
-    else:
-        form = EditInventoryCategoryForm(instance=category)
-    return render(request, 'Inventory/edit_category.html', {'form': form})
-
-
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 @login_required
 def delete_inventory_category(request, category_id):
     category = get_object_or_404(InventoryCategory, pk=category_id)
@@ -179,17 +190,29 @@ def delete_inventory_category(request, category_id):
 @login_required
 def edit_item(request, item_id):
     item = get_object_or_404(Item, pk=item_id)
+
+    if request.method == 'GET' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        data = {
+            'name': item.name,
+            'is_using': item.is_using,
+            'is_damaged': item.is_damaged,
+            'power': item.power,
+            'water_consumption': item.water_consumption,
+            'location': item.location_id,
+        }
+        return JsonResponse(data)
+
     if request.method == 'POST':
         form = EditItemForm(request.POST, instance=item)
         if form.is_valid():
             form.save()
-            space_type = request.session.get('space_type')
-            space_id = request.session.get('space_id')
-            return redirect('Inventory:inventory', space_type=space_type, space_id=space_id)
-    else:
-        form = EditItemForm(instance=item)
-    return render(request, 'Inventory/edit_item.html', {'form': form})
+            return JsonResponse({'success': 'Item updated successfully!'})
+        else:
+            # 捕获表单错误
+            errors = form.errors.as_json()
+            return JsonResponse({'error': errors}, status=400)
 
+    return HttpResponseNotAllowed(['GET', 'POST'])
 
 @login_required
 def delete_item(request, item_id):

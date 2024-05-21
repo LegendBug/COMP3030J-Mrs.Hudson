@@ -74,7 +74,8 @@
         </div>
         <div class="d-flex justify-content-end">
             <button onclick="addData()" class="btn btn-success me-2">Add Data</button>
-            <button onclick="selectYear()" class="btn btn-success">Select year</button>
+            <button onclick="selectYear()" class="btn btn-success me-2">Select year</button>
+            <button onclick="fetchVenues()" class="btn btn-success">Select venue</button>
         </div>
     </div>
 
@@ -85,7 +86,7 @@
         let barChartData = {
             labels: [],
             datasets: [{
-                data: [1],
+                data: [],
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.5)',
                     'rgba(54, 162, 235, 0.5)',
@@ -109,7 +110,7 @@
         let lineChartData = {
             labels: [],
             datasets: [{
-                data: [1],
+                data: [],
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.5)',
                     'rgba(54, 162, 235, 0.5)',
@@ -133,7 +134,7 @@
         let pieChartData = {
             labels: [],
             datasets: [{
-                data: [1],
+                data: [],
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.5)',
                     'rgba(54, 162, 235, 0.5)',
@@ -158,7 +159,9 @@
 
 
         function createBarChart() {
+            console.log("start")
             const ctx = document.getElementById('barChart').getContext('2d');
+            console.log(barChartData.datasets[0].data.length)
             if (barChartData.datasets[0].data.length > 0) {
                 document.getElementById('barChart').parentElement.parentElement.style.display = 'block';
                 barChart = new Chart(ctx, {
@@ -173,6 +176,7 @@
                     }
                 });
             } else {
+                console.log("end")
                 document.getElementById('barChart').parentElement.parentElement.style.display = 'none';
             }
         }
@@ -232,9 +236,15 @@
                 pieChartData.labels.push(labelInput.value);
                 pieChartData.datasets[0].data.push(dataInput.value);
 
-                barChart.update();
-                lineChart.update();
-                pieChart.update();
+                if (barChart) {
+                    barChart.update();
+                }
+                if (lineChart) {
+                    lineChart.update();
+                }
+                if (pieChart) {
+                    pieChart.update();
+                }
 
                 labelInput.value = '';
                 dataInput.value = '';
@@ -322,6 +332,63 @@
         }
 
 
+
+        function fetchVenues() {
+            const url = `{% url 'Statistic:get_venues' %}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(venues => {
+                    selectVenue(venues);
+                })
+                .catch(error => {
+                    console.error('Error fetching venues:', error);
+                    alert('Failed to fetch venue names.');
+                });
+        }
+
+
+
+        function selectVenue(venues) {
+            const venueList = venues.join('\n');
+            const selectedVenue = prompt(`Please enter the venue name from the following list:\n${venueList}`);
+            if (!venues.includes(selectedVenue)) {
+                alert('Invalid venue name entered!');
+                return;
+            }
+
+            const selectedYear = prompt("Please enter the year (e.g., 2024):");
+
+            if (selectedYear && !isNaN(selectedYear)) {
+                const year = parseInt(selectedYear);
+                const url = `{% url 'Statistic:get_consumption_data_by_venue' 'venue_placeholder' 9999 %}`
+                    .replace(9999, year)
+                    .replace('venue_placeholder', encodeURIComponent(selectedVenue));
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        // 提取出用水量和用电量的数据并传递给 selectDataSource() 函数
+                        const waterStatistics = data.water_statistics;
+                        const electricStatistics = data.electric_statistics;
+
+                        // 询问用户选择数据源
+                        const chooseDataSource = confirm("Would you like to select a data source now?");
+                        if (chooseDataSource) {
+                            selectDataSource(waterStatistics, electricStatistics);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch data for the selected year.');
+                    });
+            } else {
+                alert('Invalid year entered!');
+            }
+        }
+
+
+
+
         function selectYear() {
             const selectedYear = prompt("Please enter the year (e.g., 2024):");
 
@@ -351,6 +418,7 @@
                 alert('Invalid year entered!');
             }
         }
+
 
 
     </script>
