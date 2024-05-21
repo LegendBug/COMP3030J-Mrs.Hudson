@@ -1,10 +1,17 @@
+import json
+from django.core.files.base import ContentFile
 from django import forms
-from Booth.models import Booth
-from Layout.models import SpaceUnit
+from django.db import transaction
+from User.models import Message, Manager, Exhibitor, MessageDetail
+from Booth.models import Booth, BoothApplication
+from Exhibition.models import Exhibition
+from Layout.models import SpaceUnit, KonvaElement
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import datetime, date
+from django.contrib.contenttypes.models import ContentType
+from uuid import uuid4
 
 
 class BoothApplicationForm(forms.Form):
@@ -37,9 +44,97 @@ class BoothApplicationForm(forms.Form):
                 affiliation_object_id=affiliation_object_id,
                 affiliation_content_type=affiliation_content_type,
                 available=True
-            )
+            ).exclude(occupied_units__isnull=False)  # 添加排除已被占用的SpaceUnit的条件
         else:
             self.fields['booth_sector'].queryset = SpaceUnit.objects.all()
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # 保证用户预约区域不会与已有展会冲突
+        if self.cleaned_data['booth_sector'].count() != 0:
+            sector = self.cleaned_data['booth_sector'].first()
+            if sector.occupied_units.filter(affiliation_content_type=ContentType.objects.get_for_model(Booth)).exists():
+                self.add_error('exhib_sectors', f'The selected sector {sector.name} has been occupied during the selected period.')
+        return cleaned_data
+
+    def create_application(self, request):
+        """使用表单的清理数据创建新的展台及其申请。"""
+        with transaction.atomic():  # 确保操作的原子性
+            exhibition = Exhibition.objects.get(id=self.cleaned_data['exhib_id'])
+            exhibitor = Exhibitor.objects.get(detail=request.user)
+            sector = self.cleaned_data['booth_sector']
+
+            # 创建新展台
+            new_booth = Booth.objects.create(
+                name=self.cleaned_data['booth_name'],
+                description=self.cleaned_data['booth_description'],
+                image=self.cleaned_data['booth_image'],
+                exhibitor=exhibitor,
+                exhibition=exhibition,
+                start_at=exhibition.start_at,  # 假设展台共享展览时间
+                end_at=exhibition.end_at
+            )
+            new_sector = SpaceUnit.objects.create(
+                name=sector.name,
+                description=sector.description,
+                floor=sector.floor,
+                inherit_from=sector,
+                parent_unit=None,  # 可以根据实际情况调整
+                available=False,
+                affiliation_content_type=ContentType.objects.get_for_model(Booth),
+                affiliation_object_id=new_booth.pk
+            )
+            # 复制KonvaElement到新的SpaceUnit
+            for element in sector.elements.all():
+                new_element = KonvaElement.objects.create(
+                    name=element.name,
+                    layer=new_sector,
+                    type=element.type,
+                    data=element.data,
+                    transformable=element.transformable
+                )
+
+                # Update the JSON data to include the new element's id
+                updated_element_data = json.loads(element.data)
+                updated_element_data["attrs"]["id"] = f"{new_element.pk}"
+                new_element.data = json.dumps(updated_element_data)
+
+                if element.image:
+                    with element.image.open() as image_file:
+                        content = image_file.read()
+                    new_filename = f'{uuid4()}.{element.image.name.split(".")[-1]}'
+                    new_image_file = ContentFile(content)
+                    new_element.image.save(new_filename, new_image_file, save=True)
+
+                new_element.save()
+
+            # 创建展台申请
+            new_booth_application = BoothApplication.objects.create(
+                applicant=request.user,
+                description=self.cleaned_data['booth_description'],
+                booth=new_booth
+            )
+            new_booth.booth_application = new_booth_application
+            new_booth.save()
+            new_booth_application.save()
+
+            # 可选创建和处理相关消息
+            new_message = Message.objects.create(
+                title="New Booth Application for '" + exhibition.name + ': ' + self.cleaned_data.get('booth_name') + "'",
+                sender=request.user,
+                recipient=Manager.objects.first().detail
+            )
+            application_type = ContentType.objects.get_for_model(BoothApplication)
+            MessageDetail.objects.create(
+                message=new_message,
+                content=self.cleaned_data['message_content'],
+                application_object_id=new_booth_application.id,
+                application_content_type=application_type
+            )
+            new_message.save()
+
+            return new_booth  # 返回新展台对象以便进一步处理
 
 
 class FilterBoothsForm(forms.Form):
