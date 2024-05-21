@@ -1,12 +1,18 @@
+from uuid import uuid4
+from User.models import Message, MessageDetail, Organizer, Manager, Exhibitor
+from django.core.files.base import ContentFile
+from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from django import forms
-from Exhibition.models import Exhibition
-from Layout.models import SpaceUnit
+from Exhibition.models import Exhibition, ExhibitionApplication
+from Layout.models import SpaceUnit, KonvaElement
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import datetime, date
-
+from User.models import Organizer, MessageDetail
 from Venue.models import Venue
+from django.contrib.contenttypes.models import ContentType
+import json
 
 
 class ExhibApplicationForm(forms.Form):
@@ -17,12 +23,8 @@ class ExhibApplicationForm(forms.Form):
     exhib_description = forms.CharField(widget=forms.Textarea(attrs={'rows': 3, 'id': 'exhibDescription'}),
                                         max_length=500, required=True, label='Exhibition Description')
     # 精确到分钟
-    exhib_start_at = forms.DateTimeField(
-        widget=forms.DateTimeInput(attrs={'id': 'exhibStartAt', 'type': 'datetime-local', 'step': 60}),
-        required=True, label="Start Date")
-    exhib_end_at = forms.DateTimeField(
-        widget=forms.DateTimeInput(attrs={'id': 'exhibEndAt', 'type': 'datetime-local', 'step': 60}),
-        required=True, label="End Date")
+    exhib_start_at = forms.DateTimeField(widget=forms.DateTimeInput(attrs={'id': 'exhibStartAt', 'type': 'datetime-local', 'step': 60}),required=True, label="Start Date")
+    exhib_end_at = forms.DateTimeField(widget=forms.DateTimeInput(attrs={'id': 'exhibEndAt', 'type': 'datetime-local', 'step': 60}),required=True, label="End Date")
     exhib_image = forms.ImageField(widget=forms.FileInput(attrs={'id': 'exhibImage'}), required=True, label="Image")
     exhib_sectors = forms.ModelMultipleChoiceField(
         queryset=SpaceUnit.objects.none(),
@@ -50,6 +52,7 @@ class ExhibApplicationForm(forms.Form):
                 affiliation_content_type=affiliation_content_type,
                 available=True)
         else:
+            # 如果没有提供venue_id, 则默认不显示任何选项
             self.fields['exhib_sectors'].queryset = SpaceUnit.objects.all()
 
     def clean(self):
@@ -63,6 +66,80 @@ class ExhibApplicationForm(forms.Form):
             if exhib_start_at >= exhib_end_at:
                 self.add_error('exhib_start_at', 'Start date must be earlier than end date.')
         return cleaned_data
+
+    def create_application(self, request):
+        """使用表单数据创建新的展览申请，包括展览本身和相关的展览单元。"""
+        with transaction.atomic():  # 使用事务确保操作的原子性
+            venue = Venue.objects.get(pk=self.cleaned_data['venue_id'])
+            organizer = Organizer.objects.get(detail=request.user)
+
+            # 创建新的展览
+            new_exhibition = Exhibition.objects.create(
+                name=self.cleaned_data['exhib_name'],
+                description=self.cleaned_data['exhib_description'],
+                start_at=self.cleaned_data['exhib_start_at'],
+                end_at=self.cleaned_data['exhib_end_at'],
+                image=self.cleaned_data['exhib_image'],
+                organizer=organizer,
+                venue=venue
+            )
+
+            # 为选中的SpaceUnit创建副本，并关联到新的Exhibition
+            for sector in self.cleaned_data['exhib_sectors']:
+                new_sector = SpaceUnit.objects.create(
+                    name=sector.name,
+                    description=sector.description,
+                    floor=sector.floor,
+                    inherit_from=sector,
+                    parent_unit=None,  # 可以根据实际情况调整
+                    available=False,
+                    affiliation_content_type=ContentType.objects.get_for_model(Exhibition),
+                    affiliation_object_id=new_exhibition.pk
+                )
+
+                # 复制KonvaElement到新的SpaceUnit
+                for element in sector.elements.all():
+                    new_element = KonvaElement.objects.create(
+                        name=element.name,
+                        layer=new_sector,
+                        type=element.type,
+                        data=element.data,
+                        transformable=element.transformable
+                    )
+
+                    # Update the JSON data to include the new element's id
+                    updated_element_data = json.loads(element.data)
+                    updated_element_data["attrs"]["id"] = f"{new_element.pk}"
+                    new_element.data = json.dumps(updated_element_data)
+
+                    if element.image:
+                        with element.image.open() as image_file:
+                            content = image_file.read()
+                        new_filename = f'{uuid4()}.{element.image.name.split(".")[-1]}'
+                        new_image_file = ContentFile(content)
+                        new_element.image.save(new_filename, new_image_file, save=True)
+
+                    new_element.save()
+
+            # 创建展览申请和相关消息
+            new_exhib_application = ExhibitionApplication.objects.create(
+                applicant=request.user,
+                description=self.cleaned_data['exhib_description'],
+                exhibition=new_exhibition
+            )
+            new_message = Message.objects.create(
+                title=f"New Exhibition Application for '{new_exhibition.name}'",
+                sender=request.user,
+                recipient=Manager.objects.first().detail
+            )
+            application_type = ContentType.objects.get_for_model(ExhibitionApplication)
+            MessageDetail.objects.create(
+                message=new_message,
+                content=self.cleaned_data['message_content'],
+                application_object_id=new_exhib_application.id,
+                application_content_type=application_type
+            )
+            return new_exhibition  # 或者返回创建的展览对象，根据需要调整
 
 
 class FilterExhibitionsForm(forms.Form):

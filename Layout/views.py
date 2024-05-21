@@ -1,5 +1,5 @@
 import json
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework import status
 from Booth.models import Booth
 from Exhibition.models import Exhibition
@@ -11,50 +11,56 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 
+
 def layout(request):
-    # 从session中获取venue_id
-    venue_id = request.session.get('venue_id')
-    venue = Venue.objects.get(id=venue_id)
-    user_type = 'Manager' if hasattr(request.user, 'manager') \
-        else 'Organizer' if hasattr(request.user, 'organizer') \
-        else 'Exhibitor' if hasattr(request.user, 'exhibitor') \
-        else 'Guest'
-    # 获取当前场馆的items
-    items = venue.items.all()
+    user_type = request.session.get('user_type', 'Guest')
+    if user_type == 'Manager':
+        current_access_id = request.session.get('venue_id')
+        current_access = Venue.objects.get(pk=current_access_id)
+    elif user_type == 'Organizer':
+        current_access_id = request.session.get('exhibition_id')
+        current_access = Exhibition.objects.get(pk=current_access_id)
+    elif user_type == 'Exhibitor':
+        current_access_id = request.session.get('booth_id')
+        current_access = Booth.objects.get(pk=current_access_id)
+    else:
+        return redirect('Venue:home')
     # add_layer_form
-    add_sublayer_form = AddLayerForm(initial={'parent_id': 1, 'floor': venue.floor})
+    add_sublayer_form = AddLayerForm(
+        initial={'parent_id': 1, 'floor': current_access.sectors.filter(parent_unit=None).first().floor})
     edit_layer_form = EditLayerForm()
     return render(request, 'Layout/layout.html',
-                  {'current_access': venue, 'user_type': user_type, 'items': items,
-                   'floor_range': range(1, venue.floor + 1),
+                  {'current_access': current_access, 'user_type': user_type,
+                   'sectors': current_access.sectors.filter(parent_unit=None).order_by('created_at'),
                    'add_sublayer_form': add_sublayer_form, 'edit_layer_form': edit_layer_form})
 
 
 def refresh_data(request):
     if request.method == 'GET':
         # 从GET请求中获取参数
-        floor = int(request.GET.get('floor', 1))
+        current_sector_id = int(request.GET.get('current_sector_id', 0))
         current_access_id = int(request.GET.get('current_access_id', 0))
         user_type = request.GET.get('user_type')
         # 验证数据有效性
-        if (floor < 1) or (current_access_id is None) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
+        if (current_sector_id is None) or (current_access_id is None) or (
+                user_type not in ['Manager', 'Organizer', 'Exhibitor']):
             return JsonResponse({'error': 'Invalid request'}, status=400)
         # 获取当前正在访问的位置
-        if user_type == 'Manager':
-            current_access = Venue.objects.get(pk=current_access_id)
-        elif user_type == 'Organizer':
-            current_access = Exhibition.objects.get(pk=current_access_id)
-        else:
-            current_access = Booth.objects.get(pk=current_access_id)
-        # 获取当前场馆的当前楼层的Root SpaceUnit节点(parent_unit=None 且创建时间最早)
-        root = current_access.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
+        if current_sector_id == 0:  # 说明用户是首次访问Layout页面, 根据用户类型获取当前访问Venue/Exhibition/Booth的第一个sector
+            if user_type == 'Manager':
+                current_sector_id = get_object_or_404(Venue, id=current_access_id).sectors.first().id
+            elif user_type == 'Organizer':
+                current_sector_id = get_object_or_404(Exhibition, id=current_access_id).sectors.first().id
+            else:
+                current_sector_id = get_object_or_404(Booth, id=current_access_id).sectors.first().id
+        root = get_object_or_404(SpaceUnit, id=current_sector_id)
         # 返回JSON化的root数据
         if root is not None:
             # 使用Serializer序列化root
             serializer = SpaceUnitSerializer(root)
             return JsonResponse(serializer.data)  # 使用Django的JsonResponse返回数据
         else:
-            return JsonResponse({'error': 'No root SpaceUnit found for the specified floor'},
+            return JsonResponse({'error': 'No root SpaceUnit found for the specified sector!'},
                                 status=status.HTTP_404_NOT_FOUND)
     else:
         return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
@@ -75,21 +81,16 @@ def add_sublayer(request):
 
 def delete_layer(request):
     if request.method == 'GET':
-        floor = int(request.GET.get('floor', 1))
+        current_sector_id = int(request.GET.get('current_sector_id', 0))
         user_type = request.GET.get('user_type')
-        current_access_id = int(request.GET.get('current_access_id', 0))
+        layer_id = int(request.GET.get('layer_id'))
         # 验证数据有效性:
-        if (floor < 1) or (current_access_id is None) or (user_type not in ['Manager', 'Organizer', 'Exhibitor']):
+        if (current_sector_id is None) or (layer_id is None) or (
+                user_type not in ['Manager', 'Organizer', 'Exhibitor']):
             return JsonResponse({'error': 'Invalid request'}, status=400)
-        layer_id = int(request.GET.get('layer_id', 0))
+
         layer = get_object_or_404(SpaceUnit, id=layer_id)
-        if user_type == 'Manager':
-            current_access = get_object_or_404(Venue, pk=current_access_id)
-        elif user_type == 'Organizer':
-            current_access = get_object_or_404(Exhibition, pk=current_access_id)
-        else:
-            current_access = get_object_or_404(Booth, pk=current_access_id)
-        root = current_access.sectors.filter(floor=floor, parent_unit=None).order_by('created_at').first()
+        root = get_object_or_404(SpaceUnit, id=current_sector_id)
         if root == layer:  # 表明当前SpaceUnit是根节点,不能删除
             return JsonResponse({'error': 'The root SpaceUnit cannot be deleted!'}, status=400)
 
@@ -164,7 +165,7 @@ def add_element(request):
 
 
 @csrf_exempt
-def edit_element(request): # {url (Layout:edit_element)}
+def edit_element(request):  # {url (Layout:edit_element)}
     if request.method == 'POST':
         element_id = request.POST.get('id')
         name = request.POST.get('name')
@@ -205,7 +206,7 @@ def delete_element(request):
 
 
 @csrf_exempt
-def synchronize_elements_data(request): # 该方法与edit_element方法的区别是, 该方法只被用于Konva对象在画板上进行位移或变换后刷新Konva对象在后端的data属性中的数据
+def synchronize_elements_data(request):  # 该方法与edit_element方法的区别是, 该方法只被用于Konva对象在画板上进行位移或变换后刷新Konva对象在后端的data属性中的数据
     if request.method == 'POST':
         data = json.loads(request.body)  # 使用 json.loads 解析请求体中的 JSON 数据
         root_data = data.get('root')

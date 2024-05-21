@@ -19,10 +19,26 @@ class RecursiveSerializer(serializers.Serializer):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
 
+class ParentSpaceUnitSerializer(serializers.ModelSerializer):
+    # 使用自身递归序列化parent_unit的parent_unit
+    parent_unit = serializers.SerializerMethodField()
+
+    def get_parent_unit(self, obj):
+        if obj.parent_unit:
+            return ParentSpaceUnitSerializer(obj.parent_unit, context=self.context).data
+        else:
+            return None
+
+    class Meta:
+        model = SpaceUnit
+        fields = ['id', 'name', 'description', 'floor', 'parent_unit']
+
+
 
 class SpaceUnitSerializer(serializers.ModelSerializer):
     child_units = RecursiveSerializer(many=True, read_only=False)
     elements = KonvaElementSerializer(many=True, read_only=False)
+    parent_unit = ParentSpaceUnitSerializer(read_only=True)
     class Meta:
         model = SpaceUnit
         fields = ['id', 'name', 'description', 'floor', 'parent_unit', 'available', 'created_at', 'child_units',

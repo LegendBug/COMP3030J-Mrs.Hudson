@@ -26,7 +26,6 @@
     {% endif %}
 {% endblock %}
 
-
 {% block content %}
     <div id="layout-app">
         <!-- Floating Action Button -->
@@ -48,18 +47,18 @@
 
             <div class="offcanvas-header">
                 {# 按钮: Return#}
-                <button type="button" class="btn btn-secondary" @click="toggleOffcanvas">Return</button>
-                {# Dropdown: Floor#}
+                <button type="button" class="btn btn-secondary" @click="returnCurrentAccess">Return</button>
+                {# Dropdown: Sector#}
                 <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownSectorMenu"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                        Select Floor
+                            Select Sector
                     </button> 
-                    <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
-                        {% for floor_number in floor_range %}
-                            {% comment %}我知道你想debug,但这个错误不影响程序的正常运行,单纯是IDE对Django模板渲染的错误提示,你可以忽略它{% endcomment %}
-                            <li><a class="dropdown-item" href="#" @click="changeFloor({{ floor_number }})">Floor {{ floor_number }}</a></li>
-                        {% endfor %}
+                    <ul class="dropdown-menu" aria-labelledby="dropdownSectorMenu">
+                            {% for sector in sectors %}
+                                {% comment %}我知道你想debug,但这个错误不影响程序的正常运行,单纯是IDE对Django模板渲染的错误提示,你可以忽略它{% endcomment %}
+                                <li><a class="dropdown-item" href="#" @click="changeSector({{ sector.id }})">Sector {{ sector.name }}</a></li>
+                            {% endfor %}
                     </ul>
                 </div>
                 {# 按钮: Save#}
@@ -69,11 +68,10 @@
             <div class="offcanvas-body">
                 <!-- Top层级Accordion -->
                 <div class="accordion" id="accordion">
-                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer" :floor="floor" 
+                    <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer"
                     @update-current-layer="setCurrentLayer" @update-current-element="setCurrentElement" @element-added="addElement" @data-updated="refreshData">
                     </layer-component>
                 </div>
-
             </div>
         </div>
         
@@ -139,7 +137,7 @@
                             </div>
                             <!-- Text Cotent -->
                             <div v-if="newElementType === 'Text'" class="mb-3">
-                                <label for="textContent" class="form-label">Element Name</label>
+                                <label for="textContent" class="form-label">Text Content</label>
                                 <input type="text" id="textContent" class="form-control">
                             </div>
                             <!-- Fill Color -->
@@ -204,7 +202,7 @@
                             </div>
                             <!-- Text Cotent -->
                             <div v-if="currentElement && currentElement.type === 'Text'" class="mb-3">
-                                <label for="editedTextContent" class="form-label">Text Cotent</label>
+                                <label for="editedTextContent" class="form-label">Text Content</label>
                                 <input type="text" id="editedTextContent" class="form-control">
                             </div>
                             <!-- Fill Color -->
@@ -259,7 +257,7 @@
 {% block scripts %}
     <script>
         Vue.component('layer-component', {
-            props: ['layer','floor'],
+            props: ['layer'],
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: function() {
                 return {
@@ -286,14 +284,14 @@
                 <div v-if="open" class="accordion-collapse">
                   <div class="accordion-body">
                     <layer-component  v-for="(child, index) in layer.child_units" :key="index"
-                                      :layer="child" :floor="floor"
+                                      :layer="child"
                                       @update-current-layer="$emit('update-current-layer', $event)"
                                       @update-current-element="$emit('update-current-element', $event)"
                                       @data-updated="$emit('data-updated', $event)" @element-added="$emit('element-added', $event)">
                     </layer-component>
 
                     <element-component  v-for="(element, index) in layer.elements" :key="index"
-                                        :element="element" :floor="floor"
+                                        :element="element"
                                         @update-current-element="$emit('update-current-element', $event)"
                                         @data-updated="$emit('data-updated', $event)">
                     </element-component>
@@ -307,7 +305,7 @@
                      @click="openAddSubLayerModal(layer); closeContextMenu()">Add Sublayer</a>
                   <a class="list-group-item list-group-item-action"
                      @click="openEditLayerModal(layer); closeContextMenu()">Edit Layer</a>
-                  <a class="list-group-item list-group-item-action" @click="deleteLayer(layer.id); closeContextMenu()">Delete
+                  <a class="list-group-item list-group-item-action" @click="deleteLayer(layer); closeContextMenu()">Delete
                     Layer</a>
                   <a class="list-group-item list-group-item-action" ref="addElementButton" @click="closeContextMenu()"
                      @mouseover="openElementMenu()">Add Element</a>
@@ -379,14 +377,18 @@
                     $('#editLayerForm input[name="available"]').prop('checked', layer.available);
                     $('#editLayerModal').modal('show');
                 },               
-                deleteLayer(layerId) {
-                    if (confirm("Are you sure you want to delete current layer and its sub-elements?")) {
+                deleteLayer(layer) {
+                    if (confirm("Are you sure you want to delete current layer and its sub-elements?")) { 
+                        const deletedLayerId = layer.id;
+                        while (layer.parent_unit != null){ // 查询currentSectorId
+                            layer = layer.parent_unit;
+                        }
+                        const currentSectorId = layer.id;
                         axios.get('{% url 'Layout:delete_layer' %}', { 
                             params: {
-                                layer_id: layerId,
-                                floor: this.floor,
+                                layer_id: deletedLayerId,
+                                current_sector_id: currentSectorId,
                                 user_type: '{{ user_type }}',
-                                current_access_id: {{ current_access.id }},
                             }
                         })
                         .then(response => {
@@ -408,7 +410,7 @@
         });
 
         Vue.component('element-component', {
-            props: ['element','floor'],
+            props: ['element'],
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data() {
                 return {
@@ -476,9 +478,7 @@
                         axios.get('{% url 'Layout:delete_element' %}', { 
                             params: {
                                 element_id: element.id,
-                                floor: this.floor,
                                 user_type: '{{ user_type }}',
-                                current_access_id: {{ current_access.id }},
                             }
                         })
                         .then(response => {
@@ -522,7 +522,7 @@
             el: '#layout-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
-                floor: 1, // 当前楼层,默认为1
+                currentSectorId : 0, // 针对Exhibition或Booth的情况, 默认首次访问的是Current_Access第一个Sector
                 layers: [],
                 currentLayer: null,
                 currentElement: null,
@@ -564,13 +564,15 @@
                     console.log('Refreshing data...');
                     return axios.get('{% url "Layout:refresh_data" %}', {
                         params: { 
-                            floor: this.floor,
+                            current_sector_id : this.currentSectorId,
                             current_access_id: {{ current_access.id }},
                             user_type: '{{ user_type }}',
                         }
                     }).then(response => {
                         if (response.data && response.data.id) {
                             console.log('Data synchronized:', response.data);
+                            this.currentSectorId = response.data.id;
+                            console.log('Current Sector ID:', this.currentSectorId);
                             this.renderData(response.data); // 调用renderData来处理这个单一节点
                             this.renderKonva(); // 重新初始化Konva
                         } else {
@@ -1173,9 +1175,13 @@
                     offcanvasElement.style.visibility = this.offcanvasOpen ? 'visible' : 'hidden';
                 },
                 
-                changeFloor(floor) { // 切换楼层
-                    if (this.floor !== floor) {
-                        this.floor = floor;
+                returnCurrentAccess(){
+                    
+                },
+                            
+                changeSector(sectorId) { // 切换区域
+                    if (this.layers[0].id !== sectorId) {
+                        this.currentSectorId = sectorId;
                         this.refreshData();
                     }
                 },
@@ -1194,7 +1200,7 @@
 
                 addSubLayer() { // 添加子层
                     let formData = new FormData(document.getElementById('addSubLayerForm'));
-                    formData.append('floor', this.floor); // 确保floor字段被添加
+                    formData.append('floor', this.layers[0].floor); // 设置被添加的Layer在场馆中位于哪一层
                     formData.append('parent_unit', this.currentLayer.id); // 添加parent_unit_id字段
                     formData.append('user_type', '{{ user_type }}'); // 添加user_type字段
                     formData.append('affiliation_object_id', {{ current_access.id }}); // 添加user_type字段                    
