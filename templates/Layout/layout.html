@@ -30,7 +30,23 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Layout</a></li>
+            {% if user.is_authenticated and user_type == 'Exhibitor'%}
+                {% if current_access and current_access.exhibition and current_access.exhibition.venue %}
+                    <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.exhibition.venue.id %}">{{ current_access.exhibition.venue.name }}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'Exhibition:exhibition' current_access.exhibition.id %}">{{ current_access.exhibition.name }}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'Booth:booth' current_access.id %}">{{ current_access.name }}</a></li>
+                {% endif %}
+            {% elif user.is_authenticated and user_type == 'Organizer'%}
+                {% if current_access and current_access.venue %}
+                    <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.venue.id %}">{{ current_access.venue.name }}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'Exhibition:exhibition' current_access.id %}">{{ current_access.name }}</a></li>
+                {% endif %}
+            {% elif user.is_authenticated and user_type == 'Manager'%}
+                {% if current_access %}
+                    <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
+                {% endif %}
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">Layout</li>
         </ol>
     </nav>
 {% endblock %}
@@ -57,7 +73,16 @@
 
             <div class="offcanvas-header">
                 {# 按钮: Return#}
-                <button type="button" class="btn btn-secondary" @click="returnCurrentAccess">Return</button>
+               
+                {% if user.is_authenticated and user_type == 'Exhibitor'%}
+                     <button type="button" class="btn btn-secondary"><a href="{% url 'Booth:booth' current_access.id %}">Return</a></button>
+                {% elif user.is_authenticated and user_type == 'Organizer'%}
+                     <button type="button" class="btn btn-secondary"><a href="{% url 'Exhibition:exhibition' current_access.id %}">Return</a></button>
+                {% elif user.is_authenticated and user_type == 'Manager'%}
+                    <button type="button" class="btn btn-secondary"><a href="{% url 'Venue:venue' current_access.id %}">Return</a></button>
+                {% endif %}
+                
+                
                 {# Dropdown: Sector#}
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownSectorMenu"
@@ -1183,11 +1208,7 @@
                     this.offcanvasOpen = !this.offcanvasOpen;
                     let offcanvasElement = document.getElementById('offcanvasScrolling');
                     offcanvasElement.style.visibility = this.offcanvasOpen ? 'visible' : 'hidden';
-                },
-                
-                returnCurrentAccess(){
-                    
-                },
+                },            
                             
                 changeSector(sectorId) { // 切换区域
                     if (this.layers[0].id !== sectorId) {

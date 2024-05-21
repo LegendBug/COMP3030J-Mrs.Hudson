@@ -11,5 +11,4 @@ urlpatterns = [
     path('edit_element/', views.edit_element, name='edit_element'),
     path('delete_element/', views.delete_element, name='delete_element'),
     path('synchronize_elements_data/', views.synchronize_elements_data, name='synchronize_elements_data'),
-
 ]
