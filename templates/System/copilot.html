@@ -50,19 +50,47 @@
                         <textarea name="user_input" class="form-control" rows="3"
                                   placeholder="Type your question here..."></textarea>
                         <br>
-                        <button type="submit" class="btn btn-success">
-                            Ask Watson
-                        </button>
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                            Delete History
-                        </button>
-
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <button type="submit" class="btn btn-success">
+                                    Ask Watson
+                                </button>
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    Delete History
+                                </button>
+                            </div>
+                            <button type="button" class="btn btn-warning" style="width: 40px; height: 40px; border-radius: 50%;" data-bs-toggle="modal" data-bs-target="#warningModal">
+                                ?
+                            </button>
+                        </div>
                     </form>
                 </div>
                 <br>
 
-                
-                
+                <!-- Modal for LLM Warning -->
+                <div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="warningModalLabel">
+                                    Note
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Watson Copilot is powered by LLM technology from OpenAI. While we strive for accuracy, 
+                                the responses can be imperfect. Always verify critical informationindependently.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                                    Okay
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
                 <!-- Modal for "Delete History" -->
                 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
@@ -120,12 +148,12 @@
                         </div>
                     </div>
                 {% endfor %}
-                <br>
+                {% comment %} <br>
                 <div class="alert alert-warning mt-4" role="alert">
                     <strong>Note:</strong> Watson Copilot is powered by LLM technology from OpenAI. While we
                     strive for accuracy, the responses can be imperfect. Always verify critical information
                     independently.
-                </div>
+                </div> {% endcomment %}
             </div>
         </div>
     </div>
@@ -155,6 +183,14 @@
 
         // Check scroll top on page load
         checkScrollTop();
+    });
+
+    $(function () {
+        $('[data-toggle="popover"]').popover()
+    })
+
+    $(document).ready(function(){
+        $('[data-toggle="popover"]').popover(); 
     });
 </script>
 {% endblock %}
