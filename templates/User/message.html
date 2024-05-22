@@ -12,6 +12,15 @@
     {% include "Public/sidebar.html" %}
 {% endblock %}
 
+{% block breadcrumbs %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Message</li>
+        </ol>
+    </nav>
+{% endblock %}
+
 {% block content %}
     <div class="container px-10">
         {% if page_obj %}

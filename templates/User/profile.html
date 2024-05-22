@@ -6,6 +6,15 @@
     <link rel="stylesheet" href="{% static 'css/User/profile.css' %}">
 {% endblock %}
 
+{% block breadcrumbs %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Profile</li>
+        </ol>
+    </nav>
+{% endblock %}
+
 {% block content %}
     <div class="container mt-5 profile-container">
         <div class="card mt-5 shadow-lg">
