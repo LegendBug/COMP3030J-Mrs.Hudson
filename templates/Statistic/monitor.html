@@ -4,14 +4,14 @@
 {% load static %}
 
 {% block extra_head %}
-    <title>Layout</title>
+    <title>Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 
-    <link rel="stylesheet" href="{% static 'css/Layout/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/Statistic/monitor.css' %}">
 {% endblock %}
 
 {% block extra_nav_icons %}
@@ -30,30 +30,16 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
-            {% if user.is_authenticated and user_type == 'Exhibitor'%}
-                {% if current_access and current_access.exhibition and current_access.exhibition.venue %}
-                    <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.exhibition.venue.id %}">{{ current_access.exhibition.venue.name }}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'Exhibition:exhibition' current_access.exhibition.id %}">{{ current_access.exhibition.name }}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'Booth:booth' current_access.id %}">{{ current_access.name }}</a></li>
-                {% endif %}
-            {% elif user.is_authenticated and user_type == 'Organizer'%}
-                {% if current_access and current_access.venue %}
-                    <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.venue.id %}">{{ current_access.venue.name }}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'Exhibition:exhibition' current_access.id %}">{{ current_access.name }}</a></li>
-                {% endif %}
-            {% elif user.is_authenticated and user_type == 'Manager'%}
-                {% if current_access %}
-                    <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
-                {% endif %}
+            {% if user.is_authenticated and user_type == 'Manager' %}
+                <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
             {% endif %}
-            <li class="breadcrumb-item active" aria-current="page">Layout</li>
+            <li class="breadcrumb-item active" aria-current="page">Monitor</li>
         </ol>
     </nav>
 {% endblock %}
 
-
 {% block content %}
-    <div id="layout-app">
+    <div id="monitor-app">
         <!-- Floating Action Button -->
         <button @click="toggleOffcanvas" class="btn btn-primary rounded shadow" id="toggle-offcanvas-btn"
                 :style="buttonStyle">
@@ -82,7 +68,6 @@
                     <button type="button" class="btn btn-secondary"><a href="{% url 'Venue:venue' current_access.id %}">Return</a></button>
                 {% endif %}
 
-
                 {# Dropdown: Sector#}
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownSectorMenu"
@@ -92,10 +77,11 @@
                     <ul class="dropdown-menu" aria-labelledby="dropdownSectorMenu">
                             {% for sector in sectors %}
                                 {% comment %}我知道你想debug,但这个错误不影响程序的正常运行,单纯是IDE对Django模板渲染的错误提示,你可以忽略它{% endcomment %}
-                                <li><a class="dropdown-item" href="#" @click="changeSector({{ sector.id }})">Sector {{ sector.name }}</a></li>
+                                <li><a class="dropdown-item" href="#" @click="toggleSector({{ sector.id }})">Sector {{ sector.name }}</a></li>
                             {% endfor %}
                     </ul>
                 </div>
+                
                 {# 按钮: Save#}
                 <button type="button" class="btn btn-primary" @click="synchronizeElementsData()">Save</button>
             </div>
@@ -110,51 +96,7 @@
             </div>
         </div>
 
-        <!-- Add SubLayer Modal -->
-        <div class="modal fade" id="addSubLayerModal" tabindex="-1" aria-labelledby="addSubLayerModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addSubLayerModalLabel">Add New SubLayer</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="addSubLayerForm" @submit.prevent="addSubLayer()">
-                            {% csrf_token %}
-                            {{ add_sublayer_form|crispy }}
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-primary">Add Sublayer</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Edit Layer Modal -->
-        <div class="modal fade" id="editLayerModal" tabindex="-1" aria-labelledby="editLayerModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editLayerModalLabel">Edit Layer</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="editLayerForm" @submit.prevent="editLayer()">
-                            {% csrf_token %}
-                            {{ edit_layer_form|crispy }}
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-primary">Edit Layer</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Set Konva Element Properties Modal -->
+        <!-- Set Monitor Properties Modal -->
         <div class="modal fade" id="elementPropertiesModal" tabindex="-1" aria-labelledby="elementPropertiesModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -170,29 +112,10 @@
                                 <label for="elementName" class="form-label">Element Name</label>
                                 <input type="text" id="elementName" class="form-control">
                             </div>
-                            <!-- Text Cotent -->
-                            <div v-if="newElementType === 'Text'" class="mb-3">
-                                <label for="textContent" class="form-label">Text Content</label>
-                                <input type="text" id="textContent" class="form-control">
-                            </div>
-                            <!-- Fill Color -->
-                            <div v-if="newElementType !== 'Image'" class="mb-3">
-                                <label for="fillColor" class="form-label">Fill Color</label>
-                                <input type="color" id="fillColor" class="form-control form-control-color">
-                            </div>
-                            <!-- Border Style -->
-                            <div class="mb-3">
-                                <label for="borderStyle" class="form-label">Border Style</label>
-                                <select class="form-control" id="borderStyle">
-                                    <option value="none">No Border</option>
-                                    <option value="thin">Thin Border</option>
-                                    <option value="thick">Thick Border</option>
-                                </select>
-                            </div>
-                             <!-- Border Color -->
-                            <div class="mb-3">
-                                <label for="borderColor" class="form-label">Border Color</label>
-                                <input type="color" id="borderColor" class="form-control form-control-color">
+                            <!-- Is Online -->
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="isOnline" checked>
+                                <label class="form-check-label" for="isOnline">Is Online</label>
                             </div>
                             <!-- Transformable -->
                             <div class="mb-3 form-check">
@@ -204,11 +127,6 @@
                                 <input type="checkbox" class="form-check-input" id="draggable" checked>
                                 <label class="form-check-label" for="draggable">Draggable</label>
                             </div>
-                            <!-- Image upload field, shown only for Image type -->
-                            <div v-if="newElementType === 'Image'" class="mb-3">
-                                <label for="imageUpload" class="form-label">Upload Image</label>
-                                <input type="file" id="imageUpload" class="form-control" accept="image/*" @change="handleImageUpload" :required="newElementType === 'Image'">
-                            </div>
                         </form>
                     </div>
                     <div class="modal-footer">
@@ -219,7 +137,7 @@
             </div>
         </div>
 
-        <!-- Edit Konva Element Properties Modal -->
+        <!-- Edit Monitor Properties Modal -->
         <div class="modal fade" id="editElementPropertiesModal" tabindex="-1" aria-labelledby="editElementPropertiesModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -230,34 +148,15 @@
                     <div class="modal-body">
                         <!-- Form for element properties -->
                         <form id="editElementPropertiesForm">
-                            <!-- Element Name -->
+                            <!-- Monitor Name -->
                             <div class="mb-3">
                                 <label for="editedElementName" class="form-label">Element Name</label>
                                 <input type="text" id="editedElementName" class="form-control">
                             </div>
-                            <!-- Text Cotent -->
-                            <div v-if="currentElement && currentElement.type === 'Text'" class="mb-3">
-                                <label for="editedTextContent" class="form-label">Text Content</label>
-                                <input type="text" id="editedTextContent" class="form-control">
-                            </div>
-                            <!-- Fill Color -->
-                            <div v-if="currentElement && currentElement.type !== 'Image'" class="mb-3">
-                                <label for="editedFillColor" class="form-label">Fill Color</label>
-                                <input type="color" id="editedFillColor" class="form-control form-control-color">
-                            </div>
-                            <!-- Border Style -->
-                            <div class="mb-3">
-                                <label for="editedBorderStyle" class="form-label">Border Style</label>
-                                <select class="form-control" id="editedBorderStyle">
-                                    <option value="none">No Border</option>
-                                    <option value="thin">Thin Border</option>
-                                    <option value="thick">Thick Border</option>
-                                </select>
-                            </div>
-                            <!-- Border Color -->
-                            <div class="mb-3">
-                                <label for="editedBorderColor" class="form-label">Border Color</label>
-                                <input type="color" id="editedBorderColor" class="form-control form-control-color">
+                            <!-- Is Online -->
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="editedIsOnline">
+                                <label class="form-check-label" for="editedIsOnline">Is Online</label>
                             </div>
                             <!-- Transformable -->
                             <div class="mb-3 form-check">
@@ -268,11 +167,6 @@
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" id="editedDraggable">
                                 <label class="form-check-label" for="editedDraggable">Draggable</label>
-                            </div>
-                            <!-- Image upload field, shown only for Image type -->
-                            <div v-if="currentElement && currentElement.type === 'Image'" class="mb-3">
-                                <label for="editedImageUpload" class="form-label">Upload Image</label>
-                                <input type="file" id="editedImageUpload" class="form-control" accept="image/*" @change="handleImageUpload">
                             </div>
                         </form>
                     </div>
@@ -288,7 +182,6 @@
 
 {% endblock %}
 
-
 {% block scripts %}
     <script>
         Vue.component('layer-component', {
@@ -298,11 +191,8 @@
                 return {
                     open: false,  // 每个组件控制自己的打开状态
                     isContextMenuVisible: false,  // 上下文菜单是否可见
-                    isElementMenuVisible: false,
                     contextMenuX: '0px',  // 上下文菜单的X坐标
                     contextMenuY: '0px',   // 上下文菜单的Y坐标
-                    elementMenuX: '0px',
-                    elementMenuY: '0px'
                 };
             },
             template: `
@@ -325,7 +215,7 @@
                                       @data-updated="$emit('data-updated', $event)" @element-added="$emit('element-added', $event)">
                     </layer-component>
 
-                    <element-component  v-for="(element, index) in layer.elements" :key="index"
+                    <element-component  v-for="(element, index) in layer.monitors" :key="index"
                                         :element="element"
                                         @update-current-element="$emit('update-current-element', $event)"
                                         @data-updated="$emit('data-updated', $event)">
@@ -336,26 +226,7 @@
                 <!-- 上下文菜单 -->
                 <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
                      class="list-group context-menu">
-                  <a class="list-group-item list-group-item-action"
-                     @click="openAddSubLayerModal(layer); closeContextMenu()">Add Sublayer</a>
-                  <a class="list-group-item list-group-item-action"
-                     @click="openEditLayerModal(layer); closeContextMenu()">Edit Layer</a>
-                  <a class="list-group-item list-group-item-action" @click="deleteLayer(layer); closeContextMenu()">Delete
-                    Layer</a>
-                  <a class="list-group-item list-group-item-action" ref="addElementButton" @click="closeContextMenu()"
-                     @mouseover="openElementMenu()">Add Element</a>
-                </div>
-
-                <!-- Sub Context Menu for Adding Elements -->
-                <div v-show="isElementMenuVisible" :style="{top: elementMenuY, left: elementMenuX}"
-                     class="list-group context-menu">
-                    <a class="list-group-item list-group-item-action" @click="addElement('Image',layer); closeContextMenu()">Image</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Text',layer); closeContextMenu()">Text</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Rect',layer); closeContextMenu()">Rectangle</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Polygon',layer); closeContextMenu()">Polygon</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Circle',layer); closeContextMenu()">Circle</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Line',layer); closeContextMenu()">Line</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Arrow',layer); closeContextMenu()">Arrow</a>
+                  <a class="list-group-item list-group-item-action" ref="addElementButton" @click="addElement(layer); closeContextMenu()">Add Monitor</a>
                 </div>
               </div>
             `,
@@ -371,9 +242,9 @@
                 handleOutsideClick(e) { // 全局点击事件处理
                     if (!e.target.closest('.context-menu')) {
                         this.isContextMenuVisible = false; // 使用 this 指向组件实例
-                        this.isElementMenuVisible = false;
                     }
                 },
+                
                 openContextMenu(event) { // 上下文菜单事件处理
                     event.preventDefault();
                     if (this.isContextMenuVisible) {
@@ -390,56 +261,14 @@
                             this.isContextMenuVisible = true;  // 显示上下文菜单
                     }
                 },
-                openElementMenu() {
-                    const buttonRect = this.$refs.addElementButton.getBoundingClientRect();
-                    this.elementMenuX = (buttonRect.left + buttonRect.width) + 'px';
-                    this.elementMenuY = (buttonRect.top - 4 * buttonRect.height) + 'px';
-                    this.isElementMenuVisible = true;
-                },
+                
                 closeContextMenu() {
-                    this.isElementMenuVisible = false;
                     this.isContextMenuVisible = false;  // 隐藏上下文菜单
                 },
-                openAddSubLayerModal(layer) {  // 打开添加子层模态框
+
+                addElement(layer) {
                     this.$emit('update-current-layer', layer);
-                    $('#addSubLayerModal').modal('show');
-                },
-                openEditLayerModal(layer) { // 打开添加子层模态框
-                    this.$emit('update-current-layer', layer);
-                    // 为模态框填充数据
-                    $('#editLayerForm input[name="name"]').val(layer.name);
-                    $('#editLayerForm input[name="description"]').val(layer.description);
-                    $('#editLayerForm input[name="available"]').prop('checked', layer.available);
-                    $('#editLayerModal').modal('show');
-                },
-                deleteLayer(layer) {
-                    if (confirm("Are you sure you want to delete current layer and its sub-elements?")) {
-                        const deletedLayerId = layer.id;
-                        while (layer.parent_unit != null){ // 查询currentSectorId
-                            layer = layer.parent_unit;
-                        }
-                        const currentSectorId = layer.id;
-                        axios.get('{% url 'Layout:delete_layer' %}', {
-                            params: {
-                                layer_id: deletedLayerId,
-                                current_sector_id: currentSectorId,
-                                user_type: '{{ user_type }}',
-                            }
-                        })
-                        .then(response => {
-                            if (response.data && response.data.success) {
-                                this.$emit('data-updated');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error deleting layer:', error);
-                        });
-                    }
-                },
-                addElement(type, layer) {
-                    console.log('addElement is activated in layer-component: ','type: ', type,' layer: ');
-                    this.$emit('update-current-layer', layer);
-                    this.$emit('element-added', type);
+                    this.$emit('element-added');
                 }
             },
         });
@@ -461,15 +290,15 @@
                 <h2 class="accordion-header">
                   <button class="accordion-button" type="button"
                           @contextmenu.prevent="openContextMenu($event)"
-                          style="background-color: #c3dcf6;">
+                          style="background-color: #e36767;">
                     [[ element.name ]]
                   </button>
                 </h2>
                 <!-- 上下文菜单 -->
                 <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
                      class="list-group context-menu">
-                    <a class="list-group-item list-group-item-action" @click="openEditElement(element); closeContextMenu()">Edit Element</a>
-                    <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Delete Item</a>
+                    <a class="list-group-item list-group-item-action" @click="openEditElement(element); closeContextMenu()">Edit Monitor</a>
+                    <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Delete Monitor</a>
                 </div>
               </div>
             `,
@@ -487,6 +316,7 @@
                         this.closeContextMenu();
                     }
                 },
+                
                 openContextMenu(event) {
                     event.preventDefault();
                     if (this.isContextMenuVisible) {
@@ -504,13 +334,15 @@
                     }
                     this.$emit('update-current-element', this.element);
                 },
+                
                 closeContextMenu() {
                     this.isContextMenuVisible = false;
                 },
+                
                 deleteElement(element) {
                     // 确认删除操作
                     if (confirm("Are you sure you want to delete this element?")) {
-                        axios.get('{% url 'Layout:delete_element' %}', {
+                        axios.get('{% url 'Statistic:delete_monitor' %}', {
                             params: {
                                 element_id: element.id,
                                 user_type: '{{ user_type }}',
@@ -527,25 +359,16 @@
                         });
                     }
                     this.closeContextMenu();
-
-
                 },
+                
                 openEditElement(element){
                     this.$emit('update-current-element', element);
                     // 设置表单字段的值
                     setTimeout(() => {
                         const attrs = JSON.parse(element.data).attrs;
                         document.getElementById('editedElementName').value = element.name;
-                        if (document.getElementById('editedFillColor')) {
-                            document.getElementById('editedFillColor').value = attrs.fill || '#000000'; // 默认值为黑色
-                        }
-                        const strokeWidth = attrs.strokeWidth || 0;
-                        const stroke = attrs.stroke || '#000000';
-                        document.getElementById('editedBorderStyle').value = strokeWidth === 1 ? 'thin' : (strokeWidth === 4 ? 'thick' : 'none');
-                        if (strokeWidth !== 0) {
-                            document.getElementById('editedBorderColor').value = stroke;
-                        }
                         document.getElementById('editedTransformable').checked = element.transformable;
+                        document.getElementById('editedIsOnline').checked = element.is_online;
                         document.getElementById('editedDraggable').checked = attrs.draggable;
                     }, 0); // 使用 setTimeout 确保在 Vue 的 DOM 更新完成后设置表单值
                     $('#editElementPropertiesModal').modal('show');
@@ -554,7 +377,7 @@
         });
 
         new Vue({
-            el: '#layout-app',
+            el: '#monitor-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
                 currentSectorId : 0, // 默认首次访问的是Current_Access第一个Sector
@@ -563,10 +386,9 @@
                 currentElement: null,
                 stage: null,
                 offcanvasOpen: false,
-                newElementType: null, // 用户选择添加的新元素的类型
+                monitorImageUrl : "{% static 'data/Monitor/monitor.png' %}",
                 imageSrc: null, // 存储上传的图像的Data URL, 这用于在添加图像元素时直接在画板上显示图像
                 elementProps : null,
-                points: []
             },
             mounted() {
                 this.refreshData()
@@ -597,7 +419,7 @@
                 // ----------------- 数据加载 -----------------
                 refreshData() {
                     console.log('Refreshing data...');
-                    return axios.get('{% url "Layout:refresh_data" %}', {
+                    return axios.get('{% url "Statistic:refresh_data" %}', {
                         params: {
                             current_sector_id : this.currentSectorId,
                             current_access_id: {{ current_access.id }},
@@ -648,18 +470,18 @@
                     this.stage.container().addEventListener('wheel', this.handleWheelZoom);
                     // 添加窗口大小变化事件监听器
                     window.addEventListener('resize', this.handleResize);
-                    // 添加画板拖拽的监听器   
+                    // 添加画板拖拽的监听器
                     this.stage.on('mousedown', this.handleMouseDown);
                     this.stage.on('mouseup', this.handleMouseUp);
                     this.stage.on('mousemove', this.handleMouseMove);
 
-                    const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
+                    const loadImage = (url, nodeData, group, element, spaceUnit, isMonitor) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
                         return new Promise((resolve, reject) => {
                             Konva.Image.fromURL(url, (imageNode) => {
                                 try {
                                     imageNode.setAttrs(nodeData);
                                     group.add(imageNode);
-                                    this.addListenersForElement(imageNode, element, spaceUnit);
+                                    this.addListenersForElement(imageNode, element, spaceUnit, isMonitor);
                                     resolve(imageNode);
                                 } catch (error) {
                                     reject(error);
@@ -679,12 +501,17 @@
                             for (const element of spaceUnit.elements) {
                                 const nodeData = JSON.parse(element.data);
                                 if (element.type === 'Image') { // 如果加载的是图片
-                                    await loadImage(element.image, nodeData, group, element, spaceUnit);
+                                    await loadImage(element.image, nodeData, group, element, spaceUnit, false);
                                 } else {
                                     const node = Konva.Node.create(nodeData, group);
                                     group.add(node);
-                                    this.addListenersForElement(node, element, spaceUnit); // 添加变换和拖拽结束的事件监听器
+                                    this.addListenersForElement(node, element, spaceUnit, false); // 添加变换和拖拽结束的事件监听器
                                 }
+                            }
+                            
+                             for (const element of spaceUnit.monitors) {
+                                const nodeData = JSON.parse(element.data);
+                                await loadImage(element.image, nodeData, group, element, spaceUnit, true);
                             }
 
                             // 如果当前SpaceUnit有子单位，则递归处理
@@ -700,74 +527,68 @@
                     rootLayer.draw();
                 },
 
-                addListenersForElement(node, element, parentSpaceUnit){
+                addListenersForElement(node, element, parentSpaceUnit, isMonitor){
                     // 添加变换和拖拽结束的事件监听器
-                    node.on('transformend dragend', () => {
-                        let element = this.findElementByKonvaId(this.layers, node.id());
-                        if (element) {
-                            // 更新元素属性
-                            let data = JSON.parse(element.data);  // 将JSON字符串转换为对象
-                            // 更新元素属性
-                            data.attrs.x = node.x();
-                            data.attrs.y = node.y();
-                            data.attrs.width = node.width();  // 乘以scaleX因为宽度在变换后可能被缩放
-                            data.attrs.height = node.height();  // 乘以scaleY因为高度在变换后可能被缩放
-                            data.attrs.rotation = node.rotation();
-                            data.attrs.scaleX = node.scaleX();
-                            data.attrs.scaleY = node.scaleY();
-                            // 将对象转换回JSON字符串
-                            element.data = JSON.stringify(data);
-                        }
-                        this.synchronizeElementsData();
-                    });
-
-                    if (element.transformable) {
-                        const transformer = new Konva.Transformer({
-                            node: node,
-                            enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top-center', 'bottom-center', 'middle-left', 'middle-right'],
-                            rotateEnabled: true,
-                            keepRatio: true,
-                            // 旋转把手偏移量
-                            rotateAnchorOffset: 60,
-                            // 可变形操作的视觉样式
-                            borderStroke: 'blue',
-                            borderDash: [3, 3],
-                            anchorStroke: 'grey',
-                            anchorFill: 'grey',
-                            anchorSize: 8,
-                            borderStrokeWidth: 2
+                    if (isMonitor) {
+                        node.on('transformend dragend', () => {
+                            let element = this.findElementByKonvaId(this.layers, node.id());
+                            if (element) {
+                                // 更新元素属性
+                                let data = JSON.parse(element.data);  // 将JSON字符串转换为对象
+                                // 更新元素属性
+                                data.attrs.x = node.x();
+                                data.attrs.y = node.y();
+                                data.attrs.width = node.width();  // 乘以scaleX因为宽度在变换后可能被缩放
+                                data.attrs.height = node.height();  // 乘以scaleY因为高度在变换后可能被缩放
+                                data.attrs.rotation = node.rotation();
+                                data.attrs.scaleX = node.scaleX();
+                                data.attrs.scaleY = node.scaleY();
+                                // 将对象转换回JSON字符串
+                                element.data = JSON.stringify(data);
+                            }
+                            this.synchronizeElementsData();
                         });
-                        node.getLayer().add(transformer);
-                        transformer.attachTo(node);
-                    }
-
-                    // 添加右键点击监听器
-                    node.on('contextmenu', (e) => {
-                        e.evt.preventDefault();
-                        let element = this.findElementByKonvaId(this.layers, node.id());
-                        if (element) {
-                            this.currentElement = element;
-                            // 设置表单字段的值
-                            setTimeout(() => {
-                                this.$emit('update-current-element', element);
-                                const attrs = JSON.parse(element.data).attrs;
-                                document.getElementById('editedElementName').value = element.name;
-                                if (document.getElementById('editedTextContent')) {
-                                    document.getElementById('editedTextContent').value = attrs.text;
-                                }
-                                const strokeWidth = attrs.strokeWidth || 0;
-                                const stroke = attrs.stroke || '#000000';
-                                document.getElementById('editedBorderStyle').value = strokeWidth === 1 ? 'thin' : (strokeWidth === 4 ? 'thick' : 'none');
-                                if (strokeWidth !== 0) {
-                                    document.getElementById('editedBorderColor').value = stroke;
-                                }
-                                document.getElementById('editedTransformable').checked = element.transformable;
-                                document.getElementById('editedDraggable').checked = attrs.draggable;
-                            }, 0); // 使用 setTimeout 确保在 Vue 的 DOM 更新完成后设置表单值
-                            $('#editElementPropertiesModal').modal('show');
+    
+                        if (element.transformable) {
+                            const transformer = new Konva.Transformer({
+                                node: node,
+                                enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top-center', 'bottom-center', 'middle-left', 'middle-right'],
+                                rotateEnabled: true,
+                                keepRatio: true,
+                                // 旋转把手偏移量
+                                rotateAnchorOffset: 60,
+                                // 可变形操作的视觉样式
+                                borderStroke: 'blue',
+                                borderDash: [3, 3],
+                                anchorStroke: 'grey',
+                                anchorFill: 'grey',
+                                anchorSize: 8,
+                                borderStrokeWidth: 2
+                            });
+                            node.getLayer().add(transformer);
+                            transformer.attachTo(node);
                         }
-                    });
-
+    
+                        // 添加右键点击监听器
+                        node.on('contextmenu', (e) => {
+                            e.evt.preventDefault();
+                            let element = this.findElementByKonvaId(this.layers, node.id());
+                            if (element) {
+                                this.currentElement = element;
+                                // 设置表单字段的值
+                                setTimeout(() => {
+                                    this.$emit('update-current-element', element);
+                                    const attrs = JSON.parse(element.data).attrs;
+                                    document.getElementById('editedElementName').value = element.name;
+                                    document.getElementById('editedTransformable').checked = element.transformable;
+                                    document.getElementById('editedIsOnline').checked = element.is_online;
+                                    document.getElementById('editedDraggable').checked = attrs.draggable;
+                                }, 0); // 使用 setTimeout 确保在 Vue 的 DOM 更新完成后设置表单值
+                                $('#editElementPropertiesModal').modal('show');
+                            }
+                        });
+                    }
+                    
                     const tooltip = document.getElementById('tooltip');
                     const showTooltip = (text, evt) => {
                         tooltip.style.display = 'block';
@@ -777,7 +598,6 @@
                         tooltip.style.top = `${mousePos.y + 5}px`;
                         tooltip.style.left = `${mousePos.x + 5}px`;
                     };
-
                     const hideTooltip = () => {
                         tooltip.style.display = 'none';
                     };
@@ -790,7 +610,7 @@
 
                 findElementByKonvaId(layers, elementId) {
                     for (let layer of layers) {
-                        for (let element of layer.elements) {
+                        for (let element of layer.monitors) {
                             if (String(element.id) === String(elementId)) {
                                 return element;
                             }
@@ -807,7 +627,7 @@
 
                 synchronizeElementsData(){
                     console.log('Synchronizing elements data...');
-                    return axios.post('{% url 'Layout:synchronize_elements_data' %}', {
+                    return axios.post('{% url 'Statistic:synchronize_monitors_data' %}', {
                         root : this.layers[0]
                     }).then(response => {
                         console.log('Data synchronized successfully:', response.data);
@@ -816,20 +636,17 @@
                     });
                 },
 
-                uploadElement(newElement, elementProps) {
-                    console.log('Uploading new element:', newElement.toJSON());
-                    const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
+                uploadElement(newMonitor, elementProps) {
+                    console.log('Uploading new monitor:', newMonitor.toJSON());
+                    const {name, draggable, transformable, isOnline} = elementProps;
                     const formData = new FormData();
                     formData.append('name', name );
+                    formData.append('is_online', isOnline);
                     formData.append('transformable', transformable);
-                    if (this.newElementType === 'Image' && imageFile) {
-                        formData.append('image', imageFile);
-                    }
-                    formData.append('data', newElement.toJSON());
-                    formData.append('type', this.newElementType);
+                    formData.append('data', newMonitor.toJSON());
                     formData.append('layer_id', this.currentLayer.id);
 
-                    axios.post('{% url "Layout:add_element" %}', formData, {
+                    axios.post('{% url "Statistic:add_monitor" %}', formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data'
                         }
@@ -848,40 +665,22 @@
                     this.synchronizeElementsData().then(() => { // 确保在修改新元素后刷新本地数据前更新画板上的数据到后端
                         // const element = this.findElementByKonvaId(this.layers, this.currentElement.id)
                         const konvaElement = this.stage.findOne('#' + this.currentElement.id);
-                        const textContent = this.currentElement.type === 'Text' ? document.getElementById('editedTextContent').value : null;
-                        const fillColor = this.currentElement.type !== 'Image' ?  document.getElementById('editedFillColor').value : null;
-                        const borderStyle = document.getElementById('editedBorderStyle').value;
-                        const borderColor = borderStyle !== 'none' ? document.getElementById('editedBorderColor').value : null;
                         const draggable = document.getElementById('editedDraggable').checked;
                         const elementName = document.getElementById('editedElementName').value;
                         const transformable = document.getElementById('editedTransformable').checked;
-                        const imageFile = this.currentElement.type === 'Image' ? document.getElementById('editedImageUpload').files[0] : null;
+                        const isOnline = document.getElementById('editedIsOnline').checked;
                         // 更新KonvaElement的属性
-                        if(textContent){
-                            konvaElement.text(textContent);
-                        }
-                        if (fillColor) {
-                            konvaElement.fill(fillColor);
-                        }
-                        if (borderStyle) {
-                            konvaElement.strokeWidth(borderStyle === 'thin' ? 1 : (borderStyle === 'thick' ? 4 : 0));
-                        }
-                        if (borderColor) {
-                            konvaElement.stroke(borderColor);
-                        }
                         konvaElement.draggable(draggable);
-
+                        
                         const formData = new FormData();
                         formData.append('id', this.currentElement.id);
                         formData.append('name', elementName);
+                        formData.append('is_online', isOnline);
                         formData.append('transformable', transformable);
                         formData.append('data', konvaElement.toJSON());
-                        if (this.currentElement.type === 'Image' && imageFile) {
-                            formData.append('image', imageFile);
-                        }
 
                         console.log('Editing element:', konvaElement.toJSON());
-                        axios.post('{% url "Layout:edit_element" %}', formData, {
+                        axios.post('{% url "Statistic:edit_monitor" %}', formData, {
                             headers: {
                                 'Content-Type': 'multipart/form-data'
                             }
@@ -901,7 +700,7 @@
                 },
 
                 // ----------------- konva.js: 控制Stage上的交互事件 -----------------
-                
+
                 handleMouseDown(e) {
                     // 确保是左键点击
                     if (e.evt.button === 0) {
@@ -965,24 +764,9 @@
                 handleStageClick(e) {
                     if (e.evt.button === 2) { // Right-click to finish polygon drawing
                         e.evt.preventDefault(); // 阻止默认上下文菜单
-                        this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
-                        this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
-
-                        if (this.newElementType === 'Polygon') {
-                            this.finishPolygonDrawing();
-                        } else {
-                            this.resetState();
-                        }
+                        this.resetState();
                     } else if (e.evt.button === 0) { // Left-click to add points
-                        if (this.newElementType === 'Line') {
-                            this.handleLineDrawing(e);
-                        } else if (this.newElementType === 'Arrow') {
-                            this.handleArrowDrawing(e);
-                        } else if (this.newElementType === 'Polygon') {
-                            this.handlePolygonDrawing(e);
-                        } else {
-                            this.placeElement(this.elementProps, e);
-                        }
+                        this.placeElement(this.elementProps, e);
                     }
                 },
 
@@ -994,247 +778,67 @@
 
                 // ----------------- konva.js: 添加Konva Element到Stage -----------------
 
-                addElement(type) {
+                addElement() {
                     this.offcanvasOpen = false; // 先收缩Offcanvas
-                    this.newElementType = type;
-                    console.log('Adding new element:', type, '  Current layer:', this.currentLayer);
                     $('#elementPropertiesModal').modal('show');
-                },
-
-                handleImageUpload(event) {
-                    const file = event.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            this.imageSrc = e.target.result;
-                        };
-                        reader.readAsDataURL(file);
-                    }
                 },
 
                 confirmElementProperties() {
                     const name = document.getElementById('elementName').value;
-                    const textContent = this.newElementType === 'Text'? document.getElementById('textContent').value : null;
-                    const fillColor = this.newElementType !== 'Image' ?  document.getElementById('fillColor').value : null;
-                    const borderStyle = document.getElementById('borderStyle').value;
-                    const borderColor = borderStyle !== 'none' ? document.getElementById('borderColor').value : null;
                     const transformable = document.getElementById('transformable').checked;
                     const draggable = document.getElementById('draggable').checked;
-                    const imageFile = this.newElementType === 'Image' ? document.getElementById('imageUpload').files[0] : null;
-
+                    const isOnline = document.getElementById('isOnline').checked;
+                    
                     this.elementProps = {
                         name,
-                        textContent,
-                        fillColor,
-                        strokeWidth: borderStyle === 'thin' ? 1 : (borderStyle === 'thick' ? 4 : 0),
-                        stroke: borderColor,
                         draggable: draggable,
                         transformable,
-                        imageFile,
-                        imageSrc: this.imageSrc, // 存储图像的dataURL
-                        points : [],
+                        isOnline
                     };
 
                     // 关闭模态框
                     $('#elementPropertiesModal').modal('hide');
 
                     document.getElementById('konva-container').style.cursor = 'crosshair';
-                     // 阻止画布的默认右键菜单
+                    // 阻止画布的默认右键菜单
                     this.stage.container().addEventListener('contextmenu', (e) => {
                         e.preventDefault();
                     });
                     this.stage.on('mousedown touchstart',  this.handleStageClick);
                 },
-
-                handleLineDrawing(e) {
-                    const pos = this.stage.getPointerPosition();
-                    if (!this.lineStartPoint) {
-                        // 记录起点
-                        this.lineStartPoint = pos;
-                    } else {
-                        // 绘制线条
-                        const lineProps = {
-                            ...this.elementProps,
-                            points: [this.lineStartPoint.x, this.lineStartPoint.y, pos.x, pos.y]
-                        };
-                        this.placeElement(lineProps, e);
-                        this.lineStartPoint = null; // 重置起点
-                    }
-                },
-
-                handleArrowDrawing(e) {
-                    const pos = this.stage.getPointerPosition();
-                    if (!this.arrowStartPoint) {
-                        // 记录起点
-                        this.arrowStartPoint = pos;
-                    } else {
-                        // 绘制箭头
-                        const arrowProps = {
-                            ...this.elementProps,
-                            points: [this.arrowStartPoint.x, this.arrowStartPoint.y, pos.x, pos.y]
-                        };
-                        this.placeElement(arrowProps, e);
-                        this.arrowStartPoint = null; // 重置起点
-                    }
-                },
-
-                handlePolygonDrawing(e) {
-                    const pos = this.stage.getPointerPosition();
-                    this.polygonPoints = this.polygonPoints || [];
-                    this.polygonPoints.push(pos.x, pos.y);
-
-                    const konvaLayer = this.stage.getLayers()[0];
-                    const tempPolygon = new Konva.Line({
-                        points: this.polygonPoints,
-                        fill: this.elementProps.fillColor,
-                        stroke: this.elementProps.stroke,
-                        strokeWidth: this.elementProps.strokeWidth,
-                        closed: true,
-                        draggable: this.elementProps.draggable,
-                    });
-
-                    konvaLayer.add(tempPolygon);
-                    konvaLayer.draw();
-                },
-
-                finishPolygonDrawing() {
-                    if (this.polygonPoints.length > 2) {
-                        const elementProps = {
-                            ...this.elementProps,
-                            points: this.polygonPoints
-                        };
-                        this.placeElement(elementProps);
-                    }
-                },
-
+                
                 resetState() {
                     this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
                     this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
                     this.currentLayer = null;
-                    this.newElementType = null;
                     this.imageSrc = null; // 清除图像数据
-                    this.points = []; // 清空点集合
-                    this.polygonPoints = []; // 清空点集合
-                    this.lineStartPoint = null; // 重置线条起点
                     this.elementProps = null;
-
-                    // 清空文件输入字段
-                    const imageUploadInput = document.getElementById('imageUpload');
-                    if (imageUploadInput) {
-                        imageUploadInput.value = '';
-                    }
-                    const editedImageUploadInput = document.getElementById('editedImageUpload');
-                    if (editedImageUploadInput) {
-                        editedImageUploadInput.value = '';
-                    }
                 },
 
                 placeElement(elementProps) {
                     const pos = this.stage.getPointerPosition();
                     let newElement;
-                    const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc, points} = elementProps;
-                    // 根据不同类型创建Konva图形实例
-                    switch (this.newElementType) {
-                        case 'Rect':
-                            newElement = new Konva.Rect({
-                                x: pos.x,
-                                y: pos.y,
-                                width: 100,
-                                height: 50,
-                                fill: fillColor,
-                                stroke: stroke, // 使用用户选择的stroke颜色
-                                strokeWidth: strokeWidth,
-                                draggable: draggable,
-                            });
-                            console.log('Rect:', newElement);
-                            break;
-                        case 'Polygon':
-                            newElement = new Konva.Line({
-                                points: points,
-                                fill: fillColor,
-                                stroke: stroke,
-                                strokeWidth: strokeWidth,
-                                closed: true,
-                                draggable: draggable,
-                            });
-                            break;
-                        case 'Circle':
-                            newElement = new Konva.Circle({
-                                x: pos.x,
-                                y: pos.y,
-                                radius: 30,
-                                fill: fillColor,
-                                stroke: stroke,
-                                strokeWidth: strokeWidth,
-                                draggable: draggable,
-                            });
-                            break;
-                        case 'Line':
-                            newElement = new Konva.Line({
-                                points: points || [pos.x, pos.y, pos.x + 100, pos.y + 50],
-                                stroke: stroke,
-                                strokeWidth: strokeWidth,
-                                lineCap: 'round',
-                                lineJoin: 'round',
-                                draggable: draggable,
-                            });
-                            break;
-                        case 'Arrow':
-                            newElement = new Konva.Arrow({
-                                points: points || [0, 0, 100, 100],
-                                pointerLength: 20,
-                                pointerWidth: 20,
-                                fill: fillColor,
-                                stroke: stroke,
-                                strokeWidth: strokeWidth,
-                            });
-                            break;
-                        case 'Text':
-                            newElement = new Konva.Text({
-                                x: pos.x,
-                                y: pos.y,
-                                text: textContent || 'New Text',
-                                fontSize: 24,
-                                fontFamily: 'Calibri',
-                                fill: fillColor,
-                                stroke: stroke,
-                                strokeWidth: strokeWidth,
-                                draggable: draggable,
-                            });
-                            break;
-                        case 'Image':
-                            const imageObj = new Image();
-                            imageObj.onload = () => {
-                                newElement = new Konva.Image({
-                                    image: imageObj,
-                                    x: pos.x,
-                                    y: pos.y,
-                                    width: 100,
-                                    height: 100,
-                                    stroke: stroke,
-                                    strokeWidth: strokeWidth,
-                                    draggable: draggable,
-                                });
-                                this.synchronizeElementsData().then(() => { // 确保在创建新元素前更新本地数据到后端
-                                    const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
-                                    konvaLayer.add(newElement);
-                                    konvaLayer.draw();
-                                    this.uploadElement(newElement, elementProps); // 上传元素数据到服务器
-                                });
-                            };
-                            imageObj.src = imageSrc;
-                            break;
-                    }
-                    if (newElement && this.newElementType !== 'Image' ) {
+                    const { name, draggable, transformable, isOnline} = elementProps;
+                    
+                    const imageObj = new Image();
+                    imageObj.src = this.monitorImageUrl;
+                    imageObj.onload = () => {
+                        newElement = new Konva.Image({
+                            image: imageObj,
+                            x: pos.x,
+                            y: pos.y,
+                            width: 150,
+                            height: 100,
+                            draggable: draggable,
+                        });
                         this.synchronizeElementsData().then(() => { // 确保在创建新元素前更新本地数据到后端
                             const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
                             konvaLayer.add(newElement);
                             konvaLayer.draw();
                             this.uploadElement(newElement, elementProps); // 上传元素数据到服务器
                         });
-                    }
+                    };                            
                 },
-
 
                 // ----------------- Offcanvas ------------------
 
@@ -1244,7 +848,7 @@
                     offcanvasElement.style.visibility = this.offcanvasOpen ? 'visible' : 'hidden';
                 },
 
-                changeSector(sectorId) { // 切换区域
+                toggleSector(sectorId) { // 切换区域
                     if (this.layers[0].id !== sectorId) {
                         this.currentSectorId = sectorId;
                         this.refreshData();
@@ -1261,33 +865,6 @@
                 setCurrentElement(element){
                     console.log('Setting current element:', element);
                     this.currentElement = element;
-                },
-
-                addSubLayer() { // 添加子层
-                    let formData = new FormData(document.getElementById('addSubLayerForm'));
-                    formData.append('floor', this.layers[0].floor); // 设置被添加的Layer在场馆中位于哪一层
-                    formData.append('parent_unit', this.currentLayer.id); // 添加parent_unit_id字段
-                    formData.append('user_type', '{{ user_type }}'); // 添加user_type字段
-                    formData.append('affiliation_object_id', {{ current_access.id }}); // 添加user_type字段
-                    axios.post('{% url "Layout:add_sublayer" %}', formData).then(response => {
-                        this.refreshData();
-                        $('#addSubLayerModal').modal('hide');
-                    }).catch(error => {
-                        console.error('Error adding sub-layer:', error);
-                        alert('Failed to add sub-layer.');
-                    });
-                },
-
-                editLayer() { // 编辑层
-                    let formData = new FormData(document.getElementById('editLayerForm'));
-                    formData.append('id', this.currentLayer.id); // 添加layer_id字段
-                    axios.post('{% url "Layout:edit_layer" %}', formData).then(response => {
-                        this.refreshData();
-                        $('#editLayerModal').modal('hide');
-                    }).catch(error => {
-                        console.error('Error editing layer:', error);
-                        alert('Failed to edit layer.');
-                    });
                 },
             }
         });

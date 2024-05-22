@@ -1,5 +1,12 @@
-from django.shortcuts import render, get_object_or_404
+import json
+
+from django.shortcuts import render, get_object_or_404, redirect
+from rest_framework import status
+
 from Inventory.views import get_all_venues_monthly_consumption, get_monthly_consumption
+from Layout.models import SpaceUnit, KonvaElement
+from Layout.serializers import SpaceUnitSerializer
+from Statistic.models import Monitor
 from Venue.models import Venue
 import torch
 from torchvision.models.detection import fasterrcnn_resnet50_fpn_v2, FasterRCNN_ResNet50_FPN_V2_Weights
@@ -10,6 +17,8 @@ from django.views.decorators.csrf import csrf_exempt
 from PIL import Image
 import io
 import base64
+import json
+
 
 def get_venues(request):
     venues = Venue.objects.all().values_list('name', flat=True)
@@ -105,6 +114,7 @@ model = None
 weights = None
 preprocess = None
 
+
 def load_model():
     global model, preprocess, weights
     if model is None:
@@ -150,3 +160,148 @@ def recognize_flow(request):
         # 返回包含 base64 图像和行人数目的 JSON 响应
         return JsonResponse({'image': img_str, 'person_count': person_count})
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def monitor_venue(request):
+    user_type = request.session.get('user_type', 'Guest')
+    if user_type == 'Manager':
+        current_access_id = request.session.get('venue_id')
+        current_access = Venue.objects.get(pk=current_access_id)
+    else:
+        return redirect('Venue:home')
+    return render(request, 'Statistic/monitor.html',
+                  {'current_access': current_access, 'user_type': user_type,
+                   'sectors': current_access.sectors.filter(parent_unit=None).order_by('created_at'),
+                   })
+
+
+def refresh_data(request):
+    if request.method == 'GET':
+        # 从GET请求中获取参数
+        current_sector_id = int(request.GET.get('current_sector_id', 0))
+        current_access_id = int(request.GET.get('current_access_id', 0))
+        user_type = request.GET.get('user_type')
+        # 验证数据有效性
+        if (current_sector_id is None) or (current_access_id is None) or (
+                user_type not in ['Manager', 'Organizer', 'Exhibitor']):
+            return JsonResponse({'error': 'Invalid request'}, status=400)
+        # 获取当前正在访问的位置
+        if current_sector_id == 0:  # 说明用户是首次访问Layout页面, 根据用户类型获取当前访问Venue/Exhibition/Booth的第一个sector
+            current_sector_id = get_object_or_404(Venue, id=current_access_id).sectors.first().id
+
+        root = get_object_or_404(SpaceUnit, id=current_sector_id)
+        # 返回JSON化的root数据
+        if root is not None:
+            # 使用Serializer序列化root
+            serializer = SpaceUnitSerializer(root)
+            return JsonResponse(serializer.data)  # 使用Django的JsonResponse返回数据
+        else:
+            return JsonResponse({'error': 'No root SpaceUnit found for the specified sector!'},
+                                status=status.HTTP_404_NOT_FOUND)
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@csrf_exempt
+def synchronize_monitors_data(request):  # 该方法与edit_element方法的区别是, 该方法只被用于Konva对象在画板上进行位移或变换后刷新Konva对象在后端的data属性中的数据
+    if request.method == 'POST':
+        data = json.loads(request.body)  # 使用 json.loads 解析请求体中的 JSON 数据
+        root_data = data.get('root')
+        if not root_data:
+            return JsonResponse({'error': 'No root space unit provided.'}, status=400)
+
+        def recursively_update(new_dic_data):  # 递归更新树结构的SpaceUnit其下的所有Monitor
+            new_monitors_dic_data = new_dic_data.get('monitors')
+            for i in range(len(new_monitors_dic_data)):
+                old_monitor = get_object_or_404(Monitor, id=int(new_monitors_dic_data[i].get('id')))
+                new_element_data = new_monitors_dic_data[i]
+                # 更新KonvaElement实例
+                old_monitor.data = new_element_data.get('data')
+                old_monitor.save()
+
+            # 递归更新子SpaceUnit下的所有KonvaElement
+            if (len(new_dic_data.get('child_units')) > 0):
+                for i in range(len(new_dic_data.get('child_units'))):
+                    if (len(new_dic_data.get('child_units')[i].get('monitors')) > 0):
+                        recursively_update(new_dic_data.get('child_units')[i])
+
+        recursively_update(root_data)
+        return JsonResponse({'success': 'The data has been successfully synchronized!'}, status=200)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@csrf_exempt
+def add_monitor(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        is_online = request.POST.get('is_online', 'true') == 'true'
+        transformable = request.POST.get('transformable', 'true') == 'true'
+        monitor_data = request.POST.get('data')
+        layer_id = request.POST.get('layer_id')
+
+        layer = get_object_or_404(SpaceUnit, id=layer_id)
+        venue = layer.affiliation
+        # 创建KonvaElement实例
+        monitor = Monitor.objects.create(
+            name=name,
+            venue=venue,
+            is_online=is_online,
+            layer=layer,
+            data=monitor_data,
+            transformable=transformable,
+        )
+
+        updated_monitor_data = json.loads(monitor_data)
+        updated_monitor_data["attrs"]["id"] = f"{monitor.pk}"  # 添加id属性
+        monitor.data = json.dumps(updated_monitor_data)  # 更新已创建的KonvaElement实例的data字段
+        monitor.save()
+
+        # 返回新创建的KonvaElement的信息
+        return JsonResponse({
+            'id': monitor.id,
+            'name': monitor.name,
+            'layer': monitor.layer.id if monitor.layer else None,
+            'data': monitor.data,
+            'image_url': monitor.image.url if monitor.image else None
+        }, safe=False)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@csrf_exempt
+def edit_monitor(request):  # {url (Layout:edit_element)}
+    if request.method == 'POST':
+        element_id = request.POST.get('id')
+        name = request.POST.get('name')
+        is_online = request.POST.get('is_online', 'true') == 'true'
+        transformable = request.POST.get('transformable', 'true') == 'true'
+        monitor_data = request.POST.get('data')
+
+        monitor = get_object_or_404(Monitor, id=element_id)
+        # 更新Monitor实例
+        monitor.name = name
+        monitor.is_online = is_online
+        monitor.transformable = transformable
+        monitor.data = monitor_data
+        monitor.save()
+
+        # 返回新创建的KonvaElement的信息
+        return JsonResponse({
+            'id': monitor.id,
+            'name': monitor.name,
+            'layer': monitor.layer.id if monitor.layer else None,
+            'data': monitor.data,
+            'image_url': monitor.image.url if monitor.image else None
+        }, safe=False)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def delete_monitor(request):
+    if request.method == 'GET':
+        monitor_id = int(request.GET.get('element_id', 0))
+        monitor = get_object_or_404(Monitor, id=monitor_id)
+        monitor.delete()  # 删除元素
+        return JsonResponse({'success': 'The element has been successfully deleted!'}, status=200)
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
