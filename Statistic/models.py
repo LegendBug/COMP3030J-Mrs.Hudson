@@ -13,3 +13,17 @@ class Usage(models.Model):
     location_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='usages')
     location_object_id = models.PositiveIntegerField()
     location = GenericForeignKey('location_content_type', 'location_object_id')  # Venue/Exhibition
+
+class Monitor(models.Model):
+    name = models.CharField(max_length=255)
+    is_online = models.BooleanField(default=True)
+    venue = models.ForeignKey("Venue.Venue", on_delete=models.CASCADE, related_name='monitors')
+    layer = models.ForeignKey('Layout.SpaceUnit', on_delete=models.CASCADE,
+                                  related_name='monitors')  # 当前Element所在的SpaceUnit(层级)
+    data = models.JSONField(null=True, blank=True)  # KonvaJS的JSON数据
+    transformable = models.BooleanField(default=True)  # 是否可以被拖动、缩放、旋转等操作
+    # captures : List<Capture>, 由Django ORM的反向关系实现
+class Capture(models.Model):
+    time = models.DateTimeField(auto_now_add=True)
+    monitor = models.ForeignKey("Statistic.Monitor", on_delete=models.CASCADE, related_name='captures')
+    flow_number = models.IntegerField()

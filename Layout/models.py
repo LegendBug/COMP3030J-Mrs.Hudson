@@ -17,6 +17,7 @@ class SpaceUnit(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # occupied_units = List<SpaceUnit>, 由Django ORM的反向关系实现
     # elements = List<FabricElement>, 由Django ORM的反向关系实现
+    # monitors = List<FabricElement>, 由Django ORM的反向关系实现
     # child_units = List<SpaceUnit>, 由Django ORM的反向关系实现
     # items = List<Item>, 由Django ORM的反向关系实现
     # affiliation : Venue/Exhibition/Booth, Django泛型

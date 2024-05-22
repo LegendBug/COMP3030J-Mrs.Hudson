@@ -3,10 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import render, get_object_or_404, redirect
+from rest_framework import status
 from Booth.models import Booth
 from Exhibition.models import Exhibition
 from Inventory.forms import EditInventoryCategoryForm, CreateInventoryCategoryForm, EditItemForm, ResApplicationForm
 from Inventory.models import InventoryCategory, Item, ResourceApplication
+from Layout.models import SpaceUnit
+from Layout.serializers import SpaceUnitSerializer
 from Statistic.models import Usage
 from User.models import Message, Manager, MessageDetail, Exhibitor
 from Venue.models import Venue
@@ -18,9 +21,7 @@ from django.utils import timezone
 @login_required
 def inventory(request, space_type, space_id):
     # 获取用户类型
-    user_type = 'Manager' if hasattr(request.user, 'manager') \
-        else 'Organizer' if hasattr(request.user, 'organizer') \
-        else 'Exhibitor'
+    user_type = request.session.get('user_type', 'Guest')
     request.session['space_type'] = space_type
     request.session['space_id'] = space_id
     # 检查用户类型和空间类型是否匹配，current_access是一个Venue/Exhibition/Booth实例, 它代表着用户当前所访问的Venue/Exhibition/Booth
@@ -100,9 +101,7 @@ def inventory(request, space_type, space_id):
 
 # TODO 根据用户是否为所有者,来决定是否可以编辑库存类别(为item加上创建人的信息)
 def category_detail_view(request, category_id):
-    user_type = 'Manager' if hasattr(request.user, 'manager') \
-        else 'Organizer' if hasattr(request.user, 'organizer') \
-        else 'Exhibitor'
+    user_type = request.session.get('user_type', 'Guest')
     category = InventoryCategory.objects.filter(pk=category_id).first()
     if user_type != 'Exhibitor':
         items = category.items.all()
@@ -122,6 +121,7 @@ def category_detail_view(request, category_id):
 
     return render(request, 'Inventory/category_detail.html', {
         'current_access': current_access,
+        'sectors' : current_access.sectors.filter(parent_unit=None).order_by('created_at'),
         'category': category,
         'items': items,
         'user_type': user_type,
@@ -409,5 +409,35 @@ def get_all_venues_monthly_consumption(year):
 
     # 将结果按月份排序
     sorted_monthly_consumption = sorted(monthly_consumption.items(), key=lambda x: x[0])
-
     return sorted_monthly_consumption
+
+
+def refresh_data(request):
+    if request.method == 'GET':
+        # 从GET请求中获取参数
+        current_sector_id = int(request.GET.get('current_sector_id', 0))
+        current_access_id = int(request.GET.get('current_access_id', 0))
+        user_type = request.GET.get('user_type')
+        # 验证数据有效性
+        if (current_sector_id is None) or (current_access_id is None) or (
+                user_type not in ['Manager', 'Organizer', 'Exhibitor']):
+            return JsonResponse({'error': 'Invalid request'}, status=400)
+        # 获取当前正在访问的位置
+        if current_sector_id == 0:  # 说明用户是首次访问Layout页面, 根据用户类型获取当前访问Venue/Exhibition/Booth的第一个sector
+            if user_type == 'Manager':
+                current_sector_id = get_object_or_404(Venue, id=current_access_id).sectors.first().id
+            elif user_type == 'Organizer':
+                current_sector_id = get_object_or_404(Exhibition, id=current_access_id).sectors.first().id
+            else:
+                current_sector_id = get_object_or_404(Booth, id=current_access_id).sectors.first().id
+        root = get_object_or_404(SpaceUnit, id=current_sector_id)
+        # 返回JSON化的root数据
+        if root is not None:
+            # 使用Serializer序列化root
+            serializer = SpaceUnitSerializer(root)
+            return JsonResponse(serializer.data)  # 使用Django的JsonResponse返回数据
+        else:
+            return JsonResponse({'error': 'No root SpaceUnit found for the specified sector!'},
+                                status=status.HTTP_404_NOT_FOUND)
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)

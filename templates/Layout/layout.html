@@ -9,8 +9,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
-    <script src="https://unpkg.com/konva@9/konva.min.js"></script>   
-    
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+
     <link rel="stylesheet" href="{% static 'css/Layout/layout.css' %}">
 {% endblock %}
 
@@ -61,7 +61,7 @@
         </button>
 
         <div id="konva-container"></div>
-        
+
         <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
         <div id="tooltip" style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
@@ -73,7 +73,7 @@
 
             <div class="offcanvas-header">
                 {# 按钮: Return#}
-               
+
                 {% if user.is_authenticated and user_type == 'Exhibitor'%}
                      <button type="button" class="btn btn-secondary"><a href="{% url 'Booth:booth' current_access.id %}">Return</a></button>
                 {% elif user.is_authenticated and user_type == 'Organizer'%}
@@ -81,14 +81,14 @@
                 {% elif user.is_authenticated and user_type == 'Manager'%}
                     <button type="button" class="btn btn-secondary"><a href="{% url 'Venue:venue' current_access.id %}">Return</a></button>
                 {% endif %}
-                
-                
+
+
                 {# Dropdown: Sector#}
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownSectorMenu"
                             data-bs-toggle="dropdown" aria-expanded="false">
                             Select Sector
-                    </button> 
+                    </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownSectorMenu">
                             {% for sector in sectors %}
                                 {% comment %}我知道你想debug,但这个错误不影响程序的正常运行,单纯是IDE对Django模板渲染的错误提示,你可以忽略它{% endcomment %}
@@ -109,7 +109,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Add SubLayer Modal -->
         <div class="modal fade" id="addSubLayerModal" tabindex="-1" aria-labelledby="addSubLayerModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -131,7 +131,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Edit Layer Modal -->
         <div class="modal fade" id="editLayerModal" tabindex="-1" aria-labelledby="editLayerModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -153,7 +153,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Set Konva Element Properties Modal -->
         <div class="modal fade" id="elementPropertiesModal" tabindex="-1" aria-labelledby="elementPropertiesModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -258,7 +258,7 @@
                             <div class="mb-3">
                                 <label for="editedBorderColor" class="form-label">Border Color</label>
                                 <input type="color" id="editedBorderColor" class="form-control form-control-color">
-                            </div>                                    
+                            </div>
                             <!-- Transformable -->
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" id="editedTransformable" checked>
@@ -355,7 +355,7 @@
                     <a class="list-group-item list-group-item-action" @click="addElement('Polygon',layer); closeContextMenu()">Polygon</a>
                     <a class="list-group-item list-group-item-action" @click="addElement('Circle',layer); closeContextMenu()">Circle</a>
                     <a class="list-group-item list-group-item-action" @click="addElement('Line',layer); closeContextMenu()">Line</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Arrow',layer); closeContextMenu()">Arrow</a>                  
+                    <a class="list-group-item list-group-item-action" @click="addElement('Arrow',layer); closeContextMenu()">Arrow</a>
                 </div>
               </div>
             `,
@@ -389,7 +389,7 @@
                             this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
                             this.isContextMenuVisible = true;  // 显示上下文菜单
                     }
-                },                
+                },
                 openElementMenu() {
                     const buttonRect = this.$refs.addElementButton.getBoundingClientRect();
                     this.elementMenuX = (buttonRect.left + buttonRect.width) + 'px';
@@ -399,11 +399,11 @@
                 closeContextMenu() {
                     this.isElementMenuVisible = false;
                     this.isContextMenuVisible = false;  // 隐藏上下文菜单
-                },                              
+                },
                 openAddSubLayerModal(layer) {  // 打开添加子层模态框
                     this.$emit('update-current-layer', layer);
                     $('#addSubLayerModal').modal('show');
-                },                               
+                },
                 openEditLayerModal(layer) { // 打开添加子层模态框
                     this.$emit('update-current-layer', layer);
                     // 为模态框填充数据
@@ -411,15 +411,15 @@
                     $('#editLayerForm input[name="description"]').val(layer.description);
                     $('#editLayerForm input[name="available"]').prop('checked', layer.available);
                     $('#editLayerModal').modal('show');
-                },               
+                },
                 deleteLayer(layer) {
-                    if (confirm("Are you sure you want to delete current layer and its sub-elements?")) { 
+                    if (confirm("Are you sure you want to delete current layer and its sub-elements?")) {
                         const deletedLayerId = layer.id;
                         while (layer.parent_unit != null){ // 查询currentSectorId
                             layer = layer.parent_unit;
                         }
                         const currentSectorId = layer.id;
-                        axios.get('{% url 'Layout:delete_layer' %}', { 
+                        axios.get('{% url 'Layout:delete_layer' %}', {
                             params: {
                                 layer_id: deletedLayerId,
                                 current_sector_id: currentSectorId,
@@ -473,7 +473,7 @@
                 </div>
               </div>
             `,
-            mounted() {     
+            mounted() {
                 // 监听全局点击事件，用于隐藏上下文菜单
                 document.addEventListener('click', this.handleOutsideClick);
             },
@@ -487,7 +487,7 @@
                         this.closeContextMenu();
                     }
                 },
-                openContextMenu(event) {                    
+                openContextMenu(event) {
                     event.preventDefault();
                     if (this.isContextMenuVisible) {
                         this.isContextMenuVisible = false;
@@ -503,14 +503,14 @@
                             this.isContextMenuVisible = true;  // 显示上下文菜单
                     }
                     this.$emit('update-current-element', this.element);
-                },                
+                },
                 closeContextMenu() {
                     this.isContextMenuVisible = false;
-                },               
+                },
                 deleteElement(element) {
                     // 确认删除操作
                     if (confirm("Are you sure you want to delete this element?")) {
-                        axios.get('{% url 'Layout:delete_element' %}', { 
+                        axios.get('{% url 'Layout:delete_element' %}', {
                             params: {
                                 element_id: element.id,
                                 user_type: '{{ user_type }}',
@@ -527,8 +527,8 @@
                         });
                     }
                     this.closeContextMenu();
-                    
-                    
+
+
                 },
                 openEditElement(element){
                     this.$emit('update-current-element', element);
@@ -538,7 +538,7 @@
                         document.getElementById('editedElementName').value = element.name;
                         if (document.getElementById('editedFillColor')) {
                             document.getElementById('editedFillColor').value = attrs.fill || '#000000'; // 默认值为黑色
-                        } 
+                        }
                         const strokeWidth = attrs.strokeWidth || 0;
                         const stroke = attrs.stroke || '#000000';
                         document.getElementById('editedBorderStyle').value = strokeWidth === 1 ? 'thin' : (strokeWidth === 4 ? 'thick' : 'none');
@@ -557,7 +557,7 @@
             el: '#layout-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
-                currentSectorId : 0, // 针对Exhibition或Booth的情况, 默认首次访问的是Current_Access第一个Sector
+                currentSectorId : 0, // 默认首次访问的是Current_Access第一个Sector
                 layers: [],
                 currentLayer: null,
                 currentElement: null,
@@ -574,7 +574,7 @@
             beforeDestroy() {
                 if (this.stage){
                     this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
-                }                
+                }
                 window.removeEventListener('resize', this.handleResize);
             },
             computed: {
@@ -598,7 +598,7 @@
                 refreshData() {
                     console.log('Refreshing data...');
                     return axios.get('{% url "Layout:refresh_data" %}', {
-                        params: { 
+                        params: {
                             current_sector_id : this.currentSectorId,
                             current_access_id: {{ current_access.id }},
                             user_type: '{{ user_type }}',
@@ -617,7 +617,7 @@
                         console.error('Failed to synchronize data:', error);
                     });
                 },
-                
+
                 renderData(root) {
                     let queue = [root]; // 初始化队列，起始为根节点
                     this.layers = []; // 清空Vue实例的layers数组
@@ -633,9 +633,9 @@
                     }
                 },
 
-                // ----------------- 以下是与konva.js相关的函数 -----------------      
-                
-                // ----------------- konva.js: 加载数据 -----------------       
+                // ----------------- 以下是与konva.js相关的函数 -----------------
+
+                // ----------------- konva.js: 加载数据 -----------------
                 renderKonva() {
                     console.log('Rendering Konva...');
                     this.stage = new Konva.Stage({
@@ -643,13 +643,13 @@
                         width: window.innerWidth * 0.9,
                         height:  window.innerHeight * 0.91,
                     });
-                    
+
                     // 添加滚轮缩放事件监听器
                     this.stage.container().addEventListener('wheel', this.handleWheelZoom);
                     // 添加窗口大小变化事件监听器
                     window.addEventListener('resize', this.handleResize);
-                   
-                    
+
+
                     const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
                         return new Promise((resolve, reject) => {
                             Konva.Image.fromURL(url, (imageNode) => {
@@ -664,14 +664,14 @@
                             });
                         });
                     };
-                                      
+
                     // 递归函数来处理每个层级的SpaceUnit和elements
                     const processLayer = async (spaceUnits, parent) => {
                         for (const spaceUnit of spaceUnits) {
                             // 使用Group来模拟层嵌套
                             let group = new Konva.Group();
                             parent.add(group); // 将当前层添加到父组件中
-                        
+
                             // 处理当前SpaceUnit的elements
                             for (const element of spaceUnit.elements) {
                                 const nodeData = JSON.parse(element.data);
@@ -680,7 +680,7 @@
                                 } else {
                                     const node = Konva.Node.create(nodeData, group);
                                     group.add(node);
-                                    this.addListenersForElement(node, element, spaceUnit); // 添加变换和拖拽结束的事件监听器                      
+                                    this.addListenersForElement(node, element, spaceUnit); // 添加变换和拖拽结束的事件监听器
                                 }
                             }
 
@@ -690,13 +690,13 @@
                             }
                         }
                     };
-                    
+
                     const rootLayer = new Konva.Layer();
-                    this.stage.add(rootLayer);       
+                    this.stage.add(rootLayer);
                     processLayer(this.layers, rootLayer); // 从根层级开始处理所有层级
                     rootLayer.draw();
                 },
-                
+
                 addListenersForElement(node, element, parentSpaceUnit){
                     // 添加变换和拖拽结束的事件监听器
                     node.on('transformend dragend', () => {
@@ -717,7 +717,7 @@
                         }
                         this.synchronizeElementsData();
                     });
-                
+
                     if (element.transformable) {
                         const transformer = new Konva.Transformer({
                             node: node,
@@ -746,25 +746,25 @@
                             this.currentElement = element;
                             // 设置表单字段的值
                             setTimeout(() => {
-                                this.$emit('update-current-element', element);                                               
+                                this.$emit('update-current-element', element);
                                 const attrs = JSON.parse(element.data).attrs;
                                 document.getElementById('editedElementName').value = element.name;
                                 if (document.getElementById('editedTextContent')) {
                                     document.getElementById('editedTextContent').value = attrs.text;
                                 }
                                 const strokeWidth = attrs.strokeWidth || 0;
-                                const stroke = attrs.stroke || '#000000';                                                        
+                                const stroke = attrs.stroke || '#000000';
                                 document.getElementById('editedBorderStyle').value = strokeWidth === 1 ? 'thin' : (strokeWidth === 4 ? 'thick' : 'none');
                                 if (strokeWidth !== 0) {
                                     document.getElementById('editedBorderColor').value = stroke;
-                                }                                
+                                }
                                 document.getElementById('editedTransformable').checked = element.transformable;
                                 document.getElementById('editedDraggable').checked = attrs.draggable;
                             }, 0); // 使用 setTimeout 确保在 Vue 的 DOM 更新完成后设置表单值
                             $('#editElementPropertiesModal').modal('show');
                         }
                     });
-                                       
+
                     const tooltip = document.getElementById('tooltip');
                     const showTooltip = (text, evt) => {
                         tooltip.style.display = 'block';
@@ -774,17 +774,17 @@
                         tooltip.style.top = `${mousePos.y + 5}px`;
                         tooltip.style.left = `${mousePos.x + 5}px`;
                     };
-                
+
                     const hideTooltip = () => {
                         tooltip.style.display = 'none';
                     };
-                
+
                     // 添加鼠标悬浮事件监听器
                     node.on('mouseenter', (evt) => showTooltip(parentSpaceUnit.name, evt));
                     node.on('mouseleave', hideTooltip);
                     node.on('mousemove', (evt) => showTooltip(parentSpaceUnit.name, evt));
                 },
-                
+
                 findElementByKonvaId(layers, elementId) {
                     for (let layer of layers) {
                         for (let element of layer.elements) {
@@ -799,8 +799,8 @@
                     }
                     return null;
                 },
-                
-                // ----------------- konva.js: 数据上传 ----------------- 
+
+                // ----------------- konva.js: 数据上传 -----------------
 
                 synchronizeElementsData(){
                     console.log('Synchronizing elements data...');
@@ -812,7 +812,7 @@
                         console.error('Failed to synchronize elements data:', error);
                     });
                 },
-                
+
                 uploadElement(newElement, elementProps) {
                     console.log('Uploading new element:', newElement.toJSON());
                     const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
@@ -825,7 +825,7 @@
                     formData.append('data', newElement.toJSON());
                     formData.append('type', this.newElementType);
                     formData.append('layer_id', this.currentLayer.id);
-                    
+
                     axios.post('{% url "Layout:add_element" %}', formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data'
@@ -840,7 +840,7 @@
                         console.error('Error adding element:', error);
                     });
                 },
-                
+
                 editElementProperties(){
                     this.synchronizeElementsData().then(() => { // 确保在修改新元素后刷新本地数据前更新画板上的数据到后端
                         // const element = this.findElementByKonvaId(this.layers, this.currentElement.id)
@@ -896,44 +896,44 @@
                         });
                     });
                 },
-                
+
                 // ----------------- konva.js: 控制Stage上的交互事件 -----------------
-                
+
                 handleWheelZoom(event) {
                     // 检查是否按下了Ctrl键
                     if (event.ctrlKey) {
                         event.preventDefault();
-                        
+
                         const oldScale = this.stage.scaleX();
                         const pointer = this.stage.getPointerPosition();
-            
+
                         // 放大或缩小
                         const scaleBy = 1.1;
                         const newScale = event.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
-            
+
                         this.stage.scale({ x: newScale, y: newScale });
-            
+
                         const mousePointTo = {
                             x: (pointer.x - this.stage.x()) / oldScale,
                             y: (pointer.y - this.stage.y()) / oldScale,
                         };
-            
+
                         const newPos = {
                             x: pointer.x - mousePointTo.x * newScale,
                             y: pointer.y - mousePointTo.y * newScale,
                         };
-            
+
                         this.stage.position(newPos);
                         this.stage.batchDraw();
                     }
                 },
-                
-                handleStageClick(e) {                   
+
+                handleStageClick(e) {
                     if (e.evt.button === 2) { // Right-click to finish polygon drawing
                         e.evt.preventDefault(); // 阻止默认上下文菜单
                         this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
                         this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
-                        
+
                         if (this.newElementType === 'Polygon') {
                             this.finishPolygonDrawing();
                         } else {
@@ -951,22 +951,22 @@
                         }
                     }
                 },
-                
+
                 handleResize() {
                     const width = window.innerWidth * 0.9;
                     const height = window.innerHeight * 0.91;
                     this.stage.size({ width, height });
                 },
-                
+
                 // ----------------- konva.js: 添加Konva Element到Stage -----------------
-            
+
                 addElement(type) {
                     this.offcanvasOpen = false; // 先收缩Offcanvas
                     this.newElementType = type;
                     console.log('Adding new element:', type, '  Current layer:', this.currentLayer);
                     $('#elementPropertiesModal').modal('show');
-                },      
-                
+                },
+
                 handleImageUpload(event) {
                     const file = event.target.files[0];
                     if (file) {
@@ -976,8 +976,8 @@
                         };
                         reader.readAsDataURL(file);
                     }
-                },          
-                
+                },
+
                 confirmElementProperties() {
                     const name = document.getElementById('elementName').value;
                     const textContent = this.newElementType === 'Text'? document.getElementById('textContent').value : null;
@@ -1000,18 +1000,18 @@
                         imageSrc: this.imageSrc, // 存储图像的dataURL
                         points : [],
                     };
-                
+
                     // 关闭模态框
                     $('#elementPropertiesModal').modal('hide');
-                
+
                     document.getElementById('konva-container').style.cursor = 'crosshair';
                      // 阻止画布的默认右键菜单
                     this.stage.container().addEventListener('contextmenu', (e) => {
                         e.preventDefault();
                     });
                     this.stage.on('mousedown touchstart',  this.handleStageClick);
-                },                
-                               
+                },
+
                 handleLineDrawing(e) {
                     const pos = this.stage.getPointerPosition();
                     if (!this.lineStartPoint) {
@@ -1027,7 +1027,7 @@
                         this.lineStartPoint = null; // 重置起点
                     }
                 },
-                
+
                 handleArrowDrawing(e) {
                     const pos = this.stage.getPointerPosition();
                     if (!this.arrowStartPoint) {
@@ -1043,13 +1043,13 @@
                         this.arrowStartPoint = null; // 重置起点
                     }
                 },
-                
+
                 handlePolygonDrawing(e) {
                     const pos = this.stage.getPointerPosition();
                     this.polygonPoints = this.polygonPoints || [];
                     this.polygonPoints.push(pos.x, pos.y);
-                
-                    const konvaLayer = this.stage.getLayers()[0];                   
+
+                    const konvaLayer = this.stage.getLayers()[0];
                     const tempPolygon = new Konva.Line({
                         points: this.polygonPoints,
                         fill: this.elementProps.fillColor,
@@ -1058,7 +1058,7 @@
                         closed: true,
                         draggable: this.elementProps.draggable,
                     });
-                    
+
                     konvaLayer.add(tempPolygon);
                     konvaLayer.draw();
                 },
@@ -1072,7 +1072,7 @@
                         this.placeElement(elementProps);
                     }
                 },
-            
+
                 resetState() {
                     this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
                     this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
@@ -1083,7 +1083,7 @@
                     this.polygonPoints = []; // 清空点集合
                     this.lineStartPoint = null; // 重置线条起点
                     this.elementProps = null;
-                
+
                     // 清空文件输入字段
                     const imageUploadInput = document.getElementById('imageUpload');
                     if (imageUploadInput) {
@@ -1118,7 +1118,7 @@
                             newElement = new Konva.Line({
                                 points: points,
                                 fill: fillColor,
-                                stroke: stroke, 
+                                stroke: stroke,
                                 strokeWidth: strokeWidth,
                                 closed: true,
                                 draggable: draggable,
@@ -1151,7 +1151,7 @@
                                 pointerLength: 20,
                                 pointerWidth: 20,
                                 fill: fillColor,
-                                stroke: stroke, 
+                                stroke: stroke,
                                 strokeWidth: strokeWidth,
                             });
                             break;
@@ -1163,7 +1163,7 @@
                                 fontSize: 24,
                                 fontFamily: 'Calibri',
                                 fill: fillColor,
-                                stroke: stroke, 
+                                stroke: stroke,
                                 strokeWidth: strokeWidth,
                                 draggable: draggable,
                             });
@@ -1195,30 +1195,30 @@
                         this.synchronizeElementsData().then(() => { // 确保在创建新元素前更新本地数据到后端
                             const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
                             konvaLayer.add(newElement);
-                            konvaLayer.draw();                                                   
+                            konvaLayer.draw();
                             this.uploadElement(newElement, elementProps); // 上传元素数据到服务器
                         });
                     }
-                },   
-                               
+                },
+
 
                 // ----------------- Offcanvas ------------------
-                               
+
                 toggleOffcanvas() { // 控制 Offcanvas 的显示与隐藏
                     this.offcanvasOpen = !this.offcanvasOpen;
                     let offcanvasElement = document.getElementById('offcanvasScrolling');
                     offcanvasElement.style.visibility = this.offcanvasOpen ? 'visible' : 'hidden';
-                },            
-                            
+                },
+
                 changeSector(sectorId) { // 切换区域
                     if (this.layers[0].id !== sectorId) {
                         this.currentSectorId = sectorId;
                         this.refreshData();
                     }
                 },
-                
+
                 // ----------------- Accordion的相关方法 -----------------
-                
+
                 setCurrentLayer(layer) {
                     console.log('Setting current layer:', layer);
                     this.currentLayer = layer;
@@ -1234,7 +1234,7 @@
                     formData.append('floor', this.layers[0].floor); // 设置被添加的Layer在场馆中位于哪一层
                     formData.append('parent_unit', this.currentLayer.id); // 添加parent_unit_id字段
                     formData.append('user_type', '{{ user_type }}'); // 添加user_type字段
-                    formData.append('affiliation_object_id', {{ current_access.id }}); // 添加user_type字段                    
+                    formData.append('affiliation_object_id', {{ current_access.id }}); // 添加user_type字段
                     axios.post('{% url "Layout:add_sublayer" %}', formData).then(response => {
                         this.refreshData();
                         $('#addSubLayerModal').modal('hide');
@@ -1242,8 +1242,8 @@
                         console.error('Error adding sub-layer:', error);
                         alert('Failed to add sub-layer.');
                     });
-                },               
-                
+                },
+
                 editLayer() { // 编辑层
                     let formData = new FormData(document.getElementById('editLayerForm'));
                     formData.append('id', this.currentLayer.id); // 添加layer_id字段
@@ -1254,9 +1254,9 @@
                         console.error('Error editing layer:', error);
                         alert('Failed to edit layer.');
                     });
-                },                                
+                },
             }
         });
-        
+
     </script>
 {% endblock %}

@@ -1,9 +1,16 @@
 {% extends "Public/base.html" %}
 {% load static %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
 
 {% block extra_head %}
     <title>Category Detail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/Venue/venue.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'css/Inventory/category_detail.css' %}">
 {% endblock %}
 
 {% block extra_nav_icons %}
@@ -16,16 +23,14 @@
     <li class="nav-item">
         <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
     </li>
-    {#<li class="nav-item">#}
-    {#    <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i> Inventory</a>#}
-    {#</li>#}
 {% endblock %}
 
 {% block breadcrumbs %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
+            <li class="breadcrumb-item"><a
+                    href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
             <li class="breadcrumb-item"><a href="{% url 'Inventory:inventory' space_type space_id %}">Inventory</a></li>
             <li class="breadcrumb-item active" aria-current="page">Category</li>
         </ol>
@@ -33,108 +38,138 @@
 {% endblock %}
 
 {% block content %}
-    <div class="table-responsive" style="margin: 1rem; user-select: none">
-        <table class="table table-hover text-white">
-            <thead class="bg-dark">
-            <tr>
-                <th></th>
-                <th>State</th>
-                <th>Original Location</th>
-                <th>Current Location</th>
-                <th>Power Consumption</th>
-                <th>Water Consumption</th>
-                {# TODO 放不下了<th>Last Modified</th>#}
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for item in items %}
+    <div id="item-app">
+
+        <div class="d-flex justify-content-between align-items-center mb-3" id="current-access-header">
+            <div id="current-access-name" class="current-access-text logo-title">
+                {{ current_access.name }}'s Inventory
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    Current Sector: [[ layers.length > 0 ? layers[0].name : 'Loading...' ]]
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
+                    {% for sector in sectors %}
+                        {% comment %}你先别急, 这里是Pycharm的模板语法出现了问题, 这里其实是可以正常运行的{% endcomment %}
+                        <li><a class="dropdown-item" href="#"
+                               @click="toggleSector({{ sector.pk }})">Sector {{ sector.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div id="konva-container"></div>
+        <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
+        <div id="tooltip"
+             style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
+
+        <div class="table-responsive" style="margin: 1rem; user-select: none">
+            <table class="table table-hover text-white">
+                <thead class="bg-dark">
                 <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>
-                        {% if item.is_damaged %}
-                            Damaged ⛔️
-                        {% else %}
-                            {{ item.is_using | yesno:"In used 🧰, Available ✅" }}
-                        {% endif %}
-                    </td>
-                    <td>{{ origin }}</td>
-                    <td>{{ item.affiliation.name }}</td>
-                    <td>{{ item.power }} Watts</td>
-                    <td>{{ item.water_consumption }} Liters</td>
-                    {#                    <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>#}
-                    <td>
-                        <button class="btn btn-secondary mt-1" onclick="openEditItemModal({{ item.id }})">Modify</button>
-                        {# TODO 优化筛选用户条件 #}
-                        {% if item.affiliation != item.category.origin and user_type == 'Exhibitor' %}
-                            <!-- 显示 Return 按钮 -->
-                            <form method="post" action="{% url 'Inventory:return_item' item.id %}"
-                                  style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-success mt-1">Return</button>
-                            </form>
-                        {% elif user_type == 'Manager'%}
-                            <!-- 显示 Delete 按钮 -->
-                            <form method="post" action="{% url 'Inventory:delete_item' item.id %}"
-                                  style="display: inline;"
-                                  onsubmit="return confirm('Are you sure?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger mt-1">Delete</button>
-                            </form>
-                        {% endif %}
-                    </td>
+                    <th></th>
+                    <th>State</th>
+                    <th>Original Location</th>
+                    <th>Current Location</th>
+                    <th>Power Consumption</th>
+                    <th>Water Consumption</th>
+                    {# TODO 放不下了<th>Last Modified</th>#}
+                    <th></th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
-    <!-- Edit Item Modal -->
-    <div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editItemModalLabel">Edit Item</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editItemForm" method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="edit_name" class="form-label">Name</label>
-                            <input type="text" name="name" id="edit_name" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_is_using" class="form-label">Is Using</label>
-                            <input type="checkbox" name="is_using" id="edit_is_using" class="form-check-input">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_is_damaged" class="form-label">Is Damaged</label>
-                            <input type="checkbox" name="is_damaged" id="edit_is_damaged" class="form-check-input">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_power" class="form-label">Power Consumption (Watts)</label>
-                            <input type="number" step="0.01" name="power" id="edit_power" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_water" class="form-label">Water Consumption (Liters)</label>
-                            <input type="number" step="0.01" name="water_consumption" id="edit_water" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_location" class="form-label">Location</label>
-                            <select name="location" id="edit_location" class="form-control">
-                                {% for location in locations %}
-                                    <option value="{{ location.id }}">{{ location.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <input type="hidden" name="item_id" id="edit_item_id">
-                        <div id="edit_item_message_container"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-success">Save Changes</button>
-                        </div>
-                    </form>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            {% if item.is_damaged %}
+                                Damaged ⛔️
+                            {% else %}
+                                {{ item.is_using | yesno:"In used 🧰, Available ✅" }}
+                            {% endif %}
+                        </td>
+                        <td>{{ origin }}</td>
+                        <td>{{ item.affiliation.name }}</td>
+                        <td>{{ item.power }} Watts</td>
+                        <td>{{ item.water_consumption }} Liters</td>
+                        {#                    <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>#}
+                        <td>
+                            <button class="btn btn-secondary mt-1" onclick="openEditItemModal({{ item.id }})">Modify
+                            </button>
+                            {# TODO 优化筛选用户条件 #}
+                            {% if item.affiliation != item.category.origin and user_type == 'Exhibitor' %}
+                                <!-- 显示 Return 按钮 -->
+                                <form method="post" action="{% url 'Inventory:return_item' item.id %}"
+                                      style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success mt-1">Return</button>
+                                </form>
+                            {% elif user_type == 'Manager' %}
+                                <!-- 显示 Delete 按钮 -->
+                                <form method="post" action="{% url 'Inventory:delete_item' item.id %}"
+                                      style="display: inline;"
+                                      onsubmit="return confirm('Are you sure?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger mt-1">Delete</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Edit Item Modal -->
+        <div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editItemModalLabel">Edit Item</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editItemForm" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="edit_name" class="form-label">Name</label>
+                                <input type="text" name="name" id="edit_name" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_is_using" class="form-label">Is Using</label>
+                                <input type="checkbox" name="is_using" id="edit_is_using" class="form-check-input">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_is_damaged" class="form-label">Is Damaged</label>
+                                <input type="checkbox" name="is_damaged" id="edit_is_damaged" class="form-check-input">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_power" class="form-label">Power Consumption (Watts)</label>
+                                <input type="number" step="0.01" name="power" id="edit_power" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_water" class="form-label">Water Consumption (Liters)</label>
+                                <input type="number" step="0.01" name="water_consumption" id="edit_water"
+                                       class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_location" class="form-label">Location</label>
+                                <select name="location" id="edit_location" class="form-control">
+                                    {% for location in locations %}
+                                        <option value="{{ location.id }}">{{ location.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <input type="hidden" name="item_id" id="edit_item_id">
+                            <div id="edit_item_message_container"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-success">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -143,9 +178,259 @@
 
 {% block scripts %}
     <script>
+        new Vue({
+            el: '#item-app',
+            delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
+            data: {
+                currentSectorId : 0, // 默认首次访问的是Current_Access第一个Sector
+                layers: [],
+                stage: null,
+                currentLayer: null,
+                currentElement: null,
+            },
+            mounted() {
+                this.refreshData();
+            },
+            beforeDestroy() {
+                if (this.stage) {
+                    this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
+                }
+                window.removeEventListener('resize', this.handleResize);
+            },
+            methods: {
+                // ----------------- 数据加载 -----------------
+                refreshData() {
+                    console.log('Refreshing data...');
+                    return axios.get('{% url "Layout:refresh_data" %}', {
+                        params: {
+                            current_sector_id : this.currentSectorId,
+                            current_access_id: {{ current_access.id }},
+                            user_type: '{{ user_type }}',
+                        }
+                    }).then(response => {
+                        if (response.data && response.data.id) {
+                            console.log('Data synchronized:', response.data);
+                            this.currentSectorId = response.data.id;
+                            this.layers = []; // 清空Vue实例的layers数组
+                            this.layers = [response.data];
+                            console.log('Current Sector ID:', this.currentSectorId);
+                            this.renderKonva(); // 重新初始化Konva
+                        } else {
+                            console.error('Unexpected response data:', response.data);
+                        }
+                    }).catch(error => {
+                        console.error('Failed to synchronize data:', error);
+                    });
+                },
+
+                // ----------------- 以下是与konva.js相关的函数 -----------------
+
+                // ----------------- konva.js: 加载数据 -----------------
+                renderKonva() {
+                    console.log('Rendering Konva...');
+                    this.stage = new Konva.Stage({
+                        container: 'konva-container',
+                        width: window.innerWidth * 0.9,
+                        height: window.innerHeight * 0.9,
+                    });
+
+                    // 添加滚轮缩放事件监听器
+                    this.stage.container().addEventListener('wheel', this.handleWheelZoom);
+                    // 添加窗口大小变化事件监听器
+                    window.addEventListener('resize', this.handleResize);
+
+                    const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
+                        return new Promise((resolve, reject) => {
+                            Konva.Image.fromURL(url, (imageNode) => {
+                                try {
+                                    imageNode.setAttrs(nodeData);
+                                    group.add(imageNode);
+                                    this.addListenersForElement(imageNode, element, spaceUnit);
+                                    resolve(imageNode);
+                                } catch (error) {
+                                    reject(error);
+                                }
+                            });
+                        });
+                    };
+
+                    // 递归函数来处理每个层级的SpaceUnit和elements
+                    const processLayer = async (spaceUnits, parent) => {
+                        for (const spaceUnit of spaceUnits) {
+                            // 使用Group来模拟层嵌套
+                            let group = new Konva.Group();
+                            parent.add(group); // 将当前层添加到父组件中
+
+                            // 处理当前SpaceUnit的elements
+                            for (const element of spaceUnit.elements) {
+                                const nodeData = JSON.parse(element.data);
+                                if (element.type === 'Image') { // 如果加载的是图片
+                                    await loadImage(element.image, nodeData, group, element, spaceUnit);
+                                } else {
+                                    const node = Konva.Node.create(nodeData, group);
+                                    group.add(node);
+                                    this.addListenersForElement(node, element, spaceUnit); // 添加变换和拖拽结束的事件监听器
+                                }
+                            }
+
+                            // 如果当前SpaceUnit有子单位，则递归处理
+                            if (spaceUnit.child_units && spaceUnit.child_units.length > 0) {
+                                await processLayer(spaceUnit.child_units, parent);
+                            }
+                        }
+                    };
+
+                    const rootLayer = new Konva.Layer();
+                    this.stage.add(rootLayer);
+                    processLayer(this.layers, rootLayer); // 从根层级开始处理所有层级
+                    rootLayer.draw();
+                },
+
+                addListenersForElement(node, element, parentSpaceUnit) {
+                    // 添加右键点击监听器
+                    node.on('contextmenu', (e) => {
+                        e.evt.preventDefault();
+                        let element = this.findElementByKonvaId(this.layers, node.id());
+                        if (element) {
+                            this.currentElement = element;
+                            // TODO 可在此处设置右键画板上的Konva Element后的操作(比如弹出模态框并给模态框的表单赋值)
+                        }
+                    });
+
+                    const tooltip = document.getElementById('tooltip');
+                    const showTooltip = (text, evt) => {
+                        tooltip.style.display = 'block';
+                        tooltip.innerText = text;
+                        tooltip.style.backgroundColor = parentSpaceUnit.available ? 'green' : 'red'; // 根据 Available 属性设置背景色
+                        const mousePos = this.stage.getPointerPosition();
+                        tooltip.style.top = `${mousePos.y + 5}px`;
+                        tooltip.style.left = `${mousePos.x + 5}px`;
+                    };
+                    const hideTooltip = () => {
+                        tooltip.style.display = 'none';
+                    };
+
+                    // 添加鼠标悬浮事件监听器
+                    node.on('mouseenter', (evt) => showTooltip(parentSpaceUnit.name, evt));
+                    node.on('mouseleave', hideTooltip);
+                    node.on('mousemove', (evt) => showTooltip(parentSpaceUnit.name, evt));
+
+                    // 添加画板拖拽的监听器
+                    this.stage.on('mousedown', this.handleMouseDown);
+                    this.stage.on('mouseup', this.handleMouseUp);
+                    this.stage.on('mousemove', this.handleMouseMove);
+                },
+
+                findElementByKonvaId(layers, elementId) {
+                    for (let layer of layers) {
+                        for (let element of layer.elements) {
+                            if (String(element.id) === String(elementId)) {
+                                return element;
+                            }
+                        }
+                        if (layer.child_units) {
+                            let found = this.findElementByKonvaId(layer.child_units, elementId);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                },
+
+                // ----------------- konva.js: 控制Stage上的交互事件 -----------------
+
+                handleMouseDown(e) {
+                    // 确保是左键点击
+                    if (e.evt.button === 0) {
+                        this.isDragging = true;
+                        this.lastPointerPosition = this.stage.getPointerPosition();
+                    }
+                },
+
+                handleMouseUp() {
+                    this.isDragging = false; // 停止拖动
+                },
+
+                handleMouseMove(e) {
+                    if (this.isDragging) {
+                        // 计算移动距离
+                        const pointerPosition = this.stage.getPointerPosition();
+                        const dx = pointerPosition.x - this.lastPointerPosition.x;
+                        const dy = pointerPosition.y - this.lastPointerPosition.y;
+
+                        // 更新位置
+                        this.stage.x(this.stage.x() + dx);
+                        this.stage.y(this.stage.y() + dy);
+
+                        // 更新最后的指针位置
+                        this.lastPointerPosition = pointerPosition;
+
+                        // 重新渲染
+                        this.stage.batchDraw();
+                    }
+                },
+
+                handleWheelZoom(event) {
+                    // 检查是否按下了Ctrl键
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+
+                        const oldScale = this.stage.scaleX();
+                        const pointer = this.stage.getPointerPosition();
+
+                        // 放大或缩小
+                        const scaleBy = 1.1;
+                        const newScale = event.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+
+                        this.stage.scale({x: newScale, y: newScale});
+
+                        const mousePointTo = {
+                            x: (pointer.x - this.stage.x()) / oldScale,
+                            y: (pointer.y - this.stage.y()) / oldScale,
+                        };
+
+                        const newPos = {
+                            x: pointer.x - mousePointTo.x * newScale,
+                            y: pointer.y - mousePointTo.y * newScale,
+                        };
+
+                        this.stage.position(newPos);
+                        this.stage.batchDraw();
+                    }
+                },
+
+                handleStageClick(e) {
+                    if (e.evt.button === 2) { // Right-click to finish polygon drawing
+                        e.evt.preventDefault(); // 阻止默认上下文菜单
+                        //this.resetState();
+                    }
+                },
+
+                handleResize() {
+                    const width = window.innerWidth * 0.9;
+                    const height = window.innerHeight * 0.91;
+                    this.stage.size({width, height});
+                },
+
+                // ----------------- 其他函数 -----------------
+
+                toggleSector(sectorId) { // 切换楼层
+                    if (this.layers[0].id !== sectorId) {
+                        this.currentSectorId = sectorId;
+                        this.refreshData();
+                    }
+                },
+
+                
+
+            }
+        });
+    </script>
+    
+    
+    <script>
         function openEditItemModal(itemId) {
             const url = `{% url 'Inventory:edit_item' 0 %}`.replace('/0/', '/' + itemId + '/');
-            axios.get(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            axios.get(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
                 .then(response => {
                     const item = response.data;
                     document.getElementById('edit_name').value = item.name;
@@ -155,7 +440,7 @@
                     document.getElementById('edit_water').value = item.water_consumption;
                     document.getElementById('edit_location').value = item.location;
                     document.getElementById('edit_item_id').value = itemId;
-        
+
                     const editModal = new bootstrap.Modal(document.getElementById('editItemModal'));
                     editModal.show();
                 })
@@ -163,7 +448,7 @@
                     console.error('There was an error fetching the item details:', error);
                 });
         }
-    
+
         document.addEventListener('DOMContentLoaded', function () {
             const editItemForm = document.getElementById('editItemForm');
             const container = document.getElementById('edit_item_message_container');
@@ -171,7 +456,7 @@
                 e.preventDefault();  // 阻止表单的默认提交行为
                 const formData = new FormData(editItemForm);
                 const itemId = document.getElementById('edit_item_id').value;
-                axios.post(`{% url 'Inventory:edit_item' 0 %}`.replace('/0/', '/' + itemId + '/'), formData, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                axios.post(`{% url 'Inventory:edit_item' 0 %}`.replace('/0/', '/' + itemId + '/'), formData, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
                     .then(function (response) {
                         if (response.data.success) { // 如果提交成功，显示成功消息
                             container.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
