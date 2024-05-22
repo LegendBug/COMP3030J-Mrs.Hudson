@@ -16,9 +16,14 @@ class KonvaElementSerializer(serializers.ModelSerializer):
             'id': {'read_only': False, 'required': True},  # 确保ID是必须的，用于更新
         }
 
+class LayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpaceUnit
+        fields = ['id', 'name', 'description', 'floor', 'available']  # 选择你需要的字段
+
 
 class MonitorSerializer(serializers.ModelSerializer):
-    layer = serializers.PrimaryKeyRelatedField(read_only=True)
+    layer = LayerSerializer(read_only=True)
     image = serializers.ImageField(use_url=True, required=False, allow_null=True)
 
     class Meta:

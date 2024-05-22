@@ -45,8 +45,6 @@
     padding: 0.5rem 1rem; /* 增加内边距，使按钮本体更大 */
 }
 
-
-
 .table-responsive {
     background: linear-gradient(#00397311, #00336311);  /* 使用深蓝到浅蓝的渐变背景 */
     border-radius: 15px;

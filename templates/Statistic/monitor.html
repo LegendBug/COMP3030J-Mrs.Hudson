@@ -31,7 +31,8 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
             {% if user.is_authenticated and user_type == 'Manager' %}
-                <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
+                <li class="breadcrumb-item"><a
+                        href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
             {% endif %}
             <li class="breadcrumb-item active" aria-current="page">Monitor</li>
         </ol>
@@ -45,11 +46,31 @@
                 :style="buttonStyle">
             <i :class="offcanvasOpen ? 'fas fa-chevron-left' : 'fas fa-chevron-right'"></i>
         </button>
+        
+        <div class="d-flex justify-content-between align-items-center mb-3" id="venue-header">
+            <div id="venue-name" class="venue-text logo-title">
+                Current Venue: {{ current_access.name }}
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    Current Sector: [[ layers.length > 0 ? layers[0].name : 'Loading...' ]]
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
+                    {% for sector in sectors %}
+                        {% comment %}你先别急, 这里是Pycharm的模板语法出现了问题, 这里其实是可以正常运行的{% endcomment %}
+                        <li><a class="dropdown-item" href="#"
+                               @click="toggleSector({{ sector.pk }})">Sector {{ sector.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
 
         <div id="konva-container"></div>
 
         <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
-        <div id="tooltip" style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
+        <div id="tooltip"
+             style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
         <!-- Offcanvas -->
         <div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" id="offcanvasScrolling"
@@ -60,28 +81,32 @@
             <div class="offcanvas-header">
                 {# 按钮: Return#}
 
-                {% if user.is_authenticated and user_type == 'Exhibitor'%}
-                     <button type="button" class="btn btn-secondary"><a href="{% url 'Booth:booth' current_access.id %}">Return</a></button>
-                {% elif user.is_authenticated and user_type == 'Organizer'%}
-                     <button type="button" class="btn btn-secondary"><a href="{% url 'Exhibition:exhibition' current_access.id %}">Return</a></button>
-                {% elif user.is_authenticated and user_type == 'Manager'%}
-                    <button type="button" class="btn btn-secondary"><a href="{% url 'Venue:venue' current_access.id %}">Return</a></button>
+                {% if user.is_authenticated and user_type == 'Exhibitor' %}
+                    <button type="button" class="btn btn-secondary"><a href="{% url 'Booth:booth' current_access.id %}">Return</a>
+                    </button>
+                {% elif user.is_authenticated and user_type == 'Organizer' %}
+                    <button type="button" class="btn btn-secondary"><a
+                            href="{% url 'Exhibition:exhibition' current_access.id %}">Return</a></button>
+                {% elif user.is_authenticated and user_type == 'Manager' %}
+                    <button type="button" class="btn btn-secondary"><a href="{% url 'Venue:venue' current_access.id %}">Return</a>
+                    </button>
                 {% endif %}
 
                 {# Dropdown: Sector#}
-                <div class="dropdown">
+                <div class="offcanvas-dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownSectorMenu"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            Select Sector
+                        Select Sector
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownSectorMenu">
-                            {% for sector in sectors %}
-                                {% comment %}我知道你想debug,但这个错误不影响程序的正常运行,单纯是IDE对Django模板渲染的错误提示,你可以忽略它{% endcomment %}
-                                <li><a class="dropdown-item" href="#" @click="toggleSector({{ sector.id }})">Sector {{ sector.name }}</a></li>
-                            {% endfor %}
+                        {% for sector in sectors %}
+                            {% comment %}我知道你想debug,但这个错误不影响程序的正常运行,单纯是IDE对Django模板渲染的错误提示,你可以忽略它{% endcomment %}
+                            <li><a class="dropdown-item" href="#"
+                                   @click="toggleSector({{ sector.id }})">Sector {{ sector.name }}</a></li>
+                        {% endfor %}
                     </ul>
                 </div>
-                
+
                 {# 按钮: Save#}
                 <button type="button" class="btn btn-primary" @click="synchronizeElementsData()">Save</button>
             </div>
@@ -90,14 +115,18 @@
                 <!-- Top层级Accordion -->
                 <div class="accordion" id="accordion">
                     <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer"
-                    @update-current-layer="setCurrentLayer" @update-current-element="setCurrentElement" @element-added="addElement" @data-updated="refreshData">
+                                     @update-current-layer="setCurrentLayer" @update-current-element="setCurrentElement"
+                                     @element-added="addElement" @data-updated="refreshData">
                     </layer-component>
                 </div>
             </div>
         </div>
+        
+        <monitor-list :monitors="monitors"></monitor-list>
 
         <!-- Set Monitor Properties Modal -->
-        <div class="modal fade" id="elementPropertiesModal" tabindex="-1" aria-labelledby="elementPropertiesModalLabel" aria-hidden="true">
+        <div class="modal fade" id="elementPropertiesModal" tabindex="-1" aria-labelledby="elementPropertiesModalLabel"
+             aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -138,7 +167,8 @@
         </div>
 
         <!-- Edit Monitor Properties Modal -->
-        <div class="modal fade" id="editElementPropertiesModal" tabindex="-1" aria-labelledby="editElementPropertiesModalLabel" aria-hidden="true">
+        <div class="modal fade" id="editElementPropertiesModal" tabindex="-1"
+             aria-labelledby="editElementPropertiesModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -184,10 +214,40 @@
 
 {% block scripts %}
     <script>
+        Vue.component('monitor-list', {
+            props: ['monitors'],
+            delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
+            template: `
+                <div class="table-responsive" style="margin: 1rem; user-select: none">
+                    <table class="table table-hover text-white">
+                        <thead class="bg-dark">
+                        <tr>
+                            <th>Monitor</th>
+                            <th>Monitor Name</th>
+                            <th>Sector</th>
+                            <th>Status</th>
+                            <th>API Url</th>
+                        </tr> 
+                        </thead>
+                        <tbody>
+                        <tr v-for="monitor in monitors" :key="monitor.id" style="cursor: pointer;">
+                            <td><img :src="monitor.image" alt="No image" class="monitor-img" style="width: 100px; height: 80px;"></td>
+                            <td>[[monitor.name]]</td>
+                            <td>[[ monitor.layer.name ]]</td>
+                            <td>[[ monitor.is_online]]</td>
+                            <td>https://hostname/Statistic/monitor/capture/[[monitor.id]]/</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `,
+            
+        });
+    
         Vue.component('layer-component', {
             props: ['layer'],
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
-            data: function() {
+            data: function () {
                 return {
                     open: false,  // 每个组件控制自己的打开状态
                     isContextMenuVisible: false,  // 上下文菜单是否可见
@@ -244,7 +304,7 @@
                         this.isContextMenuVisible = false; // 使用 this 指向组件实例
                     }
                 },
-                
+
                 openContextMenu(event) { // 上下文菜单事件处理
                     event.preventDefault();
                     if (this.isContextMenuVisible) {
@@ -256,12 +316,12 @@
                             this.isContextMenuVisible = true;  // 显示上下文菜单
                         });
                     } else {
-                            this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
-                            this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
-                            this.isContextMenuVisible = true;  // 显示上下文菜单
+                        this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
+                        this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
+                        this.isContextMenuVisible = true;  // 显示上下文菜单
                     }
                 },
-                
+
                 closeContextMenu() {
                     this.isContextMenuVisible = false;  // 隐藏上下文菜单
                 },
@@ -285,7 +345,7 @@
                 };
             },
             template:
-            `
+                `
               <div class="accordion-item">
                 <h2 class="accordion-header">
                   <button class="accordion-button" type="button"
@@ -316,7 +376,7 @@
                         this.closeContextMenu();
                     }
                 },
-                
+
                 openContextMenu(event) {
                     event.preventDefault();
                     if (this.isContextMenuVisible) {
@@ -328,17 +388,17 @@
                             this.isContextMenuVisible = true;  // 显示上下文菜单
                         });
                     } else {
-                            this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
-                            this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
-                            this.isContextMenuVisible = true;  // 显示上下文菜单
+                        this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
+                        this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
+                        this.isContextMenuVisible = true;  // 显示上下文菜单
                     }
                     this.$emit('update-current-element', this.element);
                 },
-                
+
                 closeContextMenu() {
                     this.isContextMenuVisible = false;
                 },
-                
+
                 deleteElement(element) {
                     // 确认删除操作
                     if (confirm("Are you sure you want to delete this element?")) {
@@ -348,20 +408,20 @@
                                 user_type: '{{ user_type }}',
                             }
                         })
-                        .then(response => {
-                            if (response.data && response.data.success) {
-                                console.log('Element deleted:', response.data.success);
-                                this.$emit('data-updated');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error deleting layer:', error);
-                        });
+                            .then(response => {
+                                if (response.data && response.data.success) {
+                                    console.log('Element deleted:', response.data.success);
+                                    this.$emit('data-updated');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error deleting layer:', error);
+                            });
                     }
                     this.closeContextMenu();
                 },
-                
-                openEditElement(element){
+
+                openEditElement(element) {
                     this.$emit('update-current-element', element);
                     // 设置表单字段的值
                     setTimeout(() => {
@@ -380,21 +440,22 @@
             el: '#monitor-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
-                currentSectorId : 0, // 默认首次访问的是Current_Access第一个Sector
+                currentSectorId: 0, // 默认首次访问的是Current_Access第一个Sector
                 layers: [],
+                monitors: [],
                 currentLayer: null,
                 currentElement: null,
                 stage: null,
                 offcanvasOpen: false,
-                monitorImageUrl : "{% static 'data/Monitor/monitor.png' %}",
+                monitorImageUrl: "{% static 'data/Monitor/monitor.png' %}",
                 imageSrc: null, // 存储上传的图像的Data URL, 这用于在添加图像元素时直接在画板上显示图像
-                elementProps : null,
+                elementProps: null,
             },
             mounted() {
                 this.refreshData()
             },
             beforeDestroy() {
-                if (this.stage){
+                if (this.stage) {
                     this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
                 }
                 window.removeEventListener('resize', this.handleResize);
@@ -406,7 +467,7 @@
                         bottom: '45vh',
                         left: this.offcanvasOpen ? '400px' : '10px', // Adjust '400px' as needed
                         zIndex: '1040',
-                        width: '25px' ,
+                        width: '25px',
                         height: '50px',
                         display: 'flex',
                         justifyContent: 'center',
@@ -421,7 +482,7 @@
                     console.log('Refreshing data...');
                     return axios.get('{% url "Statistic:refresh_data" %}', {
                         params: {
-                            current_sector_id : this.currentSectorId,
+                            current_sector_id: this.currentSectorId,
                             current_access_id: {{ current_access.id }},
                             user_type: '{{ user_type }}',
                         }
@@ -463,7 +524,7 @@
                     this.stage = new Konva.Stage({
                         container: 'konva-container',
                         width: window.innerWidth * 0.9,
-                        height:  window.innerHeight * 0.91,
+                        height: window.innerHeight * 0.91,
                     });
 
                     // 添加滚轮缩放事件监听器
@@ -508,10 +569,11 @@
                                     this.addListenersForElement(node, element, spaceUnit, false); // 添加变换和拖拽结束的事件监听器
                                 }
                             }
-                            
-                             for (const element of spaceUnit.monitors) {
+
+                            for (const element of spaceUnit.monitors) {
                                 const nodeData = JSON.parse(element.data);
                                 await loadImage(element.image, nodeData, group, element, spaceUnit, true);
+                                this.monitors.push(element);
                             }
 
                             // 如果当前SpaceUnit有子单位，则递归处理
@@ -527,7 +589,7 @@
                     rootLayer.draw();
                 },
 
-                addListenersForElement(node, element, parentSpaceUnit, isMonitor){
+                addListenersForElement(node, element, parentSpaceUnit, isMonitor) {
                     // 添加变换和拖拽结束的事件监听器
                     if (isMonitor) {
                         node.on('transformend dragend', () => {
@@ -548,7 +610,7 @@
                             }
                             this.synchronizeElementsData();
                         });
-    
+
                         if (element.transformable) {
                             const transformer = new Konva.Transformer({
                                 node: node,
@@ -568,7 +630,7 @@
                             node.getLayer().add(transformer);
                             transformer.attachTo(node);
                         }
-    
+
                         // 添加右键点击监听器
                         node.on('contextmenu', (e) => {
                             e.evt.preventDefault();
@@ -588,7 +650,7 @@
                             }
                         });
                     }
-                    
+
                     const tooltip = document.getElementById('tooltip');
                     const showTooltip = (text, evt) => {
                         tooltip.style.display = 'block';
@@ -625,10 +687,10 @@
 
                 // ----------------- konva.js: 数据上传 -----------------
 
-                synchronizeElementsData(){
+                synchronizeElementsData() {
                     console.log('Synchronizing elements data...');
                     return axios.post('{% url 'Statistic:synchronize_monitors_data' %}', {
-                        root : this.layers[0]
+                        root: this.layers[0]
                     }).then(response => {
                         console.log('Data synchronized successfully:', response.data);
                     }).catch(error => {
@@ -640,7 +702,7 @@
                     console.log('Uploading new monitor:', newMonitor.toJSON());
                     const {name, draggable, transformable, isOnline} = elementProps;
                     const formData = new FormData();
-                    formData.append('name', name );
+                    formData.append('name', name);
                     formData.append('is_online', isOnline);
                     formData.append('transformable', transformable);
                     formData.append('data', newMonitor.toJSON());
@@ -651,17 +713,17 @@
                             'Content-Type': 'multipart/form-data'
                         }
                     })
-                    .then(response => {
-                        console.log('Element added successfully:', response.data);
-                        this.refreshData();
-                        this.resetState(); // 重置添加状态
-                    })
-                    .catch(error => {
-                        console.error('Error adding element:', error);
-                    });
+                        .then(response => {
+                            console.log('Element added successfully:', response.data);
+                            this.refreshData();
+                            this.resetState(); // 重置添加状态
+                        })
+                        .catch(error => {
+                            console.error('Error adding element:', error);
+                        });
                 },
 
-                editElementProperties(){
+                editElementProperties() {
                     this.synchronizeElementsData().then(() => { // 确保在修改新元素后刷新本地数据前更新画板上的数据到后端
                         // const element = this.findElementByKonvaId(this.layers, this.currentElement.id)
                         const konvaElement = this.stage.findOne('#' + this.currentElement.id);
@@ -671,7 +733,7 @@
                         const isOnline = document.getElementById('editedIsOnline').checked;
                         // 更新KonvaElement的属性
                         konvaElement.draggable(draggable);
-                        
+
                         const formData = new FormData();
                         formData.append('id', this.currentElement.id);
                         formData.append('name', elementName);
@@ -685,17 +747,17 @@
                                 'Content-Type': 'multipart/form-data'
                             }
                         })
-                        .then(response => {
-                            console.log('Element edited successfully:', response.data);
-                            this.refreshData();
-                            this.resetState(); // 重置添加状态
+                            .then(response => {
+                                console.log('Element edited successfully:', response.data);
+                                this.refreshData();
+                                this.resetState(); // 重置添加状态
 
-                            // 隐藏模态框
-                            $('#editElementPropertiesModal').modal('hide');
-                        })
-                        .catch(error => {
-                            console.error('Error editing element:', error);
-                        });
+                                // 隐藏模态框
+                                $('#editElementPropertiesModal').modal('hide');
+                            })
+                            .catch(error => {
+                                console.error('Error editing element:', error);
+                            });
                     });
                 },
 
@@ -744,7 +806,7 @@
                         const scaleBy = 1.1;
                         const newScale = event.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
 
-                        this.stage.scale({ x: newScale, y: newScale });
+                        this.stage.scale({x: newScale, y: newScale});
 
                         const mousePointTo = {
                             x: (pointer.x - this.stage.x()) / oldScale,
@@ -773,7 +835,7 @@
                 handleResize() {
                     const width = window.innerWidth * 0.9;
                     const height = window.innerHeight * 0.91;
-                    this.stage.size({ width, height });
+                    this.stage.size({width, height});
                 },
 
                 // ----------------- konva.js: 添加Konva Element到Stage -----------------
@@ -788,7 +850,7 @@
                     const transformable = document.getElementById('transformable').checked;
                     const draggable = document.getElementById('draggable').checked;
                     const isOnline = document.getElementById('isOnline').checked;
-                    
+
                     this.elementProps = {
                         name,
                         draggable: draggable,
@@ -804,9 +866,9 @@
                     this.stage.container().addEventListener('contextmenu', (e) => {
                         e.preventDefault();
                     });
-                    this.stage.on('mousedown touchstart',  this.handleStageClick);
+                    this.stage.on('mousedown touchstart', this.handleStageClick);
                 },
-                
+
                 resetState() {
                     this.stage.container().style.cursor = 'default'; // 恢复鼠标样式
                     this.stage.off('mousedown touchstart'); // 移除画布的点击事件监听
@@ -818,8 +880,8 @@
                 placeElement(elementProps) {
                     const pos = this.stage.getPointerPosition();
                     let newElement;
-                    const { name, draggable, transformable, isOnline} = elementProps;
-                    
+                    const {name, draggable, transformable, isOnline} = elementProps;
+
                     const imageObj = new Image();
                     imageObj.src = this.monitorImageUrl;
                     imageObj.onload = () => {
@@ -837,7 +899,7 @@
                             konvaLayer.draw();
                             this.uploadElement(newElement, elementProps); // 上传元素数据到服务器
                         });
-                    };                            
+                    };
                 },
 
                 // ----------------- Offcanvas ------------------
@@ -862,7 +924,7 @@
                     this.currentLayer = layer;
                 },
 
-                setCurrentElement(element){
+                setCurrentElement(element) {
                     console.log('Setting current element:', element);
                     this.currentElement = element;
                 },

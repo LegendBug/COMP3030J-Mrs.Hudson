@@ -236,7 +236,11 @@
                     this.stage.container().addEventListener('wheel', this.handleWheelZoom);
                     // 添加窗口大小变化事件监听器
                     window.addEventListener('resize', this.handleResize);
-
+                    // 添加画板拖拽的监听器
+                    this.stage.on('mousedown', this.handleMouseDown);
+                    this.stage.on('mouseup', this.handleMouseUp);
+                    this.stage.on('mousemove', this.handleMouseMove);
+                    
                     const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
                         return new Promise((resolve, reject) => {
                             Konva.Image.fromURL(url, (imageNode) => {
@@ -312,11 +316,6 @@
                     node.on('mouseenter', (evt) => showTooltip(parentSpaceUnit.name, evt));
                     node.on('mouseleave', hideTooltip);
                     node.on('mousemove', (evt) => showTooltip(parentSpaceUnit.name, evt));
-
-                    // 添加画板拖拽的监听器
-                    this.stage.on('mousedown', this.handleMouseDown);
-                    this.stage.on('mouseup', this.handleMouseUp);
-                    this.stage.on('mousemove', this.handleMouseMove);
                 },
 
                 findElementByKonvaId(layers, elementId) {
