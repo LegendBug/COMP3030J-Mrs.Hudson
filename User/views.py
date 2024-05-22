@@ -73,50 +73,62 @@ def logout(request):
 
 
 def profile(request):
-    if request.method == 'GET':  # 如果是 GET 请求
-        # 从session中获取当前用户的数据
-        user = request.user
-        if hasattr(user, 'manager'):
-            user_type = 'Manager'
-        elif hasattr(user, 'organizer'):
-            user_type = 'Organizer'
-        else:
-            user_type = 'Exhibitor'
-        return render(request, 'User/profile.html', {'user': user, 'user_type': user_type})
-    else:  # POST请求, 处理用户信息更新
-        # 从request中获取用户提交的数据
+    user = request.user
+
+    if request.method == 'GET':
+        user_type = 'Manager' if hasattr(user, 'manager') else 'Organizer' if hasattr(user, 'organizer') else 'Exhibitor'
+        exhibitions = []
+        booths = []
+
+        if user_type == 'Organizer':
+            exhibitions = ExhibitionApplication.objects.filter(applicant=user).order_by('exhibition__start_at')
+        elif user_type == 'Exhibitor':
+            exhibitions = ExhibitionApplication.objects.filter(boothapplication__applicant=user).order_by('exhibition__start_at')
+            booths = BoothApplication.objects.filter(applicant=user).order_by('booth__start_at')
+
+        exhibition_paginator = Paginator(exhibitions, 10)
+        exhibition_page_number = request.GET.get('exhibition_page')
+        exhibition_page_obj = exhibition_paginator.get_page(exhibition_page_number)
+
+        booth_paginator = Paginator(booths, 10)
+        booth_page_number = request.GET.get('booth_page')
+        booth_page_obj = booth_paginator.get_page(booth_page_number)
+
+        context = {
+            'user': user,
+            'user_type': user_type,
+            'exhibition_page_obj': exhibition_page_obj,
+            'booth_page_obj': booth_page_obj,
+        }
+        return render(request, 'User/profile.html', context)
+    else:
+        # POST请求处理用户信息更新
         new_username = request.POST.get('username')
         new_email = request.POST.get('email')
         new_password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
 
-        # 获取当前登录的用户实例
-        user = request.user
-        # 检查是否提供了有效的用户名，且与当前不同
+        # 检查并更新用户名、邮箱、密码
         if new_username and user.username != new_username:
             if not User.objects.filter(username=new_username).exists():
                 user.username = new_username
             else:
                 return JsonResponse({'error': 'Username already exists.'}, status=400)
 
-        # 检查是否提供了有效的邮箱，且与当前不同
         if new_email and user.email != new_email:
             if not User.objects.filter(email=new_email).exists():
                 user.email = new_email
             else:
                 return JsonResponse({'error': 'Email already exists.'}, status=400)
 
-        # 检查是否提供了密码，并进行相应的处理
         if new_password and confirm_password and not check_password(new_password, user.password):
             if new_password == confirm_password:
                 user.set_password(new_password)
-                # 更新session以避免用户被登出
                 update_session_auth_hash(request, user)
             else:
                 return JsonResponse({'error': 'Passwords do not match.'}, status=400)
-        # 保存用户信息的更改
+
         user.save()
-        # 返回更新后的用户信息页
         return JsonResponse({'message': 'Profile updated successfully.'}, status=200)
 
 

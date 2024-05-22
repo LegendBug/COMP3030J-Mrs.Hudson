@@ -29,16 +29,14 @@
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <label for="username" class="form-label font-artistic">Username:</label>
-                                <input type="text" class="form-control" id="username" name="username"
-                                       value="{{ user.username }}" required>
+                                <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
                                 <div class="invalid-feedback">
                                     Please choose a username.
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <label for="email" class="form-label font-artistic">Email:</label>
-                                <input type="email" class="form-control" id="email" name="email"
-                                       value="{{ user.email }}" required>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
                                 <div class="invalid-feedback">
                                     Please provide a valid email.
                                 </div>
@@ -48,26 +46,22 @@
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <label for="password" class="form-label font-artistic">Password:</label>
-                                <input type="password" class="form-control" id="password" name="password"
-                                       placeholder="Enter new password">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter new password">
                             </div>
                             <div class="col-md-6">
                                 <label for="confirm_password" class="form-label font-artistic">Confirm Password:</label>
-                                <input type="password" class="form-control" id="confirm_password"
-                                       name="confirm_password" placeholder="Confirm new password">
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
                             </div>
                         </div>
 
                         <div class="row g-4">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label font-artistic">User Type:</label>
-                                <input type="text" class="form-control-plaintext" id="user_type" name="user_type"
-                                       value="{{ user_type }}" readonly>
+                                <input type="text" class="form-control-plaintext" id="user_type" name="user_type" value="{{ user_type }}" readonly>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label font-artistic">Account Created:</label>
-                                <input type="text" class="form-control-plaintext" id="account_created"
-                                       name="account_created" value="{{ user.date_joined|date:'Y-m-d' }}" readonly>
+                                <input type="text" class="form-control-plaintext" id="account_created" name="account_created" value="{{ user.date_joined|date:'Y-m-d' }}" readonly>
                             </div>
                         </div>
                         <div class="row g-4">
@@ -77,6 +71,78 @@
                         </div>
                     </div>
                 </form>
+                {% if user_type == 'Organizer' %}
+                <div class="exhibition-list mt-4">
+                    <h3>Your Exhibitions</h3>
+                    <ul>
+                        {% for exhibition in exhibition_page_obj %}
+                        <li>{{ exhibition.exhibition.name }} - {{ exhibition.exhibition.start_at|date:'Y-m-d' }}</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if exhibition_page_obj.has_previous %}
+                                <a href="?exhibition_page=1">&laquo; first</a>
+                                <a href="?exhibition_page={{ exhibition_page_obj.previous_page_number }}">previous</a>
+                            {% endif %}
+                            <span class="current">
+                                Page {{ exhibition_page_obj.number }} of {{ exhibition_page_obj.paginator.num_pages }}.
+                            </span>
+                            {% if exhibition_page_obj.has_next %}
+                                <a href="?exhibition_page={{ exhibition_page_obj.next_page_number }}">next</a>
+                                <a href="?exhibition_page={{ exhibition_page_obj.paginator.num_pages }}">last &raquo;</a>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% elif user_type == 'Exhibitor' %}
+                <div class="exhibition-list mt-4">
+                    <h3>Your Exhibitions</h3>
+                    <ul>
+                        {% for exhibition in exhibition_page_obj %}
+                        <li>{{ exhibition.exhibition.name }} - {{ exhibition.exhibition.start_at|date:'Y-m-d' }}</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if exhibition_page_obj.has_previous %}
+                                <a href="?exhibition_page=1">&laquo; first</a>
+                                <a href="?exhibition_page={{ exhibition_page_obj.previous_page_number }}">previous</a>
+                            {% endif %}
+                            <span class="current">
+                                Page {{ exhibition_page_obj.number }} of {{ exhibition_page_obj.paginator.num_pages }}.
+                            </span>
+                            {% if exhibition_page_obj.has_next %}
+                                <a href="?exhibition_page={{ exhibition_page_obj.next_page_number }}">next</a>
+                                <a href="?exhibition_page={{ exhibition_page_obj.paginator.num_pages }}">last &raquo;</a>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="booth-list mt-4">
+                    <h3>Your Booths</h3>
+                    <ul>
+                        {% for booth in booth_page_obj %}
+                        <li>{{ booth.booth.name }} - {{ booth.booth.start_at|date:'Y-m-d' }}</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if booth_page_obj.has_previous %}
+                                <a href="?booth_page=1">&laquo; first</a>
+                                <a href="?booth_page={{ booth_page_obj.previous_page_number }}">previous</a>
+                            {% endif %}
+                            <span class="current">
+                                Page {{ booth_page_obj.number }} of {{ booth_page_obj.paginator.num_pages }}.
+                            </span>
+                            {% if booth_page_obj.has_next %}
+                                <a href="?booth_page={{ booth_page_obj.next_page_number }}">next</a>
+                                <a href="?booth_page={{ booth_page_obj.paginator.num_pages }}">last &raquo;</a>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -92,7 +158,6 @@
                     if (response.data.message) {
                         alert(response.data.message); // 展示成功消息
                     } else {
-                        // 如果没有消息，提供默认反馈
                         alert("Success, but no message returned from server.");
                     }
                 })
@@ -100,7 +165,6 @@
                     if (error.response && error.response.data.error) {
                         alert(error.response.data.error); // 展示错误消息
                     } else {
-                        // 如果没有错误消息，提供默认反馈
                         alert("Error occurred without specific message from server.");
                     }
                 });
