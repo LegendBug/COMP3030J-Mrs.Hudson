@@ -1,5 +1,7 @@
 {% extends "Public/base.html" %}
 {% load static %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
 
 {% block extra_head %}
     <title>Profile</title>
@@ -71,14 +73,44 @@
                         </div>
                     </div>
                 </form>
+
                 {% if user_type == 'Organizer' %}
                 <div class="exhibition-list mt-4">
                     <h3>Your Exhibitions</h3>
-                    <ul>
-                        {% for exhibition in exhibition_page_obj %}
-                        <li>{{ exhibition.exhibition.name }} - {{ exhibition.exhibition.start_at|date:'Y-m-d' }}</li>
-                        {% endfor %}
-                    </ul>
+                    <div class="table-responsive" style="margin: 1rem; user-select: none">
+                        <table class="table table-hover text-dark">
+                            <thead class="bg-dark text-white">
+                                <tr>
+                                    <th></th>
+                                    <th>Exhibition Name</th>
+                                    <th>Description</th>
+                                    <th>Organizer</th>
+                                    <th>Sector</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Stage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exhibition in exhibition_page_obj %}
+                                <tr onclick="window.location.href='{% url 'Exhibition:exhibition' exhibition.id %}';" style="cursor: pointer;">
+                                    <td><img src="{{ exhibition.exhibition.image|default:'../../static/images/Public/poster.jpg' }}" alt="No Poster" class="exhibition-img" style="width: 100px; height: 80px;"></td>
+                                    <td>{{ exhibition.exhibition.name }}</td>
+                                    <td>{{ exhibition.exhibition.description }}</td>
+                                    <td>{{ exhibition.exhibition.organizer.detail.username }}</td>
+                                    <td>{{ exhibition.exhibition.sectors }}</td>
+                                    <td>{{ exhibition.exhibition.start_at|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ exhibition.exhibition.end_at|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ exhibition.exhibition.stage }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No exhibitions found. 💤</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     <div class="pagination">
                         <span class="step-links">
                             {% if exhibition_page_obj.has_previous %}
@@ -96,36 +128,38 @@
                     </div>
                 </div>
                 {% elif user_type == 'Exhibitor' %}
-                <div class="exhibition-list mt-4">
-                    <h3>Your Exhibitions</h3>
-                    <ul>
-                        {% for exhibition in exhibition_page_obj %}
-                        <li>{{ exhibition.exhibition.name }} - {{ exhibition.exhibition.start_at|date:'Y-m-d' }}</li>
-                        {% endfor %}
-                    </ul>
-                    <div class="pagination">
-                        <span class="step-links">
-                            {% if exhibition_page_obj.has_previous %}
-                                <a href="?exhibition_page=1">&laquo; first</a>
-                                <a href="?exhibition_page={{ exhibition_page_obj.previous_page_number }}">previous</a>
-                            {% endif %}
-                            <span class="current">
-                                Page {{ exhibition_page_obj.number }} of {{ exhibition_page_obj.paginator.num_pages }}.
-                            </span>
-                            {% if exhibition_page_obj.has_next %}
-                                <a href="?exhibition_page={{ exhibition_page_obj.next_page_number }}">next</a>
-                                <a href="?exhibition_page={{ exhibition_page_obj.paginator.num_pages }}">last &raquo;</a>
-                            {% endif %}
-                        </span>
-                    </div>
-                </div>
                 <div class="booth-list mt-4">
                     <h3>Your Booths</h3>
-                    <ul>
-                        {% for booth in booth_page_obj %}
-                        <li>{{ booth.booth.name }} - {{ booth.booth.start_at|date:'Y-m-d' }}</li>
-                        {% endfor %}
-                    </ul>
+                    <div class="table-responsive" style="margin: 1rem; user-select: none">
+                        <table class="table table-hover text-dark">
+                            <thead class="bg-dark text-white">
+                                <tr>
+                                    <th></th>
+                                    <th>Booth Name</th>
+                                    <th>Description</th>
+                                    <th>Sector</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booth in booth_page_obj %}
+                                <tr onclick="window.location.href='{% url 'Booth:booth' booth.id %}';" style="cursor: pointer;">
+                                    <td><img src="{{ booth.booth.image|default:'../../static/images/Public/poster.jpg' }}" alt="No Poster" class="booth-img" style="width: 100px; height: 80px;"></td>
+                                    <td>{{ booth.booth.name }}</td>
+                                    <td>{{ booth.booth.description }}</td>
+                                    <td>{{ booth.booth.sector.name }}</td>
+                                    <td>{{ booth.booth.start_at|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ booth.booth.end_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No booths found. 💤</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     <div class="pagination">
                         <span class="step-links">
                             {% if booth_page_obj.has_previous %}

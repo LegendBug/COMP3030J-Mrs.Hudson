@@ -7,8 +7,8 @@ from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect
-from Booth.models import BoothApplication
-from Exhibition.models import ExhibitionApplication
+from Booth.models import BoothApplication, Booth
+from Exhibition.models import ExhibitionApplication, Exhibition
 from Inventory.models import ResourceApplication, Item
 from .forms import RegisterForm, LoginForm, ReplyMessageForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
@@ -83,7 +83,6 @@ def profile(request):
         if user_type == 'Organizer':
             exhibitions = ExhibitionApplication.objects.filter(applicant=user).order_by('exhibition__start_at')
         elif user_type == 'Exhibitor':
-            exhibitions = ExhibitionApplication.objects.filter(boothapplication__applicant=user).order_by('exhibition__start_at')
             booths = BoothApplication.objects.filter(applicant=user).order_by('booth__start_at')
 
         exhibition_paginator = Paginator(exhibitions, 10)
