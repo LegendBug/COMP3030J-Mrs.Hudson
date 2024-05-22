@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import render, get_object_or_404, redirect
-
 from Booth.models import Booth
 from Exhibition.models import Exhibition
 from Inventory.forms import EditInventoryCategoryForm, CreateInventoryCategoryForm, EditItemForm, ResApplicationForm
@@ -121,7 +120,6 @@ def category_detail_view(request, category_id):
         # Handle the case where these values are not in the session
         return JsonResponse({'error': 'Space type or ID not found in session'}, status=400)
 
-
     return render(request, 'Inventory/category_detail.html', {
         'current_access': current_access,
         'category': category,
@@ -159,6 +157,8 @@ def edit_inventory_category(request, category_id):
             return JsonResponse({'error': errors}, status=400)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
 @login_required
 def delete_inventory_category(request, category_id):
     category = get_object_or_404(InventoryCategory, pk=category_id)
@@ -213,6 +213,7 @@ def edit_item(request, item_id):
             return JsonResponse({'error': errors}, status=400)
 
     return HttpResponseNotAllowed(['GET', 'POST'])
+
 
 @login_required
 def delete_item(request, item_id):

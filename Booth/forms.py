@@ -50,12 +50,10 @@ class BoothApplicationForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-
+        sector = cleaned_data.get('booth_sector')
         # 保证用户预约区域不会与已有展会冲突
-        if self.cleaned_data['booth_sector'].count() != 0:
-            sector = self.cleaned_data['booth_sector'].first()
-            if sector.occupied_units.filter(affiliation_content_type=ContentType.objects.get_for_model(Booth)).exists():
-                self.add_error('exhib_sectors', f'The selected sector {sector.name} has been occupied during the selected period.')
+        if sector and sector.occupied_units.exists():
+            self.add_error('exhib_sectors', f'The selected sector {sector.name} has been occupied during the selected period.')
         return cleaned_data
 
     def create_application(self, request):
