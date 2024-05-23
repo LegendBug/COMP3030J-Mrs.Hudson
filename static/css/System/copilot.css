@@ -7,3 +7,8 @@
 .card-header.dark-mode, .card-text.dark-mode {
     color: rgb(255, 255, 255);
 }
+
+html {
+    scroll-behavior: smooth;
+}
+

@@ -23,16 +23,17 @@
     </div>
 
     {#瀑布流卡片布局#}
-    <div class="container mt-4 mb-4">
+    <div class="container mt-4">
         {% if venues|length == 0 %}
             <div class="card text-center">
                 <h5 class="card-header">Mrs. Hudson</h5>
                 <div class="card-body">
-                <h5 class="card-title">Create the company's first venue</h5>
-                <p class="card-text">and begin your journey towards a more sustainable business!</p>
-                {% if user.is_authenticated and user_type == 'Manager' %}
-                    <a href="#"  data-bs-toggle="modal" data-bs-target="#venueModal" class="btn btn-primary">Add your first venue!</a>
-                {% endif %}
+                    <h5 class="card-title">Create the company's first venue</h5>
+                    <p class="card-text">and begin your journey towards a more sustainable business!</p>
+                    {% if user.is_authenticated and user_type == 'Manager' %}
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#venueModal" class="btn btn-primary">Add your
+                            first venue!</a>
+                    {% endif %}
                 </div>
             </div>
             {% comment %} <h2 class="message-info">Create the company's first venue!</h2> {% endcomment %}
@@ -101,11 +102,6 @@
             +
         </a>
     {% endif %}
-    <button id="scroll-to-top" class="btn btn-success rounded-circle shadow" scroll-behavior: smooth;
-    style="position: fixed; bottom: 180px; right: 20px; z-index: 1040; width: 60px; height: 60px; 
-    display: flex; justify-content: center; align-items: center; font-size: 30px;">
-        ⬆️
-    </button>
 
     <!-- Modal for displaying the info of a venue -->
     <div class="modal fade" id="venueInfoModal" tabindex="-1" aria-labelledby="venueInfoModalLabel" aria-hidden="true">
@@ -287,29 +283,6 @@
                     });
                 });
             });
-        });
-        document.addEventListener("DOMContentLoaded", function() {
-            var scrollTopButton = document.getElementById("scroll-to-top");
-    
-            function checkScrollTop() {
-                if (window.pageYOffset > 20 || document.documentElement.scrollTop > 20) {
-                    scrollTopButton.style.display = "flex";
-                } else {
-                    scrollTopButton.style.display = "none";
-                }
-            }
-    
-            window.addEventListener("scroll", checkScrollTop);
-    
-            scrollTopButton.onclick = function() {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            };
-    
-            // Check scroll top on page load
-            checkScrollTop();
         });
     </script>
 {% endblock %}

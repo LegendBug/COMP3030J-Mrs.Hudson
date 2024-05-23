@@ -30,115 +30,143 @@
 
 
 <body>
-<!-- 导航栏 -->
-<nav class="navbar navbar-expand-lg">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'Venue:home' %}">
-            <img id="logo-image" src="{% static 'images/Public/hudson.png' %}" alt="Hudson Logo"
-                 style="height: 30px; margin-right: 10px;">
-            Mrs. Hudson
-        </a>
+<div id="main-wrapper">
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'Venue:home' %}">
+                <img id="logo-image" src="{% static 'images/Public/hudson.png' %}" alt="Hudson Logo"
+                     style="height: 30px; margin-right: 10px;">
+                Mrs. Hudson
+            </a>
 
-        <div class="breadcrumb-container">
-            {% block breadcrumbs %}
-                <!-- 面包屑导航 -->
-            {% endblock %}
-        </div>
-
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="#" id="theme-toggle"><i class="fas fa-moon"></i>
-                        Theme</a>
-                </li>
-
-                {% block extra_nav_icons %}
-                    <!-- 在这里添加额外的icon-->
-                {% endblock %}
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'System:copilot' %}"><i class="fas fa-robot"></i> Watson</a>
-                </li>
-                {% if user.is_authenticated %}
-                    {# TODO 有空把一个Inventory的主页写出来 #}
-                    {#                    <li class="nav-item">#}
-                    {#                        <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i>#}
-                    {#                            Inventory</a>#}
-                    {#                    </li>#}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'User:view_message' %}"><i class="fas fa-envelope"></i>
-                            Messages</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'User:logout' %}"><i class="fas fa-sign-out-alt"></i>
-                            Logout</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'User:login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
-                    </li>
-                {% endif %}
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:profile' %}"><i class="fas fa-user"></i> Profile</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-
-<!-- 消息提醒(Toast) -->
-<div id="toast-container" class="toast-container position-fixed top-0 start-50 translate-middle-x p-3">
-    {% for message in messages %}
-        <div class="toast-message" data-message="{{ message }}" data-tag="{{ message.tags }}"
-             style="display: none;"></div>
-    {% endfor %}
-</div>
-
-
-<!-- 页面主体内容 -->
-<div class="public-base-main-content container-fluid px-0">
-    <div class="row g-0"><!-- 添加 g-0 移除格子间距 -->
-        <div class="d-flex">
-            <div class="public-base-sidebar" id="sidebar">
-                {% block sidebar %}
-                    <!-- 侧边栏内容 -->
+            <div class="breadcrumb-container">
+                {% block breadcrumbs %}
+                    <!-- 面包屑导航 -->
                 {% endblock %}
             </div>
-            <div class="public-base-main-content" id="content">
-                {% block content %}
 
-                    <!-- 页面主体内容 -->
-                {% endblock %}
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="theme-toggle"><i class="fas fa-moon"></i>
+                            Theme</a>
+                    </li>
+
+                    {% block extra_nav_icons %}
+                        <!-- 在这里添加额外的icon-->
+                    {% endblock %}
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'System:copilot' %}"><i class="fas fa-robot"></i> Watson</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        {# TODO 有空把一个Inventory的主页写出来 #}
+                        {#                    <li class="nav-item">#}
+                        {#                        <a class="nav-link" href="{% url 'Inventory:inventory' %}"><i class="fas fa-warehouse"></i>#}
+                        {#                            Inventory</a>#}
+                        {#                    </li>#}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'User:view_message' %}"><i class="fas fa-envelope"></i>
+                                Messages</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'User:logout' %}"><i class="fas fa-sign-out-alt"></i>
+                                Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'User:login' %}"><i class="fas fa-sign-in-alt"></i>
+                                Login</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'User:profile' %}"><i class="fas fa-user"></i> Profile</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 消息提醒(Toast) -->
+    <div id="toast-container" class="toast-container position-fixed top-0 start-50 translate-middle-x p-3">
+        {% for message in messages %}
+            <div class="toast-message" data-message="{{ message }}" data-tag="{{ message.tags }}"
+                 style="display: none;"></div>
+        {% endfor %}
+    </div>
+
+
+    <!-- 滚动到顶部按钮 -->
+    <div id="scroll-detector"></div>
+    <button id="scroll-to-top" class="btn btn-success rounded-circle shadow">
+        ⬆️
+    </button>
+
+
+    <!-- 页面主体内容 -->
+    <div class="public-base-main-content container-fluid px-0">
+        <div class="row g-0"><!-- 添加 g-0 移除格子间距 -->
+            <div class="d-flex">
+                <div class="public-base-sidebar" id="sidebar">
+                    {% block sidebar %}
+                        <!-- 侧边栏内容 -->
+                    {% endblock %}
+                </div>
+                <div class="public-base-main-content" id="content">
+                    {% block content %}
+                        <!-- 页面主体内容 -->
+                    {% endblock %}
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- 底边栏 -->
-<footer class="public-base-footer text-center">
-    <div class="text-center p-3">
-        <img src="{% static 'images/Public/bjut.png' %}" alt="BJUT Logo" style="height: 50px;">
-        © 2024 Mrs. H.U.D.S.O.N. <i>Holistic Utility Deployment & Sustainability Overseeing Network.</i> All rights
-        reserved.
-        <img src="{% static 'images/Public/ucd.png' %}" alt="UCD Logo" style="height: 50px;">
-        <br>
-    </div>
-</footer>
+    <!-- 底边栏 -->
+    <footer class="public-base-footer text-center">
+        <div class="text-center p-3">
+            <img src="{% static 'images/Public/bjut.png' %}" alt="BJUT Logo" style="height: 50px;">
+            © 2024 Mrs. H.U.D.S.O.N. <i>Holistic Utility Deployment & Sustainability Overseeing Network.</i> All rights
+            reserved.
+            <img src="{% static 'images/Public/ucd.png' %}" alt="UCD Logo" style="height: 50px;">
+            <br>
+        </div>
+    </footer>
+</div>
 
 
 <script>
-    // 主题切换
-    const themeToggle = document.getElementById('theme-toggle');
+    // 获取logo图片
     const logoImage = document.getElementById('logo-image');
 
-    // 函数：切换主题并更新元素
-    function toggleTheme(theme) {
+    // 获取并监听当前主题
+    const themeToggle = document.getElementById('theme-toggle');
+    themeToggle.addEventListener('click', function () {
+        const currentTheme = document.body.classList.contains('dark-mode') ? 'dark-mode' : 'light-mode';
+        const newTheme = currentTheme === 'dark-mode' ? 'light-mode' : 'dark-mode';
+        localStorage.setItem('theme', newTheme); // 保存用户偏好
+        toggleTheme(newTheme);
+        themeToggle.blur();
+    });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // 执行切换主题
+        toggleTheme();
+
+        // 执行滚动到顶部
+        scrollToTop();
+    });
+
+    // 切换主题并更新元素
+    function toggleTheme() {
+        const theme = localStorage.getItem('theme') || 'light-mode';
         document.body.classList.toggle('dark-mode', theme === 'dark-mode');
+
         const icon = themeToggle.querySelector('i');
         if (theme === 'dark-mode') {
             icon.classList.remove('fa-moon');
@@ -187,20 +215,30 @@
         {#document.querySelectorAll('.card').forEach(el => el.classList.toggle('dark-mode', theme === 'dark-mode'));#}
     }
 
-    // 页面加载时应用用户偏好的主题
-    document.addEventListener('DOMContentLoaded', (event) => {
-        const savedTheme = localStorage.getItem('theme') || 'light-mode';
-        toggleTheme(savedTheme);
-    });
+    function scrollToTop() {
+        const scrollDetector = document.getElementById("scroll-detector");
+        const scrollTopButton = document.getElementById("scroll-to-top");
 
-    themeToggle.addEventListener('click', function () {
-        const currentTheme = document.body.classList.contains('dark-mode') ? 'dark-mode' : 'light-mode';
-        const newTheme = currentTheme === 'dark-mode' ? 'light-mode' : 'dark-mode';
-        localStorage.setItem('theme', newTheme); // 保存用户偏好
-        toggleTheme(newTheme);
-        themeToggle.blur();
-    });
+        const observer = new IntersectionObserver((entries) => {
+            const entry = entries[0];
+            if (!entry.isIntersecting) {
+                scrollTopButton.style.display = "flex";
+            } else {
+                scrollTopButton.style.display = "none";
+            }
+        });
 
+        observer.observe(scrollDetector);
+
+        scrollTopButton.onclick = function () {
+            console.log("Scroll button clicked");
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            console.log("Scrolling to top");
+        };
+    }
 </script>
 
 <!-- 在这里添加额外的脚本 -->

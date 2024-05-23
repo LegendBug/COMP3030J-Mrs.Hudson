@@ -55,11 +55,14 @@
                                 <button type="submit" class="btn btn-success">
                                     Ask Watson
                                 </button>
-                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal">
                                     Delete History
                                 </button>
                             </div>
-                            <button type="button" class="btn btn-warning" style="width: 40px; height: 40px; border-radius: 50%;" data-bs-toggle="modal" data-bs-target="#warningModal">
+                            <button type="button" class="btn btn-warning"
+                                    style="width: 40px; height: 40px; border-radius: 50%;" data-bs-toggle="modal"
+                                    data-bs-target="#warningModal">
                                 ?
                             </button>
                         </div>
@@ -68,17 +71,19 @@
                 <br>
 
                 <!-- Modal for LLM Warning -->
-                <div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel" aria-hidden="true">
+                <div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel"
+                     aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="warningModalLabel">
                                     Note
                                 </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                Watson Copilot is powered by LLM technology from OpenAI. While we strive for accuracy, 
+                                Watson Copilot is powered by LLM technology from OpenAI. While we strive for accuracy,
                                 the responses can be imperfect. Always verify critical informationindependently.
                             </div>
                             <div class="modal-footer">
@@ -92,14 +97,16 @@
 
 
                 <!-- Modal for "Delete History" -->
-                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel"
+                     aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="deleteModalLabel">
                                     Confirm Delete
                                 </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 Are you sure you want to delete all conversation history?
@@ -118,26 +125,20 @@
                         </div>
                     </div>
                 </div>
-                
-                <button id="scroll-to-top" class="btn btn-success rounded-circle shadow" scroll-behavior: smooth;
-                style="position: fixed; bottom: 100px; right: 20px; z-index: 1040; width: 60px; height: 60px; 
-                display: flex; justify-content: center; align-items: center; font-size: 30px;">
-                    ⬆️
-                </button>
 
                 <!-- Area to display the chatbot's response -->
                 {% if error %}
-                <div class="alert alert-danger" role="alert">
-                    {{ error }}
-                </div>
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
                 {% endif %}
                 {% for conversation in conversation_history %}
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <strong>Watson <i>[{{ conversation.timestamp }}]</i> </strong>
-                    </div>
-                    <div class="card-body text-success">
-                        
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <strong>Watson <i>[{{ conversation.timestamp }}]</i> </strong>
+                        </div>
+                        <div class="card-body text-success">
+
                             <h5 class="card-title">
                                 <strong>Q:</strong> {{ conversation.user_input }}
                             </h5>
@@ -157,40 +158,4 @@
             </div>
         </div>
     </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var scrollTopButton = document.getElementById("scroll-to-top");
-
-        function checkScrollTop() {
-            if (window.pageYOffset > 20 || document.documentElement.scrollTop > 20) {
-                scrollTopButton.style.display = "flex";
-            } else {
-                scrollTopButton.style.display = "none";
-            }
-        }
-
-        window.addEventListener("scroll", checkScrollTop);
-
-        scrollTopButton.onclick = function() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        };
-
-        // Check scroll top on page load
-        checkScrollTop();
-    });
-
-    $(function () {
-        $('[data-toggle="popover"]').popover()
-    })
-
-    $(document).ready(function(){
-        $('[data-toggle="popover"]').popover(); 
-    });
-</script>
 {% endblock %}
