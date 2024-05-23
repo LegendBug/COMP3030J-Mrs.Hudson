@@ -22,7 +22,6 @@
     color: #495057; /* 深灰色文本，增加对比 */
 }
 
-
 /* 调整Accordion */
 .accordion-button {
     background-color: #e9ecef; /* 浅灰色背景 */
@@ -102,7 +101,6 @@
     font-size: 20px; /* 增加字体大小，使按钮显得更大 */
     padding: 0.5rem 1rem; /* 增加内边距，使按钮本体更大 */
 }
-
 
 /*控制监控面板的样式*/
 .table-responsive {
@@ -184,3 +182,11 @@ td a:hover {
     color: #007bff;
 }
 
+/* 设置在线和离线的背景色 */
+.table-success {
+    background-color: rgb(44, 80, 61) !important; /* 浅绿色 */
+}
+
+.table-warning {
+    background-color: rgb(84, 109, 129) !important; /* 浅灰色 */
+}

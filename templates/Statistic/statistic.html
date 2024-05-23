@@ -26,15 +26,21 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' venue.id %}">{{ venue.name }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">Statistics</li>
         </ol>
     </nav>
 {% endblock %}
 
 {% block content %}
-    
-    
     <div class="container">
+        <div class="d-flex justify-content-start mb-4">
+            <div class="btn-group" role="group" aria-label="Navigation Buttons">
+                <a href="{% url 'Statistic:statistic' %}" class="btn btn-primary">Statistic</a>
+                <a href="{% url 'Statistic:monitor_venue' %}" class="btn btn-secondary">Monitor Venue</a>
+            </div>
+        </div>
+
         <div class="row mt-3">
             <div class="col-md-6">
                 <div class="card shadow-sm">
@@ -335,7 +341,6 @@
         }
 
 
-
         function fetchVenues() {
             const url = `{% url 'Statistic:get_venues' %}`;
             fetch(url)
@@ -348,7 +353,6 @@
                     alert('Failed to fetch venue names.');
                 });
         }
-
 
 
         function selectVenue(venues) {
@@ -390,8 +394,6 @@
         }
 
 
-
-
         function selectYear() {
             const selectedYear = prompt("Please enter the year (e.g., 2024):");
 
@@ -421,7 +423,6 @@
                 alert('Invalid year entered!');
             }
         }
-
 
 
     </script>
