@@ -241,7 +241,7 @@ def view_message_detail(request, message_id):
 
     try:
         message = Message.objects.get(id=message_id)
-        message_detail = message.detail
+        message_detail = MessageDetail.objects.filter(message=message).first()
 
         # 如果消息的接收者是当前用户且消息未读，则将消息标记为已读
         if message.recipient == request.user and not message.is_read:
@@ -355,7 +355,7 @@ def reply_message(request, message_id):
 
             # 获取消息关联的申请
             message = Message.objects.get(id=message_id)
-            message_detail = message.detail
+            message_detail = message.related_detail
             # 如果消息关联了申请，则将回复消息也关联到申请
             if message_detail.application_object_id is not None:
                 application = message_detail.application
@@ -366,12 +366,12 @@ def reply_message(request, message_id):
                 new_message_detail = MessageDetail.objects.create(message=new_message, content=content,
                                                                   application_object_id=application.id,
                                                                   application_content_type=application_type)
-                new_message.detail = new_message_detail
+                new_message.related_detail = new_message_detail
                 new_message.save()
             else:  # 无关联申请的消息
                 new_message = Message.objects.create(title=title, sender=request.user, recipient=message.sender)
                 new_message_detail = MessageDetail.objects.create(message=new_message, content=content)
-                new_message.detail = new_message_detail
+                new_message.related_detail = new_message_detail
                 new_message.save()
             return JsonResponse({'success': 'Reply sent successfully.'}, status=200)
         except Exception as e:
@@ -424,7 +424,7 @@ def reject_application(request, application_type, application_id):
                                                               content=content,
                                                               application_object_id=application.id,
                                                               application_content_type=application_content_type)
-            new_message.detail = new_message_detail
+            new_message.related_detail = new_message_detail
             new_message.save()
             return JsonResponse({'success': 'Application rejected successfully.'}, status=200)
         except Exception as e:
@@ -481,7 +481,7 @@ def accept_application(request, application_type, application_id):
                                                               content=content,
                                                               application_object_id=application.id,
                                                               application_content_type=application_content_type)
-            new_message.detail = new_message_detail
+            new_message.related_detail = new_message_detail
             new_message.save()
             return JsonResponse({'success': 'Application accepted successfully.'}, status=200)
         except Exception as e:

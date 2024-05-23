@@ -31,8 +31,10 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' booth.exhibition.venue.id %}">{{ booth.exhibition.venue.name }}</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'Exhibition:exhibition' booth.exhibition.id %}">{{ booth.exhibition.name }}</a></li>
+            <li class="breadcrumb-item"><a
+                    href="{% url 'Venue:venue' booth.exhibition.venue.id %}">{{ booth.exhibition.venue.name }}</a></li>
+            <li class="breadcrumb-item"><a
+                    href="{% url 'Exhibition:exhibition' booth.exhibition.id %}">{{ booth.exhibition.name }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ booth.name }}</li>
         </ol>
     </nav>
@@ -53,7 +55,8 @@
                 <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
                     {% for sector in sectors %}
                         {% comment %}你先别急, 这里是Pycharm的模板语法出现了问题, 这里其实是可以正常运行的{% endcomment %}
-                        <li><a class="dropdown-item" href="#" @click="toggleSector({{ sector.pk }})">Sector {{ sector.name }}</a></li>
+                        <li><a class="dropdown-item" href="#"
+                               @click="toggleSector({{ sector.pk }})">Sector {{ sector.name }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -73,11 +76,53 @@
             </a>
         {% endif %}
 
+        {% if is_owner and booth.booth_application.stage == "IS" %}
+            <a @click="cancelBooth()" class="btn btn-success rounded-circle shadow" id="cancelBooth"
+               style="background-color: #c9302c;border: #c9302c; position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+               title="Cancel Booth">
+                ❌
+            </a>
+        {% endif %}
+
     </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
+        // 取消展台
+        function cancelBooth() {
+            const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
+            const url = `{% url 'Booth:cancel_booth' 999 %}`.replace('999', {{ booth.pk }});
+            const container = document.getElementById('application-container');
+
+            // 显示确认对话框
+            const confirmed = window.confirm("Are you sure you want to cancel the booth?\n\nThis action cannot be undone! 😱");
+
+            if (confirmed) {
+                axios.post(url, {}, {
+                    headers: {
+                        'X-CSRFToken': token  // 请求头中包含 CSRF 令牌
+                    }
+                }).then(response => {
+                    if (response.data.success) {
+                        container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                        setTimeout(() => {
+                            window.location.href = `{% url 'Venue:home' %}`;
+                        }, 1500);
+                    } else {
+                        container.innerHTML = `<div class="alert alert-danger">${response.data.error}</div>`;
+                        container.style.display = 'block';  // 确保消息容器可见
+                    }
+                })
+                    .catch(error => {
+                        // 记录或处理错误
+                        console.error(error);
+                        container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                        container.style.display = 'block';  // 确保消息容器可见
+                    });
+            }
+        }
+
         new Vue({
             el: '#booth-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
@@ -138,7 +183,7 @@
                     this.stage.on('mousedown', this.handleMouseDown);
                     this.stage.on('mouseup', this.handleMouseUp);
                     this.stage.on('mousemove', this.handleMouseMove);
-                    
+
                     const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
                         return new Promise((resolve, reject) => {
                             Konva.Image.fromURL(url, (imageNode) => {
@@ -313,7 +358,7 @@
                         this.refreshData(sectorId);
                     }
                 },
-            
+
             }
         });
 

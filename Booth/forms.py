@@ -44,16 +44,29 @@ class BoothApplicationForm(forms.Form):
                 affiliation_object_id=affiliation_object_id,
                 affiliation_content_type=affiliation_content_type,
                 available=True
-            ).exclude(occupied_units__isnull=False)  # 添加排除已被占用的SpaceUnit的条件
+            )
         else:
             self.fields['booth_sector'].queryset = SpaceUnit.objects.all()
 
     def clean(self):
         cleaned_data = super().clean()
+        exhib_id = cleaned_data.get('exhib_id')
         sector = cleaned_data.get('booth_sector')
+
+        exhibition = Exhibition.objects.get(id=exhib_id)
+        booth_start_at = exhibition.start_at
+        booth_end_at = exhibition.end_at
         # 保证用户预约区域不会与已有展会冲突
-        if sector and sector.occupied_units.exists():
-            self.add_error('exhib_sectors', f'The selected sector {sector.name} has been occupied during the selected period.')
+        if sector is not None:
+            occupied_units = sector.occupied_units.filter(
+                affiliation_content_type=ContentType.objects.get_for_model(Booth))
+            for occupied_unit in occupied_units:
+                if (occupied_unit.affiliation.start_at <= booth_start_at <= occupied_unit.affiliation.end_at or
+                        occupied_unit.affiliation.start_at <= booth_end_at <= occupied_unit.affiliation.end_at):
+                    self.add_error('booth_sector',
+                                   f"Sorry☹️, '{sector.name}' is occupied during this period. "
+                                   f"Please choose a different time or sector.")
+                    break
         return cleaned_data
 
     def create_application(self, request):
@@ -119,7 +132,8 @@ class BoothApplicationForm(forms.Form):
 
             # 可选创建和处理相关消息
             new_message = Message.objects.create(
-                title="New Booth Application for '" + exhibition.name + ': ' + self.cleaned_data.get('booth_name') + "'",
+                title="New Booth Application for '" + exhibition.name + ': ' + self.cleaned_data.get(
+                    'booth_name') + "'",
                 sender=request.user,
                 recipient=Manager.objects.first().detail
             )

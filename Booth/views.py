@@ -1,10 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
+from django.utils import timezone
 from rest_framework import status
 from Booth.forms import BoothApplicationForm
-from Booth.models import Booth
+from Booth.models import Booth, BoothApplication
 from Layout.serializers import SpaceUnitSerializer
+from User.models import Application
 
 
 @login_required
@@ -18,10 +20,22 @@ def booth(request, booth_id):
             else:
                 return redirect('Venue:home')
         request.session['booth_id'] = booth_id  # 将booth_id存入session
+        application = current_booth.exhibition_application
+        if application.stage == Application.Stage.CANCELLED or application.stage == Application.Stage.REJECTED:
+            return redirect('Venue:venue', venue_id=current_booth.exhibition.venue.pk)
+
+        # 判断当前是否为展览的拥有者
+        user_type = request.session.get('user_type', '')
+        if request.user == application.applicant:
+            is_owner = True
+        else:
+            is_owner = False
+
         return render(request, 'System/booth.html', {
             'booth': current_booth,
             'sectors': current_booth.sectors.all(),
-            'user_type': request.session.get('user_type', 'Guest'),
+            'is_owner': is_owner,
+            'user_type': user_type,
         })
     else:
         return HttpResponseNotAllowed(['GET'])
@@ -68,5 +82,32 @@ def create_booth_application(request):
             first_error_key, first_error_messages = list(form.errors.items())[0]
             first_error_message = f"{first_error_key}: {first_error_messages[0]}"
             return JsonResponse({'error': first_error_message}, status=400)
+    else:
+        return HttpResponseNotAllowed(['POST'])
+
+
+@login_required
+def cancel_booth(request, booth_id):
+    if request.method == 'POST':
+        booth = Booth.objects.filter(id=booth_id).first()
+        application = BoothApplication.objects.filter(booth_id=booth_id).first()
+        if booth_id is None or application is None:
+            return JsonResponse({'error': 'Booth not found'}, status=404)
+
+        # 自动结束，展览结束时间已经过了
+        if booth.end_at < timezone.now():
+            pass
+        # 手动取消，申请处于初始提交阶段
+        elif application.stage == Application.Stage.INITIAL_SUBMISSION:
+            application.stage = Application.Stage.CANCELLED
+            application.save()
+        else:
+            return JsonResponse({'error': 'Exhibition application cannot be canceled at this stage'}, status=400)
+
+        # 删除展台申请关联的sector
+        for sector in booth.sectors.all():
+            sector.delete()
+        # TODO 锁定全部的资源
+        return JsonResponse({'success': 'Booth application canceled successfully!'}, status=200)
     else:
         return HttpResponseNotAllowed(['POST'])

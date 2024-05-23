@@ -38,7 +38,6 @@ class Message(models.Model):
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_messages')
     is_public = models.BooleanField(default=False)
     is_read = models.BooleanField(default=False)
-    detail = models.OneToOneField("MessageDetail", null=True, on_delete=models.CASCADE, related_name='related_message')
 
 
 class MessageDetail(models.Model):
