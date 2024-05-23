@@ -452,14 +452,19 @@ h1 a:hover {
     position: fixed;
     bottom: 240px;
     right: 10px;
-    z-index: 1040;
+    z-index: 3000;
     width: 60px;
     height: 60px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 30px;
-    display: none; /* 初始隐藏按钮 */
+
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: display 0.3s ease-in-out;
 }
 
 #scroll-detector {

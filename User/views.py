@@ -16,6 +16,15 @@ from .models import *
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 
+def welcome(request): # url: path('welcome/', views.welcome, name='welcome'),
+    if request.method == 'GET':
+        return render(request, 'User/welcome.html')
+    else:
+        if request.user.is_authenticated:
+            return redirect('Venue:home')
+        else:
+            return redirect('User:login')
+
 
 def register(request):
     if request.method == 'POST':  # 如果是 POST 请求

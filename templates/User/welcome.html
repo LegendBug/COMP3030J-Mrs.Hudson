@@ -1,0 +1,120 @@
+{% extends 'Public/base.html' %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extra_head %}
+    <title>Welcome</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{% static 'css/User/welcome.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <div class="text-center my-4">
+            <h1 class="platform-title">Welcome to Mrs. Hudson!</h1>
+        </div>
+        <div class="welcome-section">
+            <div class="row align-items-center mb-5">
+                <div class="col-md-6">
+                    <img src="{% static 'images/User/1.png' %}" alt="Manage Your: Venue & Exhibition & Booth"
+                         class="img-fluid">
+                </div>
+                <div class="col-md-6">
+                    <h1>Manage Your:</h1>
+                    <h1>Venue & Exhibition & Booth</h1>
+                    <p>Welcome to the Mrs. Hudson Online Resource Management Platform.
+                    We are committed to providing comprehensive, convenient, and efficient venue management services
+                        for Holmes Company's exhibitions and conferences.</p>
+                    <p>Our platform helps you with venue reservations, resource
+                        management, and dynamic layout adjustments, ensuring the smooth progress of your exhibitions
+                        with maximal resource utilization.</p>
+                    <form action="{% url 'User:welcome' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-custom">Get Started!</button>
+                    </form>
+                </div>
+            </div>
+            <div class="row align-items-center mb-5">
+                <div class="col-md-6 order-md-2">
+                    <img src="{% static 'images/User/2.png' %}" alt="Venue" class="img-fluid">
+                </div>
+                <div class="col-md-6 order-md-1">
+                    <h1><i class="fas fa-building"></i> Venue</h1>
+                    <ul>
+                        <li>Add, delete, or modify venue information</li>
+                        <li>Customize venue layouts to accommodate different event needs</li>
+                        <li>Approve various venue usage requests</li>
+                        <li>Manage venue inventory to avoid duplicate purchases and waste</li>
+                        <li>Monitor the usage status and attributes of equipment within the venue</li>
+                        <li>View statistical data of venue usage</li>
+                        <li>Dynamic prediction of crowd flow</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row align-items-center mb-5">
+                <div class="col-md-6">
+                    <img src="{% static 'images/User/3.png' %}" alt="Exhibition" class="img-fluid">
+                </div>
+                <div class="col-md-6">
+                    <h1><i class="fas fa-paint-brush"></i> Exhibition</h1>
+                    <ul>
+                        <li>Apply for, delete, or modify exhibitions</li>
+                        <li>Customize exhibition layouts to optimize exhibition effectiveness</li>
+                        <li>Approve various exhibition requests</li>
+                        <li>Manage exhibition inventory to ensure adequate supplies</li>
+                        <li>Monitor the usage status and attributes of equipment within the exhibition</li>
+                        <li>Return borrowed resources to ensure sustainable resource utilization</li>
+                        <li>Report damaged items for timely maintenance</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row align-items-center mb-5">
+                <div class="col-md-6 order-md-2">
+                    <img src="{% static 'images/User/4.png' %}" alt="Booth" class="img-fluid">
+                </div>
+                <div class="col-md-6 order-md-1">
+                    <h1><i class="fas fa-store"></i> Booth</h1>
+                    <ul>
+                        <li>Apply for, delete, or modify exhibition booths</li>
+                        <li>Customize exhibition booth layouts to attract more attendees</li>
+                        <li>Manage exhibition booth inventory to showcase the latest products</li>
+                        <li>Monitor the usage status and attributes of equipment within the exhibition booth</li>
+                        <li>Return borrowed resources to ensure resource recycling</li>
+                        <li>Report damaged items for timely maintenance</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <img src="{% static 'images/User/5.png' %}" alt="Feature" class="img-fluid">
+                </div>
+                <div class="col-md-6">
+                    <h1><i class="fas fa-lightbulb"></i> Feature</h1>
+                    <ul>
+                        <li><b>2D Layout Design:</b> A simple and intuitive layout design tool to help you quickly
+                            complete the layout design of venues, exhibitions, and exhibition booths
+                        </li>
+                        <li><b>AI Assistant:</b> An intelligent customer service system to answer your questions
+                            anytime, improving management efficiency
+                        </li>
+                        <li><b>Real-time Statistics:</b> Detailed statistical data to help you understand resource usage
+                            and event effectiveness
+                        </li>
+                        <li><b>Dynamic Adjustment:</b> Automatically adjust lighting, air conditioning, and water
+                            resource usage according to actual needs, saving costs and protecting the environment
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+
+
+{% endblock %}
