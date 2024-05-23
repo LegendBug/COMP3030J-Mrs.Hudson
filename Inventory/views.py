@@ -86,7 +86,7 @@ def inventory(request, space_type, space_id):
         else:
             application_form = None
 
-        return render(request, 'Inventory/../templates/System/inventory.html',
+        return render(request, 'System/inventory.html',
                       {
                           'user_type': user_type,
                           'is_owner': request.user == owner,
@@ -119,7 +119,7 @@ def category_detail_view(request, category_id):
         # Handle the case where these values are not in the session
         return JsonResponse({'error': 'Space type or ID not found in session'}, status=400)
 
-    return render(request, 'Inventory/../templates/System/category_detail.html', {
+    return render(request, 'System/category_detail.html', {
         'current_access': current_access,
         'sectors' : current_access.sectors.filter(parent_unit=None).order_by('created_at'),
         'category': category,

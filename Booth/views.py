@@ -18,7 +18,7 @@ def booth(request, booth_id):
             else:
                 return redirect('Venue:home')
         request.session['booth_id'] = booth_id  # 将booth_id存入session
-        return render(request, 'Booth/../templates/System/booth.html', {
+        return render(request, 'System/booth.html', {
             'booth': current_booth,
             'sectors': current_booth.sectors.all(),
             'user_type': request.session.get('user_type', 'Guest'),

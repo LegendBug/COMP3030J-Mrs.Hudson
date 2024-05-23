@@ -18,7 +18,7 @@ def home(request):
         # GET请求，展示场馆列表和空的创建表单
         venues = Venue.objects.all()
         form = CreateVenueForm()  # 创建一个空的表单实例
-        return render(request, 'Venue/../templates/System/home.html',
+        return render(request, 'System/home.html',
                       {
                           'venues': venues,
                           'user_type': request.session.get('user_type', 'Guest'),
@@ -119,7 +119,7 @@ def venue(request, venue_id):  # TODO 在展览过期后, 将绑定的SpaceUnit�
             'stage': stage
         })
 
-    return render(request, 'Venue/../templates/System/venue.html', {
+    return render(request, 'System/venue.html', {
         'venue': current_venue,
         'exhibitions': exhibitions_list,
         'floor_range': range(1, current_venue.floor + 1),
