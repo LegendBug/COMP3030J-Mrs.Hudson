@@ -80,7 +80,7 @@
                 📦
             </a>
         {% endif %}
-        {% if is_owner %}
+        {% if is_owner and exhibition.exhibition_application.stage == "IS" %}
             <a @click="cancelExhibition()" class="btn btn-success rounded-circle shadow" id="cancelExhibition"
                style="background-color: #c9302c;border: #c9302c; position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
                title="Cancel Exhibition">
