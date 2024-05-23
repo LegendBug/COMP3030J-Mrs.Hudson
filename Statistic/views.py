@@ -1,9 +1,7 @@
-import json
 import os
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework import status
-from torchvision.io.image import read_image
 from Inventory.views import get_all_venues_monthly_consumption, get_monthly_consumption
 from Layout.models import SpaceUnit
 from Layout.serializers import SpaceUnitSerializer
@@ -72,11 +70,9 @@ def get_consumption_data_by_venue(request, venue_name, year):
 
 
 def statistic(request):
-    user_type = 'Manager' if hasattr(request.user, 'manager') \
-        else 'Organizer' if hasattr(request.user, 'organizer') \
-        else 'Exhibitor' if hasattr(request.user, 'exhibitor') \
-        else 'Guest'
-    return render(request, 'Statistic/statistic.html', {'user_type': user_type})
+    user_type = request.session.get('user_type', 'Guest')
+    venue = get_object_or_404(Venue, id=request.session.get('venue_id'))
+    return render(request, 'Statistic/statistic.html', {'user_type': user_type, 'venue': venue})
 
 
 # water_statistics = {

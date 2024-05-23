@@ -79,19 +79,6 @@
              :class="{'show': offcanvasOpen}" style="visibility: visible;">
 
             <div class="offcanvas-header">
-                {# 按钮: Return#}
-
-                {% if user.is_authenticated and user_type == 'Exhibitor' %}
-                    <button type="button" class="btn btn-secondary"><a href="{% url 'Booth:booth' current_access.id %}">Return</a>
-                    </button>
-                {% elif user.is_authenticated and user_type == 'Organizer' %}
-                    <button type="button" class="btn btn-secondary"><a
-                            href="{% url 'Exhibition:exhibition' current_access.id %}">Return</a></button>
-                {% elif user.is_authenticated and user_type == 'Manager' %}
-                    <button type="button" class="btn btn-secondary"><a href="{% url 'Venue:venue' current_access.id %}">Return</a>
-                    </button>
-                {% endif %}
-
                 {# Dropdown: Sector#}
                 <div class="offcanvas-dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownSectorMenu"
@@ -122,7 +109,7 @@
             </div>
         </div>
         
-        <monitor-list :monitors="monitors" @open-api-modal="openApiDemoModal"></monitor-list>
+        <monitor-list :monitors="monitors" @open-api-modal="openApiDemoModal" @update-current-element="setCurrentElement"></monitor-list>
 
         <!-- Set Monitor Properties Modal -->
         <div class="modal fade" id="elementPropertiesModal" tabindex="-1" aria-labelledby="elementPropertiesModalLabel"
@@ -272,12 +259,12 @@
                         </tr> 
                         </thead>
                         <tbody>
-                        <tr v-for="monitor in monitors" :key="monitor.id" @click="editMonitor(monitor)" style="cursor: pointer;">
-                            <td><img :src="monitor.image" alt="No image" class="monitor-img" style="width: 100px; height: 80px;"></td>
-                            <td>[[monitor.name]]</td>
+                        <tr v-for="monitor in monitors" :key="monitor.id" @click="editMonitor(monitor)" :class="{'table-success': monitor.is_online, 'table-warning': !monitor.is_online}" style="cursor: pointer;">
+                            <td><img :src="monitor.image" alt="No image" class="monitor-img img-thumbnail"></td>
+                            <td>[[ monitor.name ]]</td>
                             <td>[[ monitor.layer.name ]]</td>
                             <td>[[ monitor.is_online ? 'Online' : 'Offline' ]]</td>
-                            <td>POST: <a href='#'>https://hostname/Statistic/monitor/capture/[[monitor.id]]/</a> </td>
+                            <td>POST: <a href='#' class="text-info">https://hostname/Statistic/monitor/capture/[[ monitor.id ]]/</a></td>
                         </tr>
                         </tbody>
                     </table>
@@ -611,7 +598,7 @@
                             });
                         });
                     };
-
+                    this.monitors = [];
                     // 递归函数来处理每个层级的SpaceUnit和elements
                     const processLayer = async (spaceUnits, parent) => {
                         for (const spaceUnit of spaceUnits) {
