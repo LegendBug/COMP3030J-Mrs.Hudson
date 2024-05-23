@@ -65,7 +65,7 @@ def exhibition(request, exhibition_id):
             'sectors': sectors,
         })
 
-    return render(request, 'Exhibition/exhibition.html', {
+    return render(request, 'Exhibition/../templates/System/exhibition.html', {
         'exhibition': current_exhibition,
         'booths': booth_list,
         'sectors': current_exhibition.sectors.all(),
