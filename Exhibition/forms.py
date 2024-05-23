@@ -23,8 +23,12 @@ class ExhibApplicationForm(forms.Form):
     exhib_description = forms.CharField(widget=forms.Textarea(attrs={'rows': 3, 'id': 'exhibDescription'}),
                                         max_length=500, required=True, label='Exhibition Description')
     # 精确到分钟
-    exhib_start_at = forms.DateTimeField(widget=forms.DateTimeInput(attrs={'id': 'exhibStartAt', 'type': 'datetime-local', 'step': 60}),required=True, label="Start Date")
-    exhib_end_at = forms.DateTimeField(widget=forms.DateTimeInput(attrs={'id': 'exhibEndAt', 'type': 'datetime-local', 'step': 60}),required=True, label="End Date")
+    exhib_start_at = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'id': 'exhibStartAt', 'type': 'datetime-local', 'step': 60}), required=True,
+        label="Start Date")
+    exhib_end_at = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'id': 'exhibEndAt', 'type': 'datetime-local', 'step': 60}), required=True,
+        label="End Date")
     exhib_image = forms.ImageField(widget=forms.FileInput(attrs={'id': 'exhibImage'}), required=True, label="Image")
     exhib_sectors = forms.ModelMultipleChoiceField(
         queryset=SpaceUnit.objects.none(),
@@ -59,6 +63,7 @@ class ExhibApplicationForm(forms.Form):
         cleaned_data = super().clean()
         exhib_start_at = cleaned_data.get('exhib_start_at')
         exhib_end_at = cleaned_data.get('exhib_end_at')
+        exhib_sectors = cleaned_data.get('exhib_sectors')
 
         # 检查开始日期和结束日期是否都不为 None
         if exhib_start_at is not None and exhib_end_at is not None:
@@ -67,13 +72,18 @@ class ExhibApplicationForm(forms.Form):
                 self.add_error('exhib_start_at', 'Start date must be earlier than end date.')
 
         # 保证用户预约区域不会与已有展会冲突
-        if self.cleaned_data['exhib_sectors'].count() != 0:
+        if exhib_sectors is not None:
             for sector in self.cleaned_data['exhib_sectors']:
                 # 如果被选择的sector的occupied_units的Exhibition的日期与当前申请的日期有重叠,则抛出错误
-                if sector.occupied_units.filter(affiliation_content_type=ContentType.objects.get_for_model(Exhibition)).exists():
-                    for occupied_unit in sector.occupied_units.filter(affiliation_content_type=ContentType.objects.get_for_model(Exhibition)):
-                        if (occupied_unit.affiliation.start_at <= exhib_start_at and exhib_start_at <= occupied_unit.affiliation.end_at) or (occupied_unit.affiliation.start_at <= exhib_end_at and exhib_end_at <= occupied_unit.affiliation.end_at):
-                            self.add_error('exhib_sectors', f'The selected sector {sector.name} has been occupied during the selected period.')
+                if sector.occupied_units.filter(
+                        affiliation_content_type=ContentType.objects.get_for_model(Exhibition)).exists():
+                    for occupied_unit in sector.occupied_units.filter(
+                            affiliation_content_type=ContentType.objects.get_for_model(Exhibition)):
+                        if (
+                                occupied_unit.affiliation.start_at <= exhib_start_at and exhib_start_at <= occupied_unit.affiliation.end_at) or (
+                                occupied_unit.affiliation.start_at <= exhib_end_at and exhib_end_at <= occupied_unit.affiliation.end_at):
+                            self.add_error('exhib_sectors',
+                                           f'The selected sector {sector.name} has been occupied during the selected period.')
                             break
 
         return cleaned_data

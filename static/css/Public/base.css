@@ -31,8 +31,8 @@ image, h1, h2, h3, h4, h5, h6 {
 /*--------------------------------------------------------------*/
 /* 基础导航栏样式 */
 .navbar {
-    background-color: #ececec; /* 深灰色背景 */
-    border-bottom: 3px solid #62da00; /* 添加一个橙色边框在底部 */
+    background-color: #ececec;
+    border-bottom: 3px solid #62da00;
     transition: background-color 0.3s;
 }
 

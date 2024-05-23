@@ -64,7 +64,7 @@ def delete_venue(request, venue_id):
     return JsonResponse({'success': 'Venue deleted successfully!'})
 
 
-def venue(request, venue_id): # TODO 在展览过期后, 将绑定的SpaceUnit的affiliation字段置空（启动定时任务）
+def venue(request, venue_id):  # TODO 在展览过期后, 将绑定的SpaceUnit的affiliation字段置空（启动定时任务）
     current_venue = Venue.objects.filter(id=venue_id).first()
     if current_venue is None:
         return redirect('Venue:home')
@@ -124,6 +124,7 @@ def venue(request, venue_id): # TODO 在展览过期后, 将绑定的SpaceUnit�
             initial={'affiliation_content_type': ContentType.objects.get_for_model(current_venue),
                      'affiliation_object_id': venue_id})
     })
+
 
 def refresh_data(request):
     if request.method == 'GET':

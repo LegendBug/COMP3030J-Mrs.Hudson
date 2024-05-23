@@ -38,11 +38,13 @@
                  style="height: 30px; margin-right: 10px;">
             Mrs. Hudson
         </a>
+
         <div class="breadcrumb-container">
             {% block breadcrumbs %}
                 <!-- 面包屑导航 -->
             {% endblock %}
         </div>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -50,7 +52,8 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="#" id="theme-toggle"><i class="fas fa-moon"></i> Theme</a>
+                    <a class="nav-link" href="#" id="theme-toggle"><i class="fas fa-moon"></i>
+                        Theme</a>
                 </li>
 
                 {% block extra_nav_icons %}
@@ -58,9 +61,7 @@
                 {% endblock %}
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'System:copilot' %}"><i class="fas fa-robot"></i>
-                        Watson
-                    </a>
+                    <a class="nav-link" href="{% url 'System:copilot' %}"><i class="fas fa-robot"></i> Watson</a>
                 </li>
                 {% if user.is_authenticated %}
                     {# TODO 有空把一个Inventory的主页写出来 #}
@@ -97,8 +98,6 @@
              style="display: none;"></div>
     {% endfor %}
 </div>
-
-
 
 
 <!-- 页面主体内容 -->
@@ -168,7 +167,7 @@
                 }
             });
         });
-        
+
         // 同步切换所有以 .card 开头的类
         document.querySelectorAll('[class*="card"]').forEach(el => {
             el.classList.forEach(className => {
