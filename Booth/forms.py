@@ -36,15 +36,17 @@ class BoothApplicationForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(BoothApplicationForm, self).__init__(*args, **kwargs)
         self.fields['booth_sector'].label_from_instance = lambda obj: f"{obj.name}"
-        # 设置Sectors为某一展览的SpaceUnit
+        # 设置Sectors选择范围为某一展览的SpaceUnit
         affiliation_object_id = self.initial.get('affiliation_object_id')
         affiliation_content_type = self.initial.get('affiliation_content_type')
         if affiliation_object_id and affiliation_content_type:
-            self.fields['booth_sector'].queryset = SpaceUnit.objects.filter(
+            sectors = SpaceUnit.objects.filter(
                 affiliation_object_id=affiliation_object_id,
-                affiliation_content_type=affiliation_content_type,
-                available=True
-            )
+                affiliation_content_type=affiliation_content_type).all()
+            inherit_from_sectors = [sector.inherit_from for sector in sectors]
+            # 遍历所有inherit_from_sectors，将其可用的子区域加入可选区域中
+            for sector in inherit_from_sectors:
+                self.fields['booth_sector'].queryset |= SpaceUnit.objects.filter(parent_unit=sector, available=True)
         else:
             self.fields['booth_sector'].queryset = SpaceUnit.objects.all()
 

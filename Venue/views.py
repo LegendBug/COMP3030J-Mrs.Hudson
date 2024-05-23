@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from Booth.models import Booth
 from Exhibition.forms import ExhibApplicationForm, FilterExhibitionsForm
 from Exhibition.models import Exhibition
+from Exhibition.views import cancel_exhibition
 from Layout.serializers import SpaceUnitSerializer
 from Venue.forms import CreateVenueForm
 from Venue.models import Venue
@@ -16,7 +17,7 @@ from django.contrib import messages
 def home(request):
     if request.method == 'GET':
         # GET请求，展示场馆列表和空的创建表单
-        venues = Venue.objects.all()
+        venues = Venue.objects.filter(is_deleted=False)
         form = CreateVenueForm()  # 创建一个空的表单实例
         return render(request, 'System/home.html',
                       {
@@ -63,7 +64,14 @@ def delete_venue(request, venue_id):
     venue = Venue.objects.filter(id=venue_id).first()
     if venue is None:
         return JsonResponse({'error': 'Venue not found!'}, status=404)
-    venue.delete()
+
+    for exhibition in venue.exhibitions.all():
+        cancel_exhibition(request, exhibition.id)  # 取消所有展览
+
+    # 逻辑删除当前场馆
+    venue.is_deleted = True
+    venue.save()
+
     return JsonResponse({'success': 'Venue deleted successfully!'})
 
 

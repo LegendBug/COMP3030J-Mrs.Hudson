@@ -30,6 +30,9 @@
 
 
 <body>
+{#隐藏的csrf_token，在其他页面中不再需要添加csrf_token#}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
 <div id="main-wrapper">
     <!-- 导航栏 -->
     <nav class="navbar navbar-expand-lg">

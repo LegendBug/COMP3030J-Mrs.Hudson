@@ -20,9 +20,9 @@ def booth(request, booth_id):
             else:
                 return redirect('Venue:home')
         request.session['booth_id'] = booth_id  # 将booth_id存入session
-        application = current_booth.exhibition_application
+        application = current_booth.booth_application
         if application.stage == Application.Stage.CANCELLED or application.stage == Application.Stage.REJECTED:
-            return redirect('Venue:venue', venue_id=current_booth.exhibition.venue.pk)
+            return redirect('Exhibition:exhibition', exhibition_id=current_booth.exhibition.pk)
 
         # 判断当前是否为展览的拥有者
         user_type = request.session.get('user_type', '')
@@ -94,8 +94,10 @@ def cancel_booth(request, booth_id):
         if booth_id is None or application is None:
             return JsonResponse({'error': 'Booth not found'}, status=404)
 
+        if hasattr(request.user, 'manager'):
+            pass
         # 自动结束，展览结束时间已经过了
-        if booth.end_at < timezone.now():
+        elif booth.end_at < timezone.now():
             pass
         # 手动取消，申请处于初始提交阶段
         elif application.stage == Application.Stage.INITIAL_SUBMISSION:
