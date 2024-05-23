@@ -19,9 +19,12 @@ def home(request):
         venues = Venue.objects.all()
         form = CreateVenueForm()  # 创建一个空的表单实例
         return render(request, 'Venue/home.html',
-                      {'venues': venues, 'user_type': request.session.get('user_type', 'Guest'),
-                       'messages': messages.get_messages(request),
-                       'form': form})
+                      {
+                          'venues': venues,
+                          'user_type': request.session.get('user_type', 'Guest'),
+                          'messages': messages.get_messages(request),
+                          'form': form
+                      })
     else:  # POST请求
         if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
             return JsonResponse({'error': 'Permission denied!'}, status=403)
@@ -70,7 +73,7 @@ def venue(request, venue_id):  # TODO 在展览过期后, 将绑定的SpaceUnit�
         return redirect('Venue:home')
     request.session['venue_id'] = venue_id  # 将venue_id存入session
 
-    user_type = request.session.get('user_type', 'Guest')
+    user_type = request.session.get('user_type', '')
     exhibitions = None
     if request.method == 'GET':
         # 筛选end_at在今日或者今日之后的展会,并按照从最近开始到最远开始的顺序排序
@@ -96,6 +99,8 @@ def venue(request, venue_id):  # TODO 在展览过期后, 将绑定的SpaceUnit�
             continue
         elif stage == 'ACCEPTED':
             stage = '✅ ACCEPTED'
+        elif stage == 'CANCELLED':
+            stage = '❌ CANCELLED'
         elif exhibition.end_at < timezone.now():  # 展览已结束
             stage = '🔴 OUTDATED'
         elif exhibition.start_at < timezone.now() < exhibition.end_at:  # 展览进行中

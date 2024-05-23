@@ -59,7 +59,7 @@ class ExhibitionApplication(Application):
     # 更改related_name，避免与其它application冲突
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                   related_name='exhibition_applications')
-    # 某个展览被删除后，申请同时被删除
+    # 注：展览不应该被删除
     exhibition = models.OneToOneField("Exhibition", on_delete=models.CASCADE, null=True,
                                       related_name='exhibition_application')
     # 某个消息被删除后，申请不会被删除

@@ -80,11 +80,19 @@
                 📦
             </a>
         {% endif %}
-        <a class="btn btn-success rounded-circle shadow" id="filter-booths-btn"
-           style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-           @click="openFilterModal;" title="Filter Booths">
-            <i class="fas fa-filter mt-1"></i>
-        </a>
+        {% if is_owner %}
+            <a @click="cancelExhibition()" class="btn btn-success rounded-circle shadow" id="cancelExhibition"
+               style="background-color: #c9302c;border: #c9302c; position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+               title="Cancel Exhibition">
+                ❌
+            </a>
+        {% endif %}
+
+        {#        <a class="btn btn-success rounded-circle shadow" id="filter-booths-btn"#}
+        {#           style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"#}
+        {#           @click="openFilterModal;" title="Filter Booths">#}
+        {#            <i class="fas fa-filter mt-1"></i>#}
+        {#        </a>#}
 
         <!-- 展览列表 -->
         <div class="table-responsive" style="margin: 1rem; user-select: none">
@@ -182,6 +190,40 @@
 
 {% block scripts %}
     <script>
+        // 取消展会
+        function cancelExhibition() {
+            const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
+            const url = `{% url 'Exhibition:cancel_exhibition' 999 %}`.replace('999', {{ exhibition.pk }});
+            const container = document.getElementById('application-container');
+
+            // 显示确认对话框
+            const confirmed = window.confirm("Are you sure you want to cancel the exhibition?\n\nThis action cannot be undone! 😱");
+
+            if (confirmed) {
+                axios.post(url, {}, {
+                    headers: {
+                        'X-CSRFToken': token  // 请求头中包含 CSRF 令牌
+                    }
+                }).then(response => {
+                    if (response.data.success) {
+                        container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                        setTimeout(() => {
+                            window.location.href = `{% url 'Venue:home' %}`;
+                        }, 1500);
+                    } else {
+                        container.innerHTML = `<div class="alert alert-danger">${response.data.error}</div>`;
+                        container.style.display = 'block';  // 确保消息容器可见
+                    }
+                })
+                    .catch(error => {
+                        // 记录或处理错误
+                        console.error(error);
+                        container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                        container.style.display = 'block';  // 确保消息容器可见
+                    });
+            }
+        }
+
         new Vue({
             el: '#exhibition-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
