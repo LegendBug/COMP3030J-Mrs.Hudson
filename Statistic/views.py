@@ -1,12 +1,13 @@
 import json
-
+import os
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework import status
-
+from torchvision.io.image import read_image
 from Inventory.views import get_all_venues_monthly_consumption, get_monthly_consumption
-from Layout.models import SpaceUnit, KonvaElement
+from Layout.models import SpaceUnit
 from Layout.serializers import SpaceUnitSerializer
-from Statistic.models import Monitor
+from Statistic.models import Monitor, Capture
 from Venue.models import Venue
 import torch
 from torchvision.models.detection import fasterrcnn_resnet50_fpn_v2, FasterRCNN_ResNet50_FPN_V2_Weights
@@ -118,7 +119,7 @@ preprocess = None
 def load_model():
     global model, preprocess, weights
     if model is None:
-        model_path = '../static/model/fasterrcnn_resnet50_fpn_v2_coco.pth'
+        model_path = os.path.join(settings.BASE_DIR, 'static', 'model', 'fasterrcnn_resnet50_fpn_v2_coco.pth')
         model = fasterrcnn_resnet50_fpn_v2(weights=None, box_score_thresh=0.01)
         model.load_state_dict(torch.load(model_path))
         model.eval()
@@ -127,35 +128,75 @@ def load_model():
 
 
 @csrf_exempt
-def recognize_flow(request):
+def recognize_flow(request):  # {url (Statistic:recognize_flow)}
     if request.method == 'POST' and request.FILES.get('image'):
         load_model()  # 确保模型已经加载
 
         uploaded_image = request.FILES['image']
+        img = Image.open(uploaded_image).convert("RGB")
 
-        # 将上传的图像转换为 PIL 图像
-        img = Image.open(uploaded_image)
-        img = img.convert("RGB")
-
-        # 将 PIL 图像转换为张量
-        img_tensor = preprocess(img)
+        # 将 PIL 图像转换为张量并进行预处理
+        img_tensor = preprocess(img).float()
 
         # 进行推理
         with torch.no_grad():
             prediction = model([img_tensor])[0]
+
         labels = [weights.meta["categories"][i] for i in prediction["labels"]]
 
         # 统计person实例的数量
-        person_count = sum([1 for label in prediction["labels"] if label == 1])  # 假设标签1对应“person”
+        person_count = sum(1 for label in prediction["labels"] if label == 1)
 
-        # 在图像上绘制边界框
-        boxes = draw_bounding_boxes(img_tensor, boxes=prediction["boxes"], labels=labels, colors="red", width=4)
-        result_img = to_pil_image(boxes.detach())
+        # 在图像上绘制边界框之前，将图像张量转换回uint8
+        img_uint8 = (img_tensor * 255).byte()  # 假设img_tensor已经归一化到[0, 1]
+
+        # 绘制边界框
+        boxes = draw_bounding_boxes(img_uint8, boxes=prediction["boxes"], labels=labels, colors="red", width=4)
+        result_img = to_pil_image(boxes)
 
         # 将图像转换为 base64 编码
         buffer = io.BytesIO()
         result_img.save(buffer, format="JPEG")
         img_str = base64.b64encode(buffer.getvalue()).decode()
+
+        # 返回包含 base64 图像和行人数目的 JSON 响应
+        return JsonResponse({'image': img_str, 'person_count': person_count})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def capture(request, monitor_id):
+    if request.method == 'POST' and request.FILES.get('image'):
+        load_model()  # 确保模型已经加载
+
+        monitor = get_object_or_404(Monitor, id=monitor_id)
+        uploaded_image = request.FILES['image']
+        img = Image.open(uploaded_image).convert("RGB")
+
+        # 将 PIL 图像转换为张量并进行预处理
+        img_tensor = preprocess(img).float()
+
+        # 进行推理
+        with torch.no_grad():
+            prediction = model([img_tensor])[0]
+
+        labels = [weights.meta["categories"][i] for i in prediction["labels"]]
+
+        # 统计person实例的数量
+        person_count = sum(1 for label in prediction["labels"] if label == 1)
+
+        # 在图像上绘制边界框之前，将图像张量转换回uint8
+        img_uint8 = (img_tensor * 255).byte()  # 假设img_tensor已经归一化到[0, 1]
+
+        # 绘制边界框
+        boxes = draw_bounding_boxes(img_uint8, boxes=prediction["boxes"], labels=labels, colors="red", width=4)
+        result_img = to_pil_image(boxes)
+
+        # 将图像转换为 base64 编码
+        buffer = io.BytesIO()
+        result_img.save(buffer, format="JPEG")
+        img_str = base64.b64encode(buffer.getvalue()).decode()
+
+        # 创建Capture记录
+        Capture.objects.create(monitor=monitor, flow_number=person_count)
 
         # 返回包含 base64 图像和行人数目的 JSON 响应
         return JsonResponse({'image': img_str, 'person_count': person_count})
@@ -228,7 +269,6 @@ def synchronize_monitors_data(request):  # 该方法与edit_element方法的区�
         recursively_update(root_data)
         return JsonResponse({'success': 'The data has been successfully synchronized!'}, status=200)
     return JsonResponse({'error': 'Invalid request'}, status=400)
-
 
 @csrf_exempt
 def add_monitor(request):
