@@ -9,7 +9,7 @@ class LoginRequiredMiddleware:
 
     def __call__(self, request):
         # 允许特定路由不通过登录验证，例如登录页
-        allowed_paths = [reverse('User:login'), reverse('User:register'), reverse('Venue:home')]
+        allowed_paths = [reverse('User:login'), reverse('User:register'), reverse('Venue:home'), reverse('User:welcome')]
         if request.path.startswith(settings.MEDIA_URL) or request.path in allowed_paths:
             return self.get_response(request)
 

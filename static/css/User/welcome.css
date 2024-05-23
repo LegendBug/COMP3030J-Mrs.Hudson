@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display&family=Roboto&display=swap');
+
+body {
+    background: linear-gradient(rgba(224, 224, 224, 0.4), rgba(205, 205, 205, 0.5)), url('../../images/User/background.jpg') no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    font-family: 'Roboto', sans-serif;
+}
+
+.welcome-section {
+    font-family: 'Roboto', sans-serif;
+}
+
+.banner, .section {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.left-image, .right-image {
+    width: 50%;
+    max-width: 600px;
+}
+
+.left-image {
+    order: 1;
+}
+
+.right-image {
+    order: 2;
+}
+
+.left-text, .right-text {
+    padding: 20px;
+    flex: 1;
+}
+
+.left-text {
+    order: 2;
+}
+
+.right-text {
+    order: 1;
+}
+
+.banner .text h1, .section .text h2, h1, h2 {
+    font-size: 2.5em;
+    color: #dab86e; /* 调整标题颜色为较深的冷色 */
+    font-family: 'Playfair Display', serif;
+    font-weight: bold; /* 标题加粗 */
+}
+
+.section .text h2 {
+    font-size: 2em;
+}
+
+.banner .text p, .section .text ul, p, li {
+    font-size: 1.3em;
+    color: #607180; /* 调整正文颜色为较深的冷色 */
+}
+
+ul {
+    padding-left: 20px;
+    list-style-type: disc;
+}
+
+.container {
+    padding-top: 20px;
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+.platform-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 4em;
+    color: #3d7055;
+    font-weight: bold;
+}
+
+.btn-custom {
+    background-color: transparent;
+    color: #34495E;
+    border: 1px solid #34495E;
+    padding: 10px 20px;
+    font-size: 1.1em;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.btn-custom:hover {
+    background-color: #34495E;
+    color: #fff;
+}

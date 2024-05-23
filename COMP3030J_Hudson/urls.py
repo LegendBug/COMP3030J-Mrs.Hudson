@@ -13,7 +13,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 # 当settings.py的DEBUG为True时, handler404不会生效, 因为Django要暴露错误信息以方便开发者调试
 handler404 = 'System.views.custom_404_interceptor'  # 该行代码用于无效页面的重定向
 
-urlpatterns = [path('', RedirectView.as_view(pattern_name='User:login', permanent=False)),
+urlpatterns = [path('', RedirectView.as_view(pattern_name='User:welcome', permanent=False)),
                path('admin/', admin.site.urls),
                path('Inventory/', include(('Inventory.urls', 'Inventory'), namespace='Inventory')),
                path('Layout/', include(('Layout.urls', 'Layout'), namespace='Layout')),
