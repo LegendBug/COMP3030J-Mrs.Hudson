@@ -4,43 +4,43 @@
     width: 200px; /* 菜单宽度 */
     z-index: 3000; /* 设置较高的z-index值 */
     background-color: white;
-    border: 1px solid #ddd;  /* 浅灰色边框 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 较明显的阴影 */
-    border-radius: 0.25rem;  /* 轻微的圆角 */
+    border: 1px solid #ddd; /* 浅灰色边框 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 较明显的阴影 */
+    border-radius: 0.25rem; /* 轻微的圆角 */
 }
 
 /* 调整Offcanvas */
 .offcanvas-header {
-    background-color: #f8f9fa;  /* 浅灰色背景 */
-    border-bottom: 1px solid #dee2e6;  /* 底部边框 */
-    padding: 0.75rem 1rem;  /* 内边距调整 */
+    background-color: #f8f9fa; /* 浅灰色背景 */
+    border-bottom: 1px solid #dee2e6; /* 底部边框 */
+    padding: 0.75rem 1rem; /* 内边距调整 */
 }
 
 .offcanvas-body {
-    padding: 15px;  /* 更大的内边距 */
-    background-color: #ffffff;  /* 白色背景 */
-    color: #495057;  /* 深灰色文本，增加对比 */
+    padding: 15px; /* 更大的内边距 */
+    background-color: #ffffff; /* 白色背景 */
+    color: #495057; /* 深灰色文本，增加对比 */
 }
 
 
 /* 调整Accordion */
 .accordion-button {
-    background-color: #e9ecef;  /* 浅灰色背景 */
-    color: #495057;  /* 深灰色文本 */
-    border: 1px solid #dee2e6;  /* 细边框 */
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);  /* 轻微的阴影 */
-    padding: 0.75rem 1.25rem;  /* 内边距调整 */
-    transition: background-color 0.3s ease;  /* 平滑的背景色过渡 */
+    background-color: #e9ecef; /* 浅灰色背景 */
+    color: #495057; /* 深灰色文本 */
+    border: 1px solid #dee2e6; /* 细边框 */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* 轻微的阴影 */
+    padding: 0.75rem 1.25rem; /* 内边距调整 */
+    transition: background-color 0.3s ease; /* 平滑的背景色过渡 */
 }
 
 .accordion-button:not(.collapsed) {
-    background-color: #d1e7dd;  /* 展开时的背景颜色 */
-    color: #0f5132;  /* 展开时的文本颜色 */
+    background-color: #d1e7dd; /* 展开时的背景颜色 */
+    color: #0f5132; /* 展开时的文本颜色 */
 }
 
 .accordion-item {
-    border-bottom: 1px solid #dee2e6;  /* 每个项底部边框 */
-    margin-bottom: 0.5rem;  /* 项间距 */
+    border-bottom: 1px solid #dee2e6; /* 每个项底部边框 */
+    margin-bottom: 0.5rem; /* 项间距 */
 }
 
 .accordion-collapse.collapse {
@@ -48,13 +48,12 @@
 }
 
 .accordion-header {
-    margin: 0;  /* 确保没有外边距 */
+    margin: 0; /* 确保没有外边距 */
 }
 
-
 .list-group-item-action:hover {
-    background-color: #f8f9fa;  /* 鼠标悬浮背景颜色 */
-    color: #212529;  /* 鼠标悬浮文本颜色 */
+    background-color: #f8f9fa; /* 鼠标悬浮背景颜色 */
+    color: #212529; /* 鼠标悬浮文本颜色 */
 }
 
 /* 确保动画和过渡的平滑性 */
@@ -62,6 +61,7 @@
     transition: all 0.2s ease-in-out;
 }
 
+/* 调整画板容器的样式 */
 #konva-container {
     position: relative;
     height: 90vh;
@@ -70,10 +70,10 @@
     overflow: hidden; /* 防止内容溢出 */
     margin: 2.5vh auto 0; /* Centers it vertically with top margin */
 
-    border: 1px solid #ccc;  /* 浅灰色边框 */
-    background-color: #fff;  /* 白色背景 */
-    border-radius: 10px;  /* 圆角边框 */
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);  /* 轻微阴影 */
+    border: 1px solid #ccc; /* 浅灰色边框 */
+    background-color: #fff; /* 白色背景 */
+    border-radius: 10px; /* 圆角边框 */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
 
     background-image: url('../../images/Layout/Grid_Blue.jpg'); /* 确保路径正确 */
     background-size: cover; /* 覆盖整个容器 */
@@ -81,6 +81,7 @@
     background-repeat: no-repeat;
 }
 
+/* 调整画板上方Venue名和选区按钮的样式 */
 #venue-header {
     width: 100%; /* 确保header占满整个容器宽度 */
     display: flex;
@@ -103,10 +104,9 @@
 }
 
 
-
 /*控制监控面板的样式*/
 .table-responsive {
-    background: linear-gradient(#00397311, #00336311);  /* 使用深蓝到浅蓝的渐变背景 */
+    background: linear-gradient(#00397311, #00336311); /* 使用深蓝到浅蓝的渐变背景 */
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
@@ -126,7 +126,7 @@
 
 thead {
     color: #fff; /* 表头字体颜色 */
-    background: rgba(0,0,0,0.4); /* 表头背景色 */
+    background: rgba(0, 0, 0, 0.4); /* 表头背景色 */
 }
 
 tbody td {
@@ -160,3 +160,27 @@ td a {
 td a:hover {
     color: #FFFFFF;
 }
+
+.custom-modal {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center; /* 居中对齐 */
+}
+
+.api-endpoint {
+    font-size: 16px;
+    font-weight: bold; /* 加粗 */
+}
+
+.api-endpoint a {
+    color: #17a2b8;
+}
+
+.test-recognition {
+    font-size: 18px;
+    font-weight: bold; /* 加粗 */
+    color: #007bff;
+}
+

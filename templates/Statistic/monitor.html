@@ -122,7 +122,7 @@
             </div>
         </div>
         
-        <monitor-list :monitors="monitors"></monitor-list>
+        <monitor-list :monitors="monitors" @open-api-modal="openApiDemoModal"></monitor-list>
 
         <!-- Set Monitor Properties Modal -->
         <div class="modal fade" id="elementPropertiesModal" tabindex="-1" aria-labelledby="elementPropertiesModalLabel"
@@ -207,6 +207,48 @@
                 </div>
             </div>
         </div>
+        
+        <!-- API Usage Modal -->
+        <div class="modal fade" id="apiDemoModal" tabindex="-1" aria-labelledby="apiDemoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="apiDemoModalLabel">API Usage Information</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container">
+                            <div class="card custom-modal"> <!-- 使用Card包裹 -->
+                                <p class="text-muted lead">The pictures captured by the camera are sent to the corresponding API, and the deep learning model on the back end will process the pictures and count the traffic in the pictures.</p>
+
+                                <div class="card-body">
+                                  <p class="api-endpoint mb-2">You can use the API endpoint below to send images:</p>
+                                  <p class="api-endpoint mb-4">POST: <a href="#" class="text-info"> https://hostname/Statistic/monitor/capture/[monitor_id]/</a></p>
+                                </div>
+
+                                <p class="test-recognition mt-4 mb-3">Test the recognition effect of the model by uploading a crowd picture of the venue below:</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Image upload area -->
+                        <div class="card border-primary mb-3" style="cursor: pointer;">
+                            <div class="card-body text-center" @click="$refs.fileInput.click()">
+                                <i class="fas fa-upload fa-2x text-primary"></i>
+                                <p class="card-text text-secondary">Click or drag and drop an image here to upload.</p>
+                                <input ref="fileInput" type="file" @change="handleFileUpload" accept="image/*" class="d-none" id="file-upload">
+                            </div>
+                        </div>
+                        
+                        <!-- Display processed image and results -->
+                        <div v-if="processedImage">
+                            <p class="mt-2" style="text-align: center"><strong>Detected persons:</strong> [[ personCount ]]</p>
+                            <img :src="'data:image/jpeg;base64,' + processedImage" alt="Processed Image" class="img-fluid">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
     </div>
 
@@ -226,22 +268,39 @@
                             <th>Monitor Name</th>
                             <th>Sector</th>
                             <th>Status</th>
-                            <th>API Url</th>
+                            <th>API Url <i class="fas fa-question-circle" data-bs-toggle="modal" data-bs-target="#apiModal" @click="openApiDemoModal"></i></th>
                         </tr> 
                         </thead>
                         <tbody>
-                        <tr v-for="monitor in monitors" :key="monitor.id" style="cursor: pointer;">
+                        <tr v-for="monitor in monitors" :key="monitor.id" @click="editMonitor(monitor)" style="cursor: pointer;">
                             <td><img :src="monitor.image" alt="No image" class="monitor-img" style="width: 100px; height: 80px;"></td>
                             <td>[[monitor.name]]</td>
                             <td>[[ monitor.layer.name ]]</td>
-                            <td>[[ monitor.is_online]]</td>
-                            <td>https://hostname/Statistic/monitor/capture/[[monitor.id]]/</td>
+                            <td>[[ monitor.is_online ? 'Online' : 'Offline' ]]</td>
+                            <td>POST: <a href='#'>https://hostname/Statistic/monitor/capture/[[monitor.id]]/</a> </td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
             `,
-            
+            methods: {
+                openApiDemoModal() {
+                    this.$emit('open-api-modal');
+                },
+                
+                editMonitor(monitor) {
+                    this.$emit('update-current-element', monitor);
+                    // 设置表单字段的值
+                    setTimeout(() => {
+                        const attrs = JSON.parse(monitor.data).attrs;
+                        document.getElementById('editedElementName').value = monitor.name;
+                        document.getElementById('editedTransformable').checked = monitor.transformable;
+                        document.getElementById('editedIsOnline').checked = monitor.is_online;
+                        document.getElementById('editedDraggable').checked = attrs.draggable;
+                    }, 0); // 使用 setTimeout 确保在 Vue 的 DOM 更新完成后设置表单值
+                    $('#editElementPropertiesModal').modal('show');
+                },
+            }
         });
     
         Vue.component('layer-component', {
@@ -450,6 +509,8 @@
                 monitorImageUrl: "{% static 'data/Monitor/monitor.png' %}",
                 imageSrc: null, // 存储上传的图像的Data URL, 这用于在添加图像元素时直接在画板上显示图像
                 elementProps: null,
+                processedImage: null,
+                personCount: 0
             },
             mounted() {
                 this.refreshData()
@@ -902,7 +963,7 @@
                     };
                 },
 
-                // ----------------- Offcanvas ------------------
+                // ----------------- Offcanvas -------------------------
 
                 toggleOffcanvas() { // 控制 Offcanvas 的显示与隐藏
                     this.offcanvasOpen = !this.offcanvasOpen;
@@ -928,6 +989,42 @@
                     console.log('Setting current element:', element);
                     this.currentElement = element;
                 },
+                
+                // ----------------- API Demo Modal的相关方法 -------------------
+                
+                openApiDemoModal() {
+                    let apiDemoModal = new bootstrap.Modal(document.getElementById('apiDemoModal'), {
+                        keyboard: false
+                    });
+                    apiDemoModal.show();
+                },
+                
+                handleFileUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    this.uploadImageToServer(file);
+                },
+                
+                uploadImageToServer(file) {
+                    const formData = new FormData();
+                    formData.append('image', file);
+        
+                    axios.post('{% url 'Statistic:recognize_flow' %}', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    })
+                    .then(response => {
+                        if (response.data.image) {
+                            this.processedImage = response.data.image;
+                            this.personCount = response.data.person_count;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error processing image:', error);
+                    });
+                },
+                
             }
         });
 

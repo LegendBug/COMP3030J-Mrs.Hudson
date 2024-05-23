@@ -152,6 +152,11 @@ GRAPH_MODELS = {  # python manage.py graph_models -a -o ER_Diagram.png
 # 配置CORS:
 CORS_ALLOW_ALL_ORIGINS = True
 
+# 增加允许的上传文件大小
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 这里设置为10MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 同样设置为10MB
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True  # 为True时, 404拦截器将不会生效, 这样便于debug
 # DEBUG = False  # 当 DEBUG 设置为 True 时，Django 会自动服务静态文件，但在生产环境中，你应该通过 Web 服务器来处理静态文件的服务。确保在生产环境将 DEBUG 设置为 False 并正确配置静态文件服务

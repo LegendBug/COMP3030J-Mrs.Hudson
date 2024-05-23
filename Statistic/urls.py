@@ -8,6 +8,7 @@ urlpatterns = [
     path('get_consumption_data_by_venue/<str:venue_name>/<int:year>/', views.get_consumption_data_by_venue, name='get_consumption_data_by_venue'),
 
     path('recognize_flow/', views.recognize_flow, name='recognize_flow'),
+    path('monitor/capture/<int:monitor_id>/', views.capture, name='capture'),
     path('monitor_venue/', views.monitor_venue, name='monitor_venue'),
     path('refresh_data/', views.refresh_data, name='refresh_data'),
     path('synchronize_monitors_data/', views.synchronize_monitors_data, name='synchronize_monitors_data'),
