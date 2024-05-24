@@ -187,7 +187,8 @@ def category_detail_view(request, category_id):
         'user_type': user_type,
         'origin': category.origin.name,
         'space_type': space_type,
-        'space_id': space_id
+        'space_id': space_id,
+        'locations': items.first().affiliation.sectors.all(),
     })
 
 
@@ -252,7 +253,6 @@ def edit_item(request, item_id):
             'is_damaged': item.is_damaged,
             'power': item.power,
             'water_consumption': item.water_consumption,
-            'location': item.location_id,
         }
         return JsonResponse(data)
 
