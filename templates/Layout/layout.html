@@ -480,14 +480,17 @@
                   <button class="accordion-button" type="button"
                           @contextmenu.prevent="openContextMenu($event)"
                           style="background-color: #c3dcf6;">
+                    <i class="fas fa-cogs" style="margin-right: 5px;"></i>
                     [[ element.name ]]
                   </button>
                 </h2>
                 <!-- 上下文菜单 -->
                 <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
                      class="list-group context-menu">
-                    <a class="list-group-item list-group-item-action" @click="openEditElement(element); closeContextMenu()">Edit Element</a>
-                    <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Delete Item</a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="openEditElement(element); closeContextMenu()">Edit Element</a>
+                  <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Delete
+                    Item</a>
                 </div>
               </div>
             `,

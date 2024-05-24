@@ -5,7 +5,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
 
-
 class Chat(models.Model):
     USER = 'USER'
     ASSISTANT = 'ASSISTANT'
@@ -22,6 +21,7 @@ class Chat(models.Model):
     user_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='chats')
     user_object_id = models.PositiveIntegerField()
     user = GenericForeignKey('user_content_type', 'user_object_id')
+
 
 class Conversation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

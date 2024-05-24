@@ -45,7 +45,8 @@ class MessageDetail(models.Model):
     message = models.ForeignKey("Message", on_delete=models.CASCADE, related_name='related_detail')
     # 设置泛型关系
     application_object_id = models.PositiveIntegerField(null=True, blank=True)
-    application_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True,) # limit_choices_to={'model__in': 'exhibition_application'}
+    application_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True,
+                                                 blank=True, )  # limit_choices_to={'model__in': 'exhibition_application'}
     application = GenericForeignKey('application_content_type', 'application_object_id')
 
 
