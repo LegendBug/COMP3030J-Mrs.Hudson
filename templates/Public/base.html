@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- 导入 Material Icons 字体 -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <!-- 导入静态资源 -->
     <link rel="stylesheet" href="{% static 'css/Public/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/Public/sidebar.css' %}">
@@ -34,12 +34,13 @@
 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
 <div id="main-wrapper">
+
     <!-- 导航栏 -->
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'User:welcome' %}">
                 <img id="logo-image" src="{% static 'images/Public/hudson.png' %}" alt="Hudson Logo"
-                     style="height: 30px; margin-right: 10px;">
+                     style="height: 50px; margin-right: 10px;">
                 Mrs. Hudson
             </a>
 

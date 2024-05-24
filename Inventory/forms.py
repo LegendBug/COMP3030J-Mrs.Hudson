@@ -1,16 +1,10 @@
-from django import forms
 from django.db import transaction
 from django.db.models import Count
 from django.utils.timezone import now
-
-from Booth.models import Booth
-from Exhibition.models import Exhibition
 from Inventory.models import InventoryCategory, Item
 from django.contrib.contenttypes.models import ContentType
 from django import forms
-
 from Statistic.models import Usage
-from . import models
 from .models import Item
 
 
@@ -146,7 +140,7 @@ class EditItemForm(forms.ModelForm):
         return instance
 
 
-class ResApplicationForm(forms.Form):
+class ResApplicationForm(forms.Form): # TODO 目前的问题是, 只有Exhibitor才能创建资源申请, 而Organizer不行
     # 关联的场馆ID
     booth_id = forms.IntegerField(widget=forms.HiddenInput())
     category = forms.ModelChoiceField(

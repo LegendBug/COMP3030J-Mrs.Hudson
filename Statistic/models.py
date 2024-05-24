@@ -28,6 +28,7 @@ class Monitor(models.Model):
 
 
 class Capture(models.Model):
-    time = models.DateTimeField(auto_now_add=True)
+    # time = models.DateTimeField(auto_now_add=True)
+    time = models.DateTimeField()
     monitor = models.ForeignKey("Statistic.Monitor", on_delete=models.CASCADE, related_name='captures')
     flow_number = models.IntegerField()
