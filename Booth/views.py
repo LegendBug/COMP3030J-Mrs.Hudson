@@ -27,12 +27,13 @@ def booth(request, booth_id):
         # 判断当前是否为展览的拥有者(管理员，申请者或该展览的举办方)
         user_type = request.session.get('user_type', '')
         if (user_type != 'Manager'
-                or request.user != current_booth.exhibition.organizer.detail
-                or request.user == application.applicant):
+                and request.user != current_booth.exhibition.organizer.detail
+                and request.user != application.applicant):
             is_owner = False
         else:
             is_owner = True
 
+        print(is_owner)
         return render(request, 'System/booth.html', {
             'booth': current_booth,
             'sectors': current_booth.sectors.all(),

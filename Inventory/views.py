@@ -42,8 +42,9 @@ def inventory(request, space_type, space_id):
         # 管理员，展览的申请者，展台的申请者可以访问
         current_space = Booth.objects.filter(pk=space_id).first()
         owner = current_space.exhibitor.detail
-        if (user_type in ['Organizer', 'Exhibitor'] and
-                (request.user != current_space.exhibition.organizer.detail or request.user != owner)):
+        if (user_type in ['Organizer', 'Exhibitor']
+                and request.user != current_space.exhibition.organizer.detail
+                and request.user != owner):
             return JsonResponse({'error': 'Permission denied!'}, status=403)
         elif request.user == owner:
             affiliation_type = ContentType.objects.get_for_model(Venue)
