@@ -123,7 +123,8 @@ def inventory(request, space_type, space_id):
         elif request.user == owner:
             affiliation_type = ContentType.objects.get_for_model(Venue)
             application_form = ResApplicationForm(
-                initial={'origin_content_type': affiliation_type, 'origin_object_id': current_space.pk})
+                initial={'origin_content_type': affiliation_type,
+                         'origin_object_id': current_space.exhibition.venue.pk})
     else:
         return JsonResponse({'error': 'Invalid space type!'}, status=400)
 
@@ -143,7 +144,28 @@ def inventory(request, space_type, space_id):
     # GET请求处理展示库存
     else:
         # 通过当前访问的Space的所有category
-        current_categories = current_space.inventory_categories.all()
+        # current_categories = current_space.inventory_categories.all()
+
+        # 通过当前访问的Venue/Exhibition/Booth中的所有Item,获取所有的Category并统计每个Category下的Item数量
+        current_items = current_space.items.all()
+        current_categories = {}
+        for current_item in current_items:
+            # 如果current_item.category不在current_categories中,则添加如果current_item.category进入字典,并为其值初始化为1
+            if current_item.category not in current_categories:
+                current_categories[current_item.category] = 1
+            else:
+                current_categories[current_item.category] = current_categories[current_item.category] + 1
+        # 查找那些origin为当前访问的Venue/Exhibition/Booth的InventoryCategory,并统计它们的数量, 以避免这些Category被重复创建
+        existing_categories = current_space.inventory_categories.all()
+        for existing_category in existing_categories:
+            if existing_category not in current_categories:
+                current_categories[existing_category] = 0
+        # 将字典中的Category按照名称排序后存入数组,同时为每个Category添加一个quantity属性来记录该Category下的Item数量
+        categories = []
+        for category, quantity in current_categories.items():
+            category.items_quantity = quantity
+            categories.append(category)
+
         create_inventory_form = CreateInventoryCategoryForm(origin=current_space, initial={'user_type': user_type})
 
         return render(request, 'System/inventory.html',
@@ -153,13 +175,12 @@ def inventory(request, space_type, space_id):
                           'current_space': current_space,
                           'space_type': space_type,
                           'space_id': space_id,
-                          'categories': current_categories,
+                          'categories': categories,
                           'create_inventory_form': create_inventory_form,
                           'application_form': application_form
                       })
 
 
-# TODO 根据用户是否为所有者,来决定是否可以编辑库存类别(为item加上创建人的信息)
 def category_detail_view(request, category_id):
     user_type = request.session.get('user_type', 'Guest')
     category = InventoryCategory.objects.filter(pk=category_id).first()
@@ -319,11 +340,9 @@ def create_res_application(request):
             new_message = Message.objects.create(title='New Resource Application for ' + category.name,
                                                  sender=request.user, recipient=Manager.objects.first().detail)
             application_type = ContentType.objects.get_for_model(new_res_application)
-            new_message_detail = MessageDetail.objects.create(message=new_message, content=content,
+            MessageDetail.objects.create(message=new_message, content=content,
                                                               application_object_id=new_res_application.id,
                                                               application_content_type=application_type)
-            new_message.detail = new_message_detail
-            new_message.save()
             return JsonResponse({'success': 'Resource application created successfully!'}, status=200)
         except Exception as e:
             print(e)

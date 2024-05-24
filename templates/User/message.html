@@ -99,17 +99,17 @@
         {% else %}
             <!-- 无消息说明 -->
             <div class="message-info mt-4 ms-5">
-            {% if item_type == 'unread' %}
-                <p class="message-info">Great job. All messages have been addressed 👍</p>
-            {% elif item_type == 'inbox' %}
-                <p class="message-info">No message received yet 😌</p>
-            {% elif item_type == 'sent' %}
-                <p class="message-info">No sent messages 😲</p>
-            {% elif item_type == 'applications' %}
-                <p class="message-info">No Applications 😇</p>
-            {% endif %}
+                {% if item_type == 'unread' %}
+                    <p class="message-info">Great job. All messages have been addressed 👍</p>
+                {% elif item_type == 'inbox' %}
+                    <p class="message-info">No message received yet 😌</p>
+                {% elif item_type == 'sent' %}
+                    <p class="message-info">No sent messages 😲</p>
+                {% elif item_type == 'applications' %}
+                    <p class="message-info">No Applications 😇</p>
+                {% endif %}
+            </div>
         {% endif %}
-        </div>
     </div>
 
     {#回复消息模态框#}
@@ -139,6 +139,7 @@
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
                 let currentId = null;
+                let currentType = null;
                 const currentMessageType = '{{ item_type }}';  // 获取当前消息类型
 
                 function openReplyModal() {
@@ -149,6 +150,7 @@
                 <!-- 加载消息详情 -->
                 function loadMessageDetail(messageId, url) {
                     currentId = messageId; // Store message ID when loading details
+                    console.log('message_currentId', currentId);
                     axios.get(url)
                         .then(response => {
                             const data = response.data;
@@ -157,8 +159,10 @@
                                 replyButtonHtml = `<button onclick="openReplyModal()" class="btn btn-success mt-3">Reply</button>`;
                             }
                             // 关联申请
-                            console.log('message related application', data.application_type, data.application_id);
-                            let application_url = '{% url 'User:view_application_detail' 'exhibition' 999 %}'.replace('exhibition', data.application_type).replace('999', data.application_id);
+                            currentType = data.application_type
+                            console.log('current!!!Type', currentType);
+                            let application_url = '{% url 'User:view_application_detail' 'exhibition' 999 %}'.replace('exhibition', currentType).replace('999', data.application_id);
+                            console.log('application_url', application_url)
                             // 关联消息板块
                             let relatedMessageHtml = '';
                             if (data.related_messages.length > 0) {
@@ -231,6 +235,8 @@
                 <!-- 加载申请详情 -->
                 function loadApplicationDetail(applicationId, url) {
                     currentId = applicationId; // Store message ID when loading details
+                    console.log('application_currentId', currentId);
+                    console.log('application_url_final', url)
                     axios.get(url)
                         .then(response => {
                             const data = response.data;
@@ -305,7 +311,7 @@
 </div>
 `;
                         })
-                        .catch(error => console.error('Error loading the message details:', error));
+                        .catch(error => console.error('Error loading the application details:', error));
                 }
 
                 function backToList() {
@@ -314,7 +320,7 @@
 
                 function rejectApplication() {
                     const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
-                    const url = `{% url 'User:reject_application' 'exhibition' 999 %}`.replace('exhibition', '{{ applications_type }}').replace('999', currentId);  // 确保 URL 正确
+                    const url = `{% url 'User:reject_application' 'exhibition' 999 %}`.replace('exhibition', currentType).replace('999', currentId);  // 确保 URL 正确
                     const container = document.getElementById('application-container');
 
                     // 显示确认对话框
@@ -349,8 +355,11 @@
 
 
                 function acceptApplication() {
+                    console.log(currentId)
+                    console.log(currentType)
                     const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
-                    const url = `{% url 'User:accept_application' 'exhibition' 999 %}`.replace('exhibition', '{{ applications_type }}').replace('999', currentId);  // 确保 URL 正确
+                    const url = `{% url 'User:accept_application' 'exhibition' 999 %}`.replace('exhibition', currentType).replace('999', currentId);  // 确保 URL 正确
+                    console.log('{{ applications_type }}')
                     const container = document.getElementById('application-container');
 
                     // 显示确认对话框

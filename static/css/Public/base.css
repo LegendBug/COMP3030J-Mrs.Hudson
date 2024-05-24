@@ -58,6 +58,7 @@ image, h1, h2, h3, h4, h5, h6 {
     font-family: 'Great Vibes', cursive;
     font-size: 22px; /* 调整字体大小 */
     font-weight: bold; /* 加粗文本 */
+    margin-top: 10px;
 }
 
 .navbar-brand.dark-mode {
@@ -66,13 +67,13 @@ image, h1, h2, h3, h4, h5, h6 {
     font-family: 'Great Vibes', cursive;
     font-size: 22px; /* 调整字体大小 */
     font-weight: bold; /* 加粗文本 */
+    margin-top: 10px;
 }
 
 .navbar-brand:hover, .navbar-brand:focus {
     color: #28a745;
     text-decoration: none;
     transition: color 0.3s ease;
-
 }
 
 .navbar-brand.dark-mode:hover, .navbar-brand.dark-mode:focus {
@@ -84,11 +85,6 @@ image, h1, h2, h3, h4, h5, h6 {
 .nav-link {
     color: #1f1f1f;
     transition: color 0.3s ease;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
 }
 
 .nav-link.dark-mode {
@@ -142,17 +138,26 @@ image, h1, h2, h3, h4, h5, h6 {
     padding: 0.75rem 1rem;
     display: flex;
     align-items: center;
+    transition: all 0.3s ease-in-out; /* 平滑过渡效果 */
 }
 
 .breadcrumb-item + .breadcrumb-item::before {
     content: ">";
-    color: #6c757d;
+    color: #009631;
     padding: 0 0.5rem;
 }
 
 .breadcrumb-item a {
-    color: #007bff;
+    color: #6c757d;
     text-decoration: none;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 优雅的字体 */
+    font-weight: bold;
+}
+
+.breadcrumb-item.active {
+    color: #009631;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 优雅的字体 */
+    font-weight: bold;
 }
 
 .breadcrumb-item a:hover {

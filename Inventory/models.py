@@ -11,7 +11,7 @@ class InventoryCategory(models.Model):
     def inventory_category_upload_to(instance, filename):  # 即使不使用filename参数,也必须保留, 这是Django的硬性要求
         # 获取文件的扩展名
         extension = filename.split('.')[-1]
-        # 生成一个新的UUID文件名
+        # 生成一个新的UUI D文件名
         new_filename = '{0}.{1}'.format(uuid.uuid4(), extension)
         return 'InventoryCategory/{0}'.format(new_filename)
 
@@ -35,7 +35,7 @@ class InventoryCategory(models.Model):
     description = models.TextField(blank=True, null=True)
     is_public = models.BooleanField(default=True)  # 是否公开(即,是否可以被下一级的Exhibition/Booth申请)
     cost = models.FloatField(blank=True, null=True)
-    rent = models.FloatField(blank=True, null=True, default=0) #TODO 租金,可能需要想办法在form中限定只有Manager才能设置
+    rent = models.FloatField(blank=True, null=True, default=0)  # TODO 租金,可能需要想办法在form中限定只有Manager才能设置
     # items : List<Item>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=inventory_category_upload_to, null=True, blank=True)
     # origin, Django泛型, 表示该Category是在哪个Venue/Exhibition/Booth中被创建的
@@ -49,12 +49,12 @@ class Item(models.Model):
     name = models.CharField(max_length=255)
     is_using = models.BooleanField(default=False)  # TODO 1
     is_damaged = models.BooleanField(default=False)
-    power = models.FloatField(blank=True, null=True) # 每小时的功耗
-    water_consumption = models.FloatField(blank=True, null=True) # 每小时的水消耗量
+    power = models.FloatField(blank=True, null=True)  # 每小时的功耗
+    water_consumption = models.FloatField(blank=True, null=True)  # 每小时的水消耗量
     last_modified = models.DateTimeField(auto_now=True)
     category = models.ForeignKey("Inventory.InventoryCategory", on_delete=models.CASCADE, related_name='items')
     location = models.ForeignKey("Layout.SpaceUnit", on_delete=models.SET_NULL, null=True,
-                                 related_name='items')  # Item当前正位于哪一个SpaceUnit # TODO 1
+                                 related_name='items')  # Item当前正位于哪一个SpaceUnit
     # usages : List<Usage>, 由Django ORM的反向关系实现
     # affiliation : Venue/Exhibition/Booth, Django泛型
     affiliation_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='items')
@@ -67,8 +67,8 @@ class ResourceApplication(Application):
                                   related_name='resource_applications')
     booth = models.ForeignKey("Booth.Booth", on_delete=models.CASCADE, related_name='resource_applications')
     # 某个类型的资源被删除后，申请同时被删除
-    category = models.OneToOneField("InventoryCategory", on_delete=models.CASCADE, null=True,
-                                    related_name='resource_application')
+    category = models.ForeignKey("InventoryCategory", on_delete=models.CASCADE, null=True,
+                                 related_name='resource_applications')
     quantity = models.IntegerField()
     message_details = GenericRelation("User.MessageDetail", related_query_name='resource_application', null=True,
                                       content_type_field='application_content_type',

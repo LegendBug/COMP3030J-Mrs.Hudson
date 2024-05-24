@@ -16,7 +16,8 @@ from .models import *
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 
-def welcome(request): # url: path('welcome/', views.welcome, name='welcome'),
+
+def welcome(request):  # url: path('welcome/', views.welcome, name='welcome'),
     if request.method == 'GET':
         # get the photosource from the database
         exhibitions = Exhibition.objects.all()
@@ -89,7 +90,8 @@ def profile(request):
     user = request.user
 
     if request.method == 'GET':
-        user_type = 'Manager' if hasattr(user, 'manager') else 'Organizer' if hasattr(user, 'organizer') else 'Exhibitor'
+        user_type = 'Manager' if hasattr(user, 'manager') else 'Organizer' if hasattr(user,
+                                                                                      'organizer') else 'Exhibitor'
         exhibitions = []
         booths = []
 
@@ -274,6 +276,7 @@ def view_message_detail(request, message_id):
                     'content': related_message_detail.content,
                 })
 
+        application_type = str(message_detail.application_content_type.model).replace('application', '')
         data = {
             'title': message.title,
             'sender': message.sender.username,
@@ -281,7 +284,7 @@ def view_message_detail(request, message_id):
             'created_at': message.created_at.strftime('%Y-%m-%d %H:%M'),
             'content': message_detail.content,
             'application_id': application_id,
-            'application_type': str(message_detail.application_content_type.model).replace('application', '')
+            'application_type': application_type
             if message_detail.application_content_type else '',
             'related_messages': related_messages_data,
         }
@@ -319,7 +322,7 @@ def view_application_detail(request, application_type, application_id):
             data = {
                 'application_type': application_type,
                 'title': "Application for Booth '" + application.booth.name + "' at Exhibition '" + application.booth.exhibition.name + "'",
-                'image_url': application.booth.image.url if application.booth.image else '',
+                'image_url': application.bootfh.image.url if application.booth.image else '',
                 'applicant': application.applicant.username,
                 'start_at': application.booth.start_at.strftime('%Y-%m-%d %H:%M'),
                 'end_at': application.booth.end_at.strftime('%Y-%m-%d %H:%M'),
@@ -424,12 +427,10 @@ def reject_application(request, application_type, application_id):
             application_content_type = ContentType.objects.get_for_model(application)
             new_message = Message.objects.create(title=application_type.capitalize() + ' Application Rejected',
                                                  sender=request.user, recipient=application.applicant)
-            new_message_detail = MessageDetail.objects.create(message=new_message,
+            MessageDetail.objects.create(message=new_message,
                                                               content=content,
                                                               application_object_id=application.id,
                                                               application_content_type=application_content_type)
-            new_message.related_detail = new_message_detail
-            new_message.save()
             return JsonResponse({'success': 'Application rejected successfully.'}, status=200)
         except Exception as e:
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
@@ -456,18 +457,11 @@ def accept_application(request, application_type, application_id):
             else:
                 return JsonResponse({'error': 'Application type not found'}, status=404)
 
-            # 通过申请
-            if application.stage != Application.Stage.INITIAL_SUBMISSION:
-                return JsonResponse({'error': 'Application has been processed.'}, status=200)
-            application.stage = Application.Stage.ACCEPTED
-            application.save()
-
             if application_type == 'resource':
                 available_items = Item.objects.filter(category=application.category,
                                                       affiliation_content_type=application.category.origin_content_type,
                                                       affiliation_object_id=application.category.origin_object_id,
                                                       is_damaged=False, is_using=False)
-                print(len(available_items))
                 if len(available_items) >= application.quantity:
                     for i in range(application.quantity):
                         rent_item = available_items[i]
@@ -477,16 +471,20 @@ def accept_application(request, application_type, application_id):
                 else:
                     return JsonResponse({'error': 'No available item found.'}, status=404)
 
+            # 通过申请
+            if application.stage != Application.Stage.INITIAL_SUBMISSION:
+                return JsonResponse({'error': 'Application has been processed.'}, status=200)
+            application.stage = Application.Stage.ACCEPTED
+            application.save()
+
             # 发送接受消息
             application_content_type = ContentType.objects.get_for_model(application)
             new_message = Message.objects.create(title=application_type.capitalize() + ' Application Accepted',
                                                  sender=request.user, recipient=application.applicant)
-            new_message_detail = MessageDetail.objects.create(message=new_message,
-                                                              content=content,
-                                                              application_object_id=application.id,
-                                                              application_content_type=application_content_type)
-            new_message.related_detail = new_message_detail
-            new_message.save()
+            MessageDetail.objects.create(message=new_message,
+                                         content=content,
+                                         application_object_id=application.id,
+                                         application_content_type=application_content_type)
             return JsonResponse({'success': 'Application accepted successfully.'}, status=200)
         except Exception as e:
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
@@ -494,4 +492,3 @@ def accept_application(request, application_type, application_id):
         return HttpResponseNotAllowed(['POST'])
 
 # TODO 资源重名提示
-# 创建资源Public属性非管理员不可选

@@ -25,10 +25,12 @@
     <!-- 在这里添加导航栏里额外的icon-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link me-2" href="{% url 'Statistic:statistic' %}" title="Statistic"><i class="fas fa-chart-bar fa-lg"></i></a>
+            <a class="nav-link me-2" href="{% url 'Statistic:statistic' %}" title="Statistic"><i
+                    class="fas fa-chart-bar fa-lg"></i></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link me-2" href="{% url 'Layout:layout' %}" title="Layout"><i class="fas fa-edit fa-lg"></i></a>
+            <a class="nav-link me-2" href="{% url 'Layout:layout' %}" title="Layout"><i
+                    class="fas fa-edit fa-lg"></i></a>
         </li>
     {% endif %}
 {% endblock %}
@@ -145,7 +147,7 @@
                 </div>
             </div>
         </div>
-    
+
         {# 筛选展台模态框 #}
         <div class="modal fade" id="filterExhibitionsModal" tabindex="-1" aria-labelledby="filterExhibitionsLabel"
              aria-hidden="true">
@@ -159,7 +161,7 @@
                         <form id="filterFrom" method="post" action="{% url 'Venue:venue' venue.pk %}"
                               enctype="multipart/form-data"
                               class="needs-validation" novalidate>
-                            {% csrf_token %}       
+                            {% csrf_token %}
                             {{ filter_form|crispy }}
                             <input type="hidden" name="venue_id" id="venue_id" value="{{ venue.pk }}">
                             <div id="filter-exhibitions-message-container"></div>
@@ -240,7 +242,7 @@
                     this.stage.on('mousedown', this.handleMouseDown);
                     this.stage.on('mouseup', this.handleMouseUp);
                     this.stage.on('mousemove', this.handleMouseMove);
-                    
+
                     const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
                         return new Promise((resolve, reject) => {
                             Konva.Image.fromURL(url, (imageNode) => {
