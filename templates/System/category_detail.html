@@ -90,7 +90,7 @@
                             {% endif %}
                         </td>
                         <td>{{ origin }}</td>
-                        <td>{{ item.affiliation.name }}</td>
+                        <td>{{ item.affiliation.name }}{% if item.location.name %} : {{ item.location.name }}{% endif %}</td>                                             
                         <td>{{ item.power }} Watts</td>
                         <td>{{ item.water_consumption }} Liters</td>
                         {#                    <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>#}

@@ -63,21 +63,22 @@
 /* 调整画板容器的样式 */
 #konva-container {
     position: relative;
-    height: 90vh;
+    height: 95vh;
     width: 95%;
     box-sizing: border-box; /* 包含边框和内边距在内的总宽高 */
     overflow: hidden; /* 防止内容溢出 */
     margin: 2.5vh auto 0; /* Centers it vertically with top margin */
+    margin-bottom: 2.5vh;
 
     border: 1px solid #ccc; /* 浅灰色边框 */
     background-color: #fff; /* 白色背景 */
     border-radius: 10px; /* 圆角边框 */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
 
-    background-image: url('../../images/Layout/Grid_Blue.jpg'); /* 确保路径正确 */
-    background-size: cover; /* 覆盖整个容器 */
-    background-position: center; /* 居中背景图 */
-    background-repeat: no-repeat;
+/*    background-image: url('../../images/Layout/Grid_Blue.jpg'); !* 确保路径正确 *!
+    background-size: cover; !* 覆盖整个容器 *!
+    background-position: center; !* 居中背景图 *!
+    background-repeat: no-repeat;*/
 }
 
 /* 调整画板上方Venue名和选区按钮的样式 */
