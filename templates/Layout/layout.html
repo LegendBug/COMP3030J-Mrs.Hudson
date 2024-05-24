@@ -18,10 +18,10 @@
     <!-- 在这里添加导航栏里额外的icon-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> </a>
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}" title="Statistic"><i class="fas fa-chart-bar  fa-lg"></i> </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> </a>
+            <a class="nav-link" href="{% url 'Layout:layout' %}" title="Layout"><i class="fas fa-edit fa-lg"></i> </a>
         </li>
     {% endif %}
 {% endblock %}
@@ -50,7 +50,6 @@
         </ol>
     </nav>
 {% endblock %}
-
 
 {% block content %}
     <div id="layout-app">
@@ -277,7 +276,6 @@
 
 {% endblock %}
 
-
 {% block scripts %}
     <script>
         Vue.component('layer-component', {
@@ -302,22 +300,24 @@
                           @click="open = !open;"
                           @contextmenu.prevent="openContextMenu($event, layer)"
                           style="background-color: #8bc0fa;">
+                    <i class="fas fa-layer-group" style="margin-right: 5px;"></i> <!-- 添加图标 -->
                     [[ layer.name ]]
                   </button>
                 </h2>
                 <div v-if="open" class="accordion-collapse">
                   <div class="accordion-body">
-                    <layer-component  v-for="(child, index) in layer.child_units" :key="index"
-                                      :layer="child"
-                                      @update-current-layer="$emit('update-current-layer', $event)"
-                                      @update-current-element="$emit('update-current-element', $event)"
-                                      @data-updated="$emit('data-updated', $event)" @element-added="$emit('element-added', $event)">
+                    <layer-component v-for="(child, index) in layer.child_units" :key="index"
+                                     :layer="child"
+                                     @update-current-layer="$emit('update-current-layer', $event)"
+                                     @update-current-element="$emit('update-current-element', $event)"
+                                     @data-updated="$emit('data-updated', $event)"
+                                     @element-added="$emit('element-added', $event)">
                     </layer-component>
 
-                    <element-component  v-for="(element, index) in layer.elements" :key="index"
-                                        :element="element"
-                                        @update-current-element="$emit('update-current-element', $event)"
-                                        @data-updated="$emit('data-updated', $event)">
+                    <element-component v-for="(element, index) in layer.elements" :key="index"
+                                       :element="element"
+                                       @update-current-element="$emit('update-current-element', $event)"
+                                       @data-updated="$emit('data-updated', $event)">
                     </element-component>
                   </div>
                 </div>
@@ -326,26 +326,55 @@
                 <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
                      class="list-group context-menu">
                   <a class="list-group-item list-group-item-action"
-                     @click="openAddSubLayerModal(layer); closeContextMenu()">Add Sublayer</a>
+                     @click="openAddSubLayerModal(layer); closeContextMenu()">
+                    <i class="fas fa-plus-circle"></i> Add Sublayer
+                  </a>
                   <a class="list-group-item list-group-item-action"
-                     @click="openEditLayerModal(layer); closeContextMenu()">Edit Layer</a>
-                  <a class="list-group-item list-group-item-action" @click="deleteLayer(layer); closeContextMenu()">Delete
-                    Layer</a>
+                     @click="openEditLayerModal(layer); closeContextMenu()">
+                    <i class="fas fa-edit"></i> Edit Layer
+                  </a>
+                  <a class="list-group-item list-group-item-action" @click="deleteLayer(layer); closeContextMenu()">
+                    <i class="fas fa-trash-alt"></i> Delete Layer
+                  </a>
                   <a class="list-group-item list-group-item-action" ref="addElementButton" @click="closeContextMenu()"
-                     @mouseover="openElementMenu()">Add Element</a>
+                     @mouseover="openElementMenu()">
+                    <i class="fas fa-plus-square"></i> Add Element
+                  </a>
                 </div>
 
                 <!-- Sub Context Menu for Adding Elements -->
                 <div v-show="isElementMenuVisible" :style="{top: elementMenuY, left: elementMenuX}"
                      class="list-group context-menu">
-                    <a class="list-group-item list-group-item-action" @click="addElement('Image',layer); closeContextMenu()">Image</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Text',layer); closeContextMenu()">Text</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Rect',layer); closeContextMenu()">Rectangle</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Polygon',layer); closeContextMenu()">Polygon</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Circle',layer); closeContextMenu()">Circle</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Line',layer); closeContextMenu()">Line</a>
-                    <a class="list-group-item list-group-item-action" @click="addElement('Arrow',layer); closeContextMenu()">Arrow</a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('Image',layer); closeContextMenu()">
+                    <i class="fas fa-image"></i> Image
+                  </a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('Text',layer); closeContextMenu()">
+                    <i class="fas fa-font"></i> Text
+                  </a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('Rect',layer); closeContextMenu()">
+                    <i class="far fa-square"></i> Rectangle
+                  </a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('Polygon',layer); closeContextMenu()">
+                    <i class="fas fa-draw-polygon"></i> Polygon
+                  </a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('Circle',layer); closeContextMenu()">
+                    <i class="far fa-circle"></i> Circle
+                  </a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('Line',layer); closeContextMenu()">
+                    <i class="fas fa-grip-lines-vertical"></i> Line
+                  </a>
+                  <a class="list-group-item list-group-item-action"
+                     @click="addElement('Arrow',layer); closeContextMenu()">
+                    <i class="fas fa-arrow-right"></i> Arrow
+                  </a>
                 </div>
+
               </div>
             `,
             mounted() {

@@ -18,10 +18,10 @@
     <!-- 在这里添加导航栏里额外的icon-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> </a>
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}" title="Statistic"><i class="fas fa-chart-bar fa-lg"></i> </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> </a>
+            <a class="nav-link" href="{% url 'Layout:layout' %}" title="Layout"><i class="fas fa-edit fa-lg"></i> </a>
         </li>
     {% endif %}
 {% endblock %}
@@ -309,22 +309,24 @@
                           @click="open = !open;"
                           @contextmenu.prevent="openContextMenu($event, layer)"
                           style="background-color: #8bc0fa;">
+                    <i class="fas fa-layer-group" style="margin-right: 5px;"></i> <!-- 添加图标 -->
                     [[ layer.name ]]
                   </button>
                 </h2>
                 <div v-if="open" class="accordion-collapse">
                   <div class="accordion-body">
-                    <layer-component  v-for="(child, index) in layer.child_units" :key="index"
-                                      :layer="child"
-                                      @update-current-layer="$emit('update-current-layer', $event)"
-                                      @update-current-element="$emit('update-current-element', $event)"
-                                      @data-updated="$emit('data-updated', $event)" @element-added="$emit('element-added', $event)">
+                    <layer-component v-for="(child, index) in layer.child_units" :key="index"
+                                     :layer="child"
+                                     @update-current-layer="$emit('update-current-layer', $event)"
+                                     @update-current-element="$emit('update-current-element', $event)"
+                                     @data-updated="$emit('data-updated', $event)"
+                                     @element-added="$emit('element-added', $event)">
                     </layer-component>
 
-                    <element-component  v-for="(element, index) in layer.monitors" :key="index"
-                                        :element="element"
-                                        @update-current-element="$emit('update-current-element', $event)"
-                                        @data-updated="$emit('data-updated', $event)">
+                    <element-component v-for="(element, index) in layer.monitors" :key="index"
+                                       :element="element"
+                                       @update-current-element="$emit('update-current-element', $event)"
+                                       @data-updated="$emit('data-updated', $event)">
                     </element-component>
                   </div>
                 </div>
@@ -332,7 +334,8 @@
                 <!-- 上下文菜单 -->
                 <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
                      class="list-group context-menu">
-                  <a class="list-group-item list-group-item-action" ref="addElementButton" @click="addElement(layer); closeContextMenu()">Add Monitor</a>
+                  <a class="list-group-item list-group-item-action" ref="addElementButton"
+                     @click="addElement(layer); closeContextMenu()"><i class="fas fa-plus-square"></i> Add Monitor</a>
                 </div>
               </div>
             `,
@@ -392,22 +395,25 @@
             },
             template:
                 `
-              <div class="accordion-item">
-                <h2 class="accordion-header">
-                  <button class="accordion-button" type="button"
-                          @contextmenu.prevent="openContextMenu($event)"
-                          style="background-color: #e36767;">
-                    [[ element.name ]]
-                  </button>
-                </h2>
-                <!-- 上下文菜单 -->
-                <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
-                     class="list-group context-menu">
-                    <a class="list-group-item list-group-item-action" @click="openEditElement(element); closeContextMenu()">Edit Monitor</a>
-                    <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Delete Monitor</a>
-                </div>
-              </div>
-            `,
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button" type="button"
+                              @contextmenu.prevent="openContextMenu($event)"
+                              style="background-color: #e36767;">
+                        <i class="fas fa-cogs" style="margin-right: 5px;"></i>
+                        [[ element.name ]]
+                      </button>
+                    </h2>
+                    <!-- 上下文菜单 -->
+                    <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
+                         class="list-group context-menu">
+                      <a class="list-group-item list-group-item-action"
+                         @click="openEditElement(element); closeContextMenu()">Edit Monitor</a>
+                      <a class="list-group-item list-group-item-action"
+                         @click="deleteElement(element); closeContextMenu()">Delete Monitor</a>
+                    </div>
+                  </div>
+                `,
             mounted() {
                 // 监听全局点击事件，用于隐藏上下文菜单
                 document.addEventListener('click', this.handleOutsideClick);
