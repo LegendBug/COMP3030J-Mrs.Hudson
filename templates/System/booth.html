@@ -69,7 +69,7 @@
              style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
         <!-- Floating Action Button -->
-        {% if is_owner %}
+        {% if is_owner or  %}
             <a class="btn btn-success rounded-circle shadow"
                style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
                href="{% url 'Inventory:inventory' 'booth' booth.id %}" title="View Inventory">

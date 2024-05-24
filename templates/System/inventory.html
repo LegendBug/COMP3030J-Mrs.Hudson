@@ -27,7 +27,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_space.pk %}">{{ current_space.name }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">Inventory</li>
         </ol>
     </nav>
@@ -35,14 +35,14 @@
 
 {% block content %}
     {% if user.is_authenticated and user_type == 'Manager' %}
-        <h1 class="logo-title"><a href="{% url 'Venue:venue' current_access.pk %}">{{ current_access.name }}</a> 
+        <h1 class="logo-title"><a href="{% url 'Venue:venue' current_space.pk %}">{{ current_space.name }}</a> 
             <small>Inventory</small></h1>
     {% elif user.is_authenticated and user_type == 'Organizer' %}
         <h1 class="logo-title"><a
-                href="{% url 'Exhibition:exhibition' current_access.pk %}">{{ current_access.name }}</a> <small>Inventory</small>
+                href="{% url 'Exhibition:exhibition' current_space.pk %}">{{ current_space.name }}</a> <small>Inventory</small>
         </h1>
     {% elif user.is_authenticated and user_type == 'Exhibitor' %}
-        <h1 class="logo-title"><a href="{% url 'Booth:booth' current_access.pk %}">{{ current_access.name }}</a> <small>Inventory</small>
+        <h1 class="logo-title"><a href="{% url 'Booth:booth' current_space.pk %}">{{ current_space.name }}</a> <small>Inventory</small>
         </h1>
     {% endif %}
 
@@ -73,7 +73,7 @@
                                         </h4>
                                         <p class="card-text">{{ category.description }}</p>
                                         <p class="card-text ">
-                                            <strong>Quantity: </strong>{{ category.items_quantity }}
+                                            <strong>Quantity: </strong>{{ category.items.all.count }}
                                         </p>
                                         <p class="card-text">
                                             <strong>Public: </strong>{{ category.is_public|yesno:"✅,❎" }}
@@ -129,8 +129,8 @@
                           enctype="multipart/form-data" class="needs-validation"
                           novalidate>
                         {% csrf_token %}
-                        {{ add_inventory_form|crispy }}
-                        <input type="hidden" name="venue_id" id="venue_id" value="{{ current_access.pk }}">
+                        {{ create_inventory_form|crispy }}
+                        <input type="hidden" name="venue_id" id="venue_id" value="{{ current_space.pk }}">
                         <div id="add_inventory-message-container"></div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -157,7 +157,7 @@
                           novalidate>
                         {% csrf_token %}
                         {{ application_form|crispy }}
-                        <input type="hidden" name="venue_id" id="venue_id" value="{{ current_access.pk }}">
+                        <input type="hidden" name="venue_id" id="venue_id" value="{{ current_space.pk }}">
                         <div id="application-form-container"></div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -318,7 +318,7 @@
                 e.preventDefault();  // 阻止表单的默认提交行为
                 const container = document.getElementById('application-form-container');
                 const formData = new FormData(createResApplyForm);
-                formData.set('booth_id', {{ current_access.pk }}); // 设置展位ID
+                formData.set('booth_id', {{ current_space.pk }}); // 设置展位ID
                 for (let pair of formData.entries())
                     console.log(pair[0] + ', ' + pair[1]);
                 axios.post('{% url 'Inventory:create_res_application' %}', formData, {

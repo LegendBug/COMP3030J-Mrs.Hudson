@@ -45,7 +45,8 @@ class ExhibApplicationForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ExhibApplicationForm, self).__init__(*args, **kwargs)
         # 设置默认日期为今天
-        self.fields['exhib_start_at'].initial = date.today()
+        self.fields['exhib_start_at'].initial = datetime.now().strftime('%Y-%m-%dT%H:%M')
+        self.fields['exhib_end_at'].initial = datetime.now().strftime('%Y-%m-%dT%H:%M')
         self.fields['exhib_sectors'].label_from_instance = lambda obj: f"{obj.name}"
         # 设置Sectors为某一场馆的SpaceUnits
         affiliation_object_id = self.initial.get('affiliation_object_id')
@@ -75,6 +76,7 @@ class ExhibApplicationForm(forms.Form):
         if exhib_sectors is not None:
             # 遍历当前选中的sector
             for sector in exhib_sectors:
+                # TODO 添加对父类区域和子类区域的检查
                 # 遍历该sector全部的复制品
                 occupied_units = sector.occupied_units.filter(
                     affiliation_content_type=ContentType.objects.get_for_model(Exhibition))

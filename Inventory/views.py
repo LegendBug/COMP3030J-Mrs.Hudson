@@ -20,30 +20,41 @@ from django.utils import timezone
 
 @login_required
 def inventory(request, space_type, space_id):
-    # 获取用户类型
-    user_type = request.session.get('user_type', 'Guest')
+    application_form = None
     request.session['space_type'] = space_type
     request.session['space_id'] = space_id
+
+    # 判断当前是否为仓库的拥有者
+    user_type = request.session.get('user_type', '')
     # 检查用户类型和空间类型是否匹配，current_access是一个Venue/Exhibition/Booth实例, 它代表着用户当前所访问的Venue/Exhibition/Booth
     if space_type == 'venue':
         if user_type != 'Manager':
             return JsonResponse({'error': 'Permission denied!'}, status=403)
-        current_access = Venue.objects.filter(pk=space_id).first()
+        current_space = Venue.objects.filter(pk=space_id).first()
         owner = Manager.objects.first().detail
     elif space_type == 'exhibition':
-        if user_type not in ['Manager', 'Organizer']:
+        current_space = Exhibition.objects.filter(pk=space_id).first()
+        owner = current_space.organizer.detail
+        # 管理员，展览的申请者可以访问
+        if user_type in ['Organizer', 'Exhibitor'] and request.user != owner:
             return JsonResponse({'error': 'Permission denied!'}, status=403)
-        current_access = Exhibition.objects.filter(pk=space_id).first()
-        owner = current_access.organizer.detail
     elif space_type == 'booth':
-        current_access = Booth.objects.filter(pk=space_id).first()
-        owner = current_access.exhibitor.detail
+        # 管理员，展览的申请者，展台的申请者可以访问
+        current_space = Booth.objects.filter(pk=space_id).first()
+        owner = current_space.exhibitor.detail
+        if (user_type in ['Organizer', 'Exhibitor'] and
+                (request.user != current_space.exhibition.organizer.detail or request.user != owner)):
+            return JsonResponse({'error': 'Permission denied!'}, status=403)
+        elif request.user == owner:
+            affiliation_type = ContentType.objects.get_for_model(Venue)
+            application_form = ResApplicationForm(
+                initial={'origin_content_type': affiliation_type, 'origin_object_id': current_space.pk})
     else:
         return JsonResponse({'error': 'Invalid space type!'}, status=400)
 
     # POST请求处理创建库存类别
     if request.method == 'POST':
-        form = CreateInventoryCategoryForm(request.POST, request.FILES, origin=current_access,
+        form = CreateInventoryCategoryForm(request.POST, request.FILES, origin=current_space,
                                            initial={'user_type': user_type})
         if not form.is_valid():
             first_error_key, first_error_messages = list(form.errors.items())[0]
@@ -54,47 +65,21 @@ def inventory(request, space_type, space_id):
             return JsonResponse({'success': 'Resource category and items created'}, status=201)
         else:
             return JsonResponse({'error': 'There are something wrong.'}, status=400)
-    else:  # GET请求处理展示库存
-        add_inventory_form = CreateInventoryCategoryForm(origin=current_access, initial={'user_type': user_type})
-        # 通过当前访问的Venue/Exhibition/Booth中的所有Item,获取所有的Category并统计每个Category下的Item数量
-        current_items = current_access.items.all()
-        current_categories = {}
-        for current_item in current_items:
-            # 如果current_item.category不在current_categories中,则添加如果current_item.category进入字典,并为其值初始化为1
-            if current_item.category not in current_categories:
-                current_categories[current_item.category] = 1
-            else:
-                current_categories[current_item.category] = current_categories[current_item.category] + 1
-        # 查找那些origin为当前访问的Venue/Exhibition/Booth的InventoryCategory,并统计它们的数量, 以避免这些Category被重复创建
-        existing_categories = current_access.inventory_categories.all()
-        for existing_category in existing_categories:
-            if existing_category not in current_categories:
-                current_categories[existing_category] = 0
-        # 将字典中的Category按照名称排序后存入数组,同时为每个Category添加一个quantity属性来记录该Category下的Item数量
-        categories = []
-        for category, quantity in current_categories.items():
-            category.items_quantity = quantity
-            categories.append(category)
-
-        # 申请库存表单
-        if space_type == 'booth':
-            # 获取当前展区可见的全部Category
-            current_venue = current_access.exhibition.venue
-            affiliation_type = ContentType.objects.get_for_model(current_venue)
-            application_form = ResApplicationForm(
-                initial={'origin_content_type': affiliation_type, 'origin_object_id': current_venue.pk})
-        else:
-            application_form = None
+    # GET请求处理展示库存
+    else:
+        # 通过当前访问的Space的所有category
+        current_categories = current_space.inventory_categories.all()
+        create_inventory_form = CreateInventoryCategoryForm(origin=current_space, initial={'user_type': user_type})
 
         return render(request, 'System/inventory.html',
                       {
                           'user_type': user_type,
                           'is_owner': request.user == owner,
-                          'current_access': current_access,
-                          'categories': categories,
+                          'current_space': current_space,
                           'space_type': space_type,
                           'space_id': space_id,
-                          'add_inventory_form': add_inventory_form,
+                          'categories': current_categories,
+                          'create_inventory_form': create_inventory_form,
                           'application_form': application_form
                       })
 
@@ -121,7 +106,7 @@ def category_detail_view(request, category_id):
 
     return render(request, 'System/category_detail.html', {
         'current_access': current_access,
-        'sectors' : current_access.sectors.filter(parent_unit=None).order_by('created_at'),
+        'sectors': current_access.sectors.filter(parent_unit=None).order_by('created_at'),
         'category': category,
         'items': items,
         'user_type': user_type,

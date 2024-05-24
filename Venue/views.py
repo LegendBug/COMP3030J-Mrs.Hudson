@@ -103,8 +103,8 @@ def venue(request, venue_id):  # TODO 在展览过期后, 将绑定的SpaceUnit�
             sectors += sector.name + ' '
         stage = exhibition.exhibition_application.get_stage_display()
         # TODO 修复展览状态不对的问题
-        if stage == 'REJECTED':  # 展览申请被拒绝
-            continue
+        if stage == 'REJECTED':  # 展览申请被拒绝(不显示)
+            stage = '❌ REJECTED'
         elif stage == 'ACCEPTED':
             stage = '✅ ACCEPTED'
         elif stage == 'CANCELLED':

@@ -32,7 +32,7 @@ def exhibition(request, exhibition_id):
 
     # 判断当前是否为展览的拥有者
     user_type = request.session.get('user_type', '')
-    if request.user == application.applicant:
+    if user_type == 'Manager' or request.user == application.applicant:
         is_owner = True
     else:
         is_owner = False
@@ -136,14 +136,11 @@ def cancel_exhibition(request, exhibition_id):
         if exhibition_id is None or application is None:
             return JsonResponse({'error': 'Exhibition not found'}, status=404)
 
-        # 管理员正在删除展览
-        if hasattr(request.user, 'manager'):
-            pass
         # 自动结束，展览结束时间已经过了
-        elif exhibition.end_at < timezone.now():
+        if exhibition.end_at < timezone.now():
             pass
-        # 手动取消，申请处于初始提交阶段
-        elif application.stage == Application.Stage.INITIAL_SUBMISSION:
+        # 手动取消，管理员强制取消，或申请处于初始提交阶段
+        elif hasattr(request.user, 'manager') or application.stage == Application.Stage.INITIAL_SUBMISSION:
             application.stage = Application.Stage.CANCELLED
             application.save()
         else:
