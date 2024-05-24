@@ -4,7 +4,6 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from Booth.models import Booth
 from Exhibition.forms import ExhibApplicationForm, FilterExhibitionsForm
 from Exhibition.models import Exhibition
 from Exhibition.views import cancel_exhibition
