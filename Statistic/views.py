@@ -17,6 +17,9 @@ from PIL import Image
 import io
 import base64
 import json
+import random
+from datetime import timedelta, datetime, time
+from django.utils import timezone
 
 
 def get_venues(request):
@@ -159,6 +162,7 @@ def recognize_flow(request):  # {url (Statistic:recognize_flow)}
         return JsonResponse({'image': img_str, 'person_count': person_count})
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+
 def capture(request, monitor_id):
     if request.method == 'POST' and request.FILES.get('image'):
         load_model()  # 确保模型已经加载
@@ -192,7 +196,7 @@ def capture(request, monitor_id):
         img_str = base64.b64encode(buffer.getvalue()).decode()
 
         # 创建Capture记录
-        Capture.objects.create(monitor=monitor, flow_number=person_count)
+        Capture.objects.create(monitor=monitor, flow_number=person_count, time=timezone.now())
 
         # 返回包含 base64 图像和行人数目的 JSON 响应
         return JsonResponse({'image': img_str, 'person_count': person_count})
@@ -265,6 +269,7 @@ def synchronize_monitors_data(request):  # 该方法与edit_element方法的区�
         recursively_update(root_data)
         return JsonResponse({'success': 'The data has been successfully synchronized!'}, status=200)
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
 
 @csrf_exempt
 def add_monitor(request):
@@ -341,3 +346,62 @@ def delete_monitor(request):
         return JsonResponse({'success': 'The element has been successfully deleted!'}, status=200)
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def add_simulated_data(request):
+    if request.method == 'GET':
+        venue = Venue.objects.first()
+        if not venue:
+            return JsonResponse({'error': 'No venue found!'}, status=404)
+
+        monitor = venue.monitors.first()
+        if not monitor:
+            return JsonResponse({'error': 'No monitor found for the venue!'}, status=404)
+
+        today = timezone.now().date()
+        first_day_of_month = today.replace(day=1)
+        end_day = today - timedelta(days=1)  # 昨天的日期
+        days = [first_day_of_month + timedelta(days=x) for x in range((end_day - first_day_of_month).days + 1)]
+
+        for day in days:
+            for hour in range(24):
+                people_count = random.randint(1, 3)  # 默认情况
+                if 6 <= hour < 7:
+                    people_count = random.randint(40, 60)
+                elif hour == 7:
+                    people_count = random.randint(500, 1000)
+                elif hour == 8:
+                    people_count = random.randint(800, 1400)
+                elif hour == 9:
+                    people_count = random.randint(1200, 1800)
+                elif 10 <= hour < 12:
+                    people_count = random.randint(1000, 1500)
+                elif 12 <= hour < 14:
+                    people_count = random.randint(600, 1000)
+                elif 14 <= hour < 17:
+                    people_count = random.randint(1200, 1800)
+                elif hour == 17:
+                    people_count = random.randint(500, 800)
+                elif 18 <= hour < 20:
+                    people_count = random.randint(50, 100)
+                elif 20 <= hour < 22:
+                    people_count = random.randint(20, 50)
+                elif 22 <= hour < 24:
+                    people_count = random.randint(1, 3)
+
+                if day.weekday() in [5, 6]:  # 周末流量增加
+                    people_count = int(people_count * 1.4)
+
+                naive_time = datetime.combine(day, time(hour=hour))
+                print(naive_time)
+                aware_time = timezone.make_aware(naive_time, timezone.get_default_timezone())
+                print(aware_time)
+                Capture.objects.update_or_create(
+                    monitor=monitor,
+                    time=aware_time,
+                    flow_number=people_count
+                )
+        return JsonResponse({'success': 'Simulated data added successfully!'}, status=200)
+
+    else:
+        return JsonResponse({'error': 'Invalid request method!'}, status=405)

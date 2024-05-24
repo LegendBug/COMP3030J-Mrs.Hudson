@@ -72,17 +72,6 @@
              :class="{'show': offcanvasOpen}" style="visibility: visible;">
 
             <div class="offcanvas-header">
-                {# 按钮: Return#}
-
-                {% if user.is_authenticated and user_type == 'Exhibitor'%}
-                     <button type="button" class="btn btn-secondary"><a href="{% url 'Booth:booth' current_access.id %}">Return</a></button>
-                {% elif user.is_authenticated and user_type == 'Organizer'%}
-                     <button type="button" class="btn btn-secondary"><a href="{% url 'Exhibition:exhibition' current_access.id %}">Return</a></button>
-                {% elif user.is_authenticated and user_type == 'Manager'%}
-                    <button type="button" class="btn btn-secondary"><a href="{% url 'Venue:venue' current_access.id %}">Return</a></button>
-                {% endif %}
-
-
                 {# Dropdown: Sector#}
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownSectorMenu"

@@ -15,5 +15,7 @@ urlpatterns = [
     path('add_monitor/', views.add_monitor, name='add_monitor'),
     path('edit_monitor/', views.edit_monitor, name='edit_monitor'),
     path('delete_monitor/', views.delete_monitor, name='delete_monitor'),
+
+    path('add_simulated_data/', views.add_simulated_data, name='add_simulated_data'),
 ]
 

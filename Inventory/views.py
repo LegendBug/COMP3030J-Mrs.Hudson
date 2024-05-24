@@ -18,6 +18,80 @@ from calendar import monthrange
 from django.utils import timezone
 
 
+def new_inventory(request, current_access_type, current_access_id):
+    if request.method == 'GET':
+        user_type = request.session.get('user_type', 'Guest')
+
+        if current_access_type == 'venue':
+            if user_type != 'Manager':
+                messages.error(request,
+                               'Sorry, you do not have permission to access the inventory of this area.')
+                return redirect('Venue: venue', venue_id=current_access_id)
+
+        elif current_access_type == 'exhibition':
+            if user_type != 'Organizer':
+                return JsonResponse({'error': 'Permission denied!'}, status=403)
+
+        elif current_access_type == 'booth':
+            if user_type != 'Exhibitor':
+                return JsonResponse({'error': 'Permission denied!'}, status=403)
+        else:
+            return JsonResponse({'error': 'Invalid space type!'}, status=400)
+
+        if user_type == 'Manager':
+            current_access = get_object_or_404(Venue, pk=request.session['venue_id'])
+        elif user_type == 'Organizer':
+            current_access = get_object_or_404(Exhibition, pk=request.session['exhibition_id'])
+            if current_access.organizer.detail != request.user:
+                messages.error(request,
+                               'Sorry, you are not the creator of the current area, you do not have permission to access the inventory of this area.')
+                return JsonResponse({'error': 'Permission denied!'}, status=403)
+        elif user_type == 'Exhibitor':
+            current_access = get_object_or_404(Booth, pk=request.session['booth_id'])
+            if current_access.exhibitor.detail != request.user:
+                messages.error(request,
+                               'Sorry, you are not the creator of the current area, you do not have permission to access the inventory of this area.')
+                return JsonResponse({'error': 'Permission denied!'}, status=403)
+        else:
+            messages.error(request, 'Invalid login credentials.')
+            return JsonResponse({'error': 'Permission denied!'}, status=403)
+
+        # 通过当前访问的Venue/Exhibition/Booth中的所有Item,获取所有的Category并统计每个Category下的Item数量
+        current_items = current_access.items.all()
+        current_categories = {}
+        for current_item in current_items:
+            # 如果current_item.category不在current_categories中,则添加如果current_item.category进入字典,并为其值初始化为1
+            if current_item.category not in current_categories:
+                current_categories[current_item.category] = 1
+            else:
+                current_categories[current_item.category] = current_categories[current_item.category] + 1
+        # 查找那些origin为当前访问的Venue/Exhibition/Booth的InventoryCategory,并统计它们的数量, 以避免这些Category被重复创建
+        existing_categories = current_access.inventory_categories.all()
+        for existing_category in existing_categories:
+            if existing_category not in current_categories:
+                current_categories[existing_category] = 0
+        # 将字典中的Category按照名称排序后存入数组,同时为每个Category添加一个quantity属性来记录该Category下的Item数量
+        categories = []
+        for category, quantity in current_categories.items():
+            category.items_quantity = quantity
+            categories.append(category)
+
+        return render(request, 'System/inventory.html',
+                      {
+                          'user_type': user_type,
+                          'current_access': current_access,
+                          'categories': categories,
+                          'add_inventory_form': CreateInventoryCategoryForm(origin=current_access,
+                                                                            initial={'user_type': user_type}),
+                          'application_form': ResApplicationForm(
+                              initial={'origin_content_type': ContentType.objects.get_for_model(
+                                  current_access.exhibition.venue),
+                                  'origin_object_id': current_access.exhibition.venue.pk})
+                      })
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
 @login_required
 def inventory(request, space_type, space_id):
     application_form = None

@@ -44,20 +44,11 @@ body {
     order: 1;
 }
 
-.banner .text h1, .section .text h2, h1, h2 {
+.text h1, .section .text h2, h1, h2 {
     font-size: 2.5em;
     color: #dab86e; /* 调整标题颜色为较深的冷色 */
     font-family: 'Playfair Display', serif;
     font-weight: bold; /* 标题加粗 */
-}
-
-.section .text h2 {
-    font-size: 2em;
-}
-
-.banner .text p, .section .text ul, p, li {
-    font-size: 1.3em;
-    color: #607180; /* 调整正文颜色为较深的冷色 */
 }
 
 ul {

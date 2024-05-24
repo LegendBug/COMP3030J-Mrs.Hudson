@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
 html, body {
     margin: 0;
     display: flex;
@@ -51,20 +53,26 @@ image, h1, h2, h3, h4, h5, h6 {
 }
 
 .navbar-brand {
-    font-weight: bold;
     color: #1f1f1f;
     transition: color 0.3s ease;
+    font-family: 'Great Vibes', cursive;
+    font-size: 24px; /* 调整字体大小 */
+    font-weight: bold; /* 加粗文本 */
 }
 
 .navbar-brand.dark-mode {
     color: #f0f0f0;
     transition: color 0.3s ease;
+    font-family: 'Great Vibes', cursive;
+    font-size: 24px; /* 调整字体大小 */
+    font-weight: bold; /* 加粗文本 */
 }
 
 .navbar-brand:hover, .navbar-brand:focus {
     color: #28a745;
     text-decoration: none;
     transition: color 0.3s ease;
+
 }
 
 .navbar-brand.dark-mode:hover, .navbar-brand.dark-mode:focus {
@@ -76,6 +84,11 @@ image, h1, h2, h3, h4, h5, h6 {
 .nav-link {
     color: #1f1f1f;
     transition: color 0.3s ease;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 .nav-link.dark-mode {

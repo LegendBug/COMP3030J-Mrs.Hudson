@@ -1,9 +1,6 @@
 from unittest import TestCase
-
 from django.contrib.contenttypes.models import ContentType
-
 from Inventory.models import Item
-from Inventory.signals import manage_item_usage
 from Statistic.models import Usage
 from Venue.models import Venue
 
@@ -29,13 +26,13 @@ class TestItemSignalHandlers(TestCase):
     def test_manage_item_usage(self):
         # 测试is_using从False变为True的情况
         self.item.is_using = True
-        manage_item_usage(sender=Item, instance=self.item, created=False)
+        #manage_item_usage(sender=Item, instance=self.item, created=False)
         # 检查是否创建了新的Usage实例
         self.assertTrue(Usage.objects.filter(item=self.item).exists())
 
         # 测试is_using从True变为False的情况
         self.item.is_using = False
-        manage_item_usage(sender=Item, instance=self.item, created=False)
+        #manage_item_usage(sender=Item, instance=self.item, created=False)
         # 检查是否更新了Usage实例的end_time和consumption
         usage_queryset = Usage.objects.filter(item=self.item)
         self.assertTrue(usage_queryset.exists())
