@@ -42,7 +42,7 @@
     <div id="exhibition-app">
 
         <div id="exhibition-container" class="container mt-4"></div>
-    
+
         <div class="d-flex justify-content-between align-items-center mb-3" id="exhibition-header">
             <div id="exhibition-name" class="exhibition-text logo-title">
                 Current Exhibition: {{ exhibition.name }}
@@ -108,6 +108,7 @@
                     <th>Sector</th>
                     <th>Start Time</th>
                     <th>End Time</th>
+                    <th>Stage</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -123,10 +124,11 @@
                         <td>{{ booth.sectors }}</td>
                         <td>{{ booth.start_at| date:"Y-m-d H:i" }}</td>
                         <td>{{ booth.end_at| date:"Y-m-d H:i" }}</td>
+                        <td>{{ booth.stage }}</td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center text-white">No booths found. 💤</td>
+                        <td colspan="8" class="text-center text-white">No booths found. 💤</td>
                     </tr>
                 {% endfor %}
                 </tbody>

@@ -11,7 +11,7 @@ from Inventory.models import InventoryCategory, Item, ResourceApplication
 from Layout.models import SpaceUnit
 from Layout.serializers import SpaceUnitSerializer
 from Statistic.models import Usage
-from User.models import Message, Manager, MessageDetail, Exhibitor
+from User.models import Message, Manager, MessageDetail
 from Venue.models import Venue
 from datetime import timedelta, datetime
 from calendar import monthrange
@@ -165,12 +165,6 @@ def delete_inventory_category(request, category_id):
         messages.error(request,
                        "Cannot delete a public category. Please go to category details to return or delete items.")
     return redirect('Inventory:inventory', space_type=space_type, space_id=space_id)
-
-
-# @login_required
-# def item_detail_view(request, item_id):
-#     item = get_object_or_404(Item, pk=item_id)
-#     return render(request, 'Inventory/item_detail.html', {'item': item})
 
 
 @login_required

@@ -57,6 +57,20 @@ def exhibition(request, exhibition_id):
         sectors = ''
         for sector in booth.sectors.all():
             sectors += sector.name + ' '
+        stage = booth.booth_application.get_stage_display()
+
+        if stage == 'REJECTED':  # 展览申请被拒绝(不显示)
+            stage = '❌ REJECTED'
+        elif stage == 'ACCEPTED':
+            stage = '✅ ACCEPTED'
+        elif stage == 'CANCELLED':
+            stage = '❌ CANCELLED'
+        elif booth.end_at < timezone.now():  # 展览已结束
+            stage = '🔴 OUTDATED'
+        elif booth.start_at < timezone.now() < booth.end_at:  # 展览进行中
+            stage = '🟢 UNDERWAY'
+        else:
+            stage = '🟠 PENDING'
         booth_list.append({
             'id': booth.id,
             'name': booth.name,
@@ -66,6 +80,7 @@ def exhibition(request, exhibition_id):
             'end_at': booth.end_at,
             'exhibitor': booth.exhibitor.detail.username,
             'sectors': sectors,
+            'stage': stage
         })
 
     return render(request, 'System/exhibition.html', {
