@@ -12,3 +12,75 @@ html {
     scroll-behavior: smooth;
 }
 
+
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(255, 255, 255, 0.4); /* Frosted glass effect */
+    backdrop-filter: blur(10px); /* Adds the blur effect */
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    margin-bottom: 20px;
+    height: 80vh; /* Fixed height */
+    max-height: 80vh; /* Ensures the container doesn't grow larger than the viewport */
+}
+
+.chat-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.chat-box {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.4); /* Frosted glass effect */
+    backdrop-filter: blur(10px); /* Adds the blur effect */
+}
+
+.chat-message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.4); /* Frosted glass effect */
+    backdrop-filter: blur(10px); /* Adds the blur effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.chat-message-header {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.chat-message-body {
+    font-size: 1em;
+    color: #343a40;
+}
+
+.chat-input {
+    margin-top: 20px;
+}
+
+.chat-input textarea {
+    resize: none;
+    border-radius: 20px;
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.4); /* Frosted glass effect */
+    backdrop-filter: blur(10px); /* Adds the blur effect */
+}
+
+.chat-input .btn {
+    margin-right: 10px;
+}
+
+.chat-input .btn-warning {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
