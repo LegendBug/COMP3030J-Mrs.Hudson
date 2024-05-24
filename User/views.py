@@ -18,7 +18,11 @@ from django.contrib import messages
 
 def welcome(request): # url: path('welcome/', views.welcome, name='welcome'),
     if request.method == 'GET':
-        return render(request, 'User/welcome.html')
+        # get the photosource from the database
+        exhibitions = Exhibition.objects.all()
+        photo_list = [exhibition.image.url for exhibition in exhibitions]
+
+        return render(request, 'User/welcome.html', { 'exhibitions_photos': photo_list})
     else:
         if request.user.is_authenticated:
             return redirect('Venue:home')

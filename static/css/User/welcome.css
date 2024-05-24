@@ -85,3 +85,17 @@ ul {
     background-color: #34495E;
     color: #fff;
 }
+
+.carousel-item img {
+    width: 100%;
+    height: auto;
+    max-height: 500px; /* Adjust the max-height as needed */
+    object-fit: cover; /* Maintain aspect ratio and cover the container */
+    
+}
+
+.carousel-image {
+    max-height: 500px; 
+    width: auto; 
+    object-fit: contain;
+}
