@@ -16,13 +16,12 @@
     <!-- 导航栏额外按键-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i>
-                Statistics</a>
+            <a class="nav-link me-2" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar fa-lg"></i></a>
         </li>
     {% endif %}
     {% if user.is_authenticated and user_type != 'Guest' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
+            <a class="nav-link me-2" href="{% url 'Layout:layout' %}"><i class="fas fa-edit fa-lg"></i></a>
         </li>
     {% endif %}
 {% endblock %}

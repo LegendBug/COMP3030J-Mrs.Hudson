@@ -40,19 +40,29 @@ def home(request):
 
 def modify_venue(request, venue_id):
     if request.method == 'POST':
-        if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
-            return JsonResponse({'error': 'Permission denied!'}, status=403)
-        venue = Venue.objects.filter(id=venue_id).first()
-        if venue is None:
-            return JsonResponse({'error': 'Venue not found!'}, status=404)
-        form = CreateVenueForm(request.POST, request.FILES, instance=venue)
-        if form.is_valid():
-            form.save()
-            return JsonResponse({'success': 'Venue modified successfully!'}, status=201)
-        else:
-            first_error_key, first_error_messages = list(form.errors.items())[0]
-            first_error_message = first_error_key + ': ' + first_error_messages[0]
-            return JsonResponse({'error': first_error_message}, status=400)
+        try:
+            if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
+                return JsonResponse({'error': 'Permission denied!'}, status=403)
+            venue = Venue.objects.filter(id=venue_id).first()
+            if venue is None:
+                return JsonResponse({'error': 'Venue not found!'}, status=404)
+
+            data = request.POST.copy()
+            print(data)
+            for field in ['name', 'description', 'address', 'area', 'floor', 'image']:
+                if not data.get(field):
+                    data[field] = getattr(venue, field)
+
+            form = CreateVenueForm(data, request.FILES, instance=venue)
+            if form.is_valid():
+                form.save()
+                return JsonResponse({'success': 'Venue modified successfully!'}, status=201)
+            else:
+                first_error_key, first_error_messages = list(form.errors.items())[0]
+                first_error_message = first_error_key + ': ' + first_error_messages[0]
+                return JsonResponse({'error': first_error_message}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': 'Internal server error.', 'details': str(e)}, status=500)
     else:
         return HttpResponseNotAllowed(['POST'])
 

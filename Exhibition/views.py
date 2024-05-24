@@ -5,7 +5,6 @@ from django.shortcuts import redirect, render, get_object_or_404
 from rest_framework import status
 from django.utils import timezone
 
-import Booth
 from Booth.forms import BoothApplicationForm, FilterBoothsForm
 from Booth.views import cancel_booth
 from Exhibition.forms import ExhibApplicationForm
