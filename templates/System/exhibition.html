@@ -1,28 +1,30 @@
-{% extends "Public/base.html" %}
-{% load static %}
+{% extends 'Public/base.html' %}
 {% load crispy_forms_filters %}
+{% load static %}
 {% load crispy_forms_tags %}
 
 {% block extra_head %}
-    <title>Category Detail</title>
+    <title>Exhibition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/Venue/venue.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 
-    <link rel="stylesheet" href="{% static 'css/Inventory/category_detail.css' %}">
+    <link rel="stylesheet" href="{% static 'css/System/exhibition.css' %}">
 {% endblock %}
 
 {% block extra_nav_icons %}
-    <!-- 在这里添加导航栏里额外的icon-->
+    <!-- 导航栏额外按键-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i>
+                Statistics</a>
         </li>
     {% endif %}
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
-    </li>
+    {% if user.is_authenticated and user_type != 'Exhibitor' and user_type != 'Guest' %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
+        </li>
+    {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -30,19 +32,20 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
             <li class="breadcrumb-item"><a
-                    href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'Inventory:inventory' space_type space_id %}">Inventory</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Category</li>
+                    href="{% url 'Venue:venue' exhibition.venue.id %}">{{ exhibition.venue.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ exhibition.name }}</li>
         </ol>
     </nav>
 {% endblock %}
 
 {% block content %}
-    <div id="item-app">
+    <div id="exhibition-app">
 
-        <div class="d-flex justify-content-between align-items-center mb-3" id="current-access-header">
-            <div id="current-access-name" class="current-access-text logo-title">
-                {{ current_access.name }}'s Inventory
+        <div id="exhibition-container" class="container mt-4"></div>
+    
+        <div class="d-flex justify-content-between align-items-center mb-3" id="exhibition-header">
+            <div id="exhibition-name" class="exhibition-text logo-title">
+                Current Exhibition: {{ exhibition.name }}
             </div>
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
@@ -64,132 +67,175 @@
         <div id="tooltip"
              style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
+
+        <!-- Floating Action Button -->
+        {% if user.is_authenticated and user_type == 'Exhibitor' %}
+            <a @click="openBoothApplyModal" class="btn btn-success rounded-circle shadow" id="createBoothApply"
+               style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
+           justify-content: center; align-items: center; font-size: 30px;" title="Apply Booth">
+                📝
+            </a>
+        {% elif user.is_authenticated and user_type == 'Organizer' %}
+            <a class="btn btn-success rounded-circle shadow"
+               style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+               href="{% url 'Inventory:inventory' 'exhibition' exhibition.id %}" title="View Inventory">
+                📦
+            </a>
+        {% endif %}
+        {% if is_owner and exhibition.exhibition_application.stage == "IS" %}
+            <a @click="cancelExhibition()" class="btn btn-success rounded-circle shadow" id="cancelExhibition"
+               style="background-color: #c9302c;border: #c9302c; position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+               title="Cancel Exhibition">
+                ❌
+            </a>
+        {% endif %}
+
+        {#        <a class="btn btn-success rounded-circle shadow" id="filter-booths-btn"#}
+        {#           style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"#}
+        {#           @click="openFilterModal;" title="Filter Booths">#}
+        {#            <i class="fas fa-filter mt-1"></i>#}
+        {#        </a>#}
+
+        <!-- 展览列表 -->
         <div class="table-responsive" style="margin: 1rem; user-select: none">
             <table class="table table-hover text-white">
                 <thead class="bg-dark">
                 <tr>
                     <th></th>
-                    <th>State</th>
-                    <th>Original Location</th>
-                    <th>Current Location</th>
-                    <th>Power Consumption</th>
-                    <th>Water Consumption</th>
-                    {# TODO 放不下了<th>Last Modified</th>#}
-                    <th></th>
+                    <th>Booth Name</th>
+                    <th>Description</th>
+                    <th>Exhibitor</th>
+                    <th>Sector</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for item in items %}
+                {% for booth in booths %}
+                    <tr onclick="window.location.href='{% url 'Booth:booth' booth.id %}';"
+                        style="cursor: pointer;">
+                        <td><img src="{{ booth.image|default:'../../static/images/Public/poster.jpg' }}"
+                                 alt="No Poster"
+                                 class="booth-img" style="width: 100px; height: 80px;"></td>
+                        <td>{{ booth.name }}</td>
+                        <td>{{ booth.description }}</td>
+                        <td>{{ booth.exhibitor }}</td>
+                        <td>{{ booth.sectors }}</td>
+                        <td>{{ booth.start_at| date:"Y-m-d H:i" }}</td>
+                        <td>{{ booth.end_at| date:"Y-m-d H:i" }}</td>
+                    </tr>
+                {% empty %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>
-                            {% if item.is_damaged %}
-                                Damaged ⛔️
-                            {% else %}
-                                {{ item.is_using | yesno:"In used 🧰, Available ✅" }}
-                            {% endif %}
-                        </td>
-                        <td>{{ origin }}</td>
-                        <td>{{ item.affiliation.name }}</td>
-                        <td>{{ item.power }} Watts</td>
-                        <td>{{ item.water_consumption }} Liters</td>
-                        {#                    <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>#}
-                        <td>
-                            <button class="btn btn-secondary mt-1" onclick="openEditItemModal({{ item.id }})">Modify
-                            </button>
-                            {# TODO 优化筛选用户条件 #}
-                            {% if item.affiliation != item.category.origin and user_type == 'Exhibitor' %}
-                                <!-- 显示 Return 按钮 -->
-                                <form method="post" action="{% url 'Inventory:return_item' item.id %}"
-                                      style="display: inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-success mt-1">Return</button>
-                                </form>
-                            {% elif user_type == 'Manager' %}
-                                <!-- 显示 Delete 按钮 -->
-                                <form method="post" action="{% url 'Inventory:delete_item' item.id %}"
-                                      style="display: inline;"
-                                      onsubmit="return confirm('Are you sure?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger mt-1">Delete</button>
-                                </form>
-                            {% endif %}
-                        </td>
+                        <td colspan="7" class="text-center text-white">No booths found. 💤</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <!-- Edit Item Modal -->
-        <div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemModalLabel"
+        {# 申请新展台模态框 #}
+        <div class="modal fade" id="createBoothApplyModal" tabindex="-1" aria-labelledby="createBoothApplyModalLabel"
              aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="editItemModalLabel">Edit Item</h5>
+                        <h5 class="modal-title" id="createBoothApplyModalLabel">Apply for a New Booth</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form id="editItemForm" method="post" enctype="multipart/form-data">
+                        <form id="application-form" method="post"
+                              action="{% url 'Booth:create_booth_application' %}" enctype="multipart/form-data"
+                              class="needs-validation" novalidate>
                             {% csrf_token %}
-                            <div class="mb-3">
-                                <label for="edit_name" class="form-label">Name</label>
-                                <input type="text" name="name" id="edit_name" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_is_using" class="form-label">Is Using</label>
-                                <input type="checkbox" name="is_using" id="edit_is_using" class="form-check-input">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_is_damaged" class="form-label">Is Damaged</label>
-                                <input type="checkbox" name="is_damaged" id="edit_is_damaged" class="form-check-input">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_power" class="form-label">Power Consumption (Watts)</label>
-                                <input type="number" step="0.01" name="power" id="edit_power" class="form-control">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_water" class="form-label">Water Consumption (Liters)</label>
-                                <input type="number" step="0.01" name="water_consumption" id="edit_water"
-                                       class="form-control">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_location" class="form-label">Location</label>
-                                <select name="location" id="edit_location" class="form-control">
-                                    {% for location in locations %}
-                                        <option value="{{ location.id }}">{{ location.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <input type="hidden" name="item_id" id="edit_item_id">
-                            <div id="edit_item_message_container"></div>
+                            {{ application_form|crispy }}
+                            <div id="application-form-container"></div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-success">Save Changes</button>
+                                <button type="button" class="btn btn-success" @click="submitApplication">Apply
+                                </button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+
+        {# 筛选展台模态框 #}
+        <div class="modal fade" id="filterBoothsModal" tabindex="-1" aria-labelledby="filterBoothsLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="filterBoothsTitle">Filter Booths</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="filterFrom" method="post" action="{% url 'Exhibition:exhibition' exhibition.pk %}"
+                              enctype="multipart/form-data"
+                              class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            {{ filter_form|crispy }}
+                            <input type="hidden" name="exhibition_id" id="exhibition_id" value="{{ exhibition.pk }}">
+                            <div id="filter-booths-message-container"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-success">Filter Booths</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
+        // 取消展会
+        function cancelExhibition() {
+            const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
+            const url = `{% url 'Exhibition:cancel_exhibition' 999 %}`.replace('999', {{ exhibition.pk }});
+            const container = document.getElementById('exhibition-container');
+
+            // 显示确认对话框
+            const confirmed = window.confirm("Are you sure you want to cancel the exhibition?\n\nThis action cannot be undone! 😱");
+
+            if (confirmed) {
+                axios.post(url, {}, {
+                    headers: {
+                        'X-CSRFToken': token  // 请求头中包含 CSRF 令牌
+                    }
+                }).then(response => {
+                    if (response.data.success) {
+                        container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                        setTimeout(() => {
+                            window.location.href = `{% url 'Venue:home' %}`;
+                        }, 2000);
+                    } else {
+                        container.innerHTML = `<div class="alert alert-danger">${response.data.error}</div>`;
+                        container.style.display = 'block';  // 确保消息容器可见
+                    }
+                })
+                    .catch(error => {
+                        // 记录或处理错误
+                        console.error(error);
+                        container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                        container.style.display = 'block';  // 确保消息容器可见
+                    });
+            }
+        }
+
         new Vue({
-            el: '#item-app',
+            el: '#exhibition-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
-                currentSectorId : 0, // 默认首次访问的是Current_Access第一个Sector
                 layers: [],
                 stage: null,
-                currentLayer: null,
                 currentElement: null,
             },
             mounted() {
-                this.refreshData();
+                this.refreshData(0);
             },
             beforeDestroy() {
                 if (this.stage) {
@@ -199,21 +245,19 @@
             },
             methods: {
                 // ----------------- 数据加载 -----------------
-                refreshData() {
+                refreshData(sectorId) {
                     console.log('Refreshing data...');
-                    return axios.get('{% url "Layout:refresh_data" %}', {
+                    return axios.get('{% url "Exhibition:refresh_data" %}', {
                         params: {
-                            current_sector_id : this.currentSectorId,
-                            current_access_id: {{ current_access.id }},
+                            sector_id: sectorId,
+                            exhibition_id: {{ exhibition.id }},
                             user_type: '{{ user_type }}',
                         }
                     }).then(response => {
                         if (response.data && response.data.id) {
                             console.log('Data synchronized:', response.data);
-                            this.currentSectorId = response.data.id;
                             this.layers = []; // 清空Vue实例的layers数组
                             this.layers = [response.data];
-                            console.log('Current Sector ID:', this.currentSectorId);
                             this.renderKonva(); // 重新初始化Konva
                         } else {
                             console.error('Unexpected response data:', response.data);
@@ -238,6 +282,10 @@
                     this.stage.container().addEventListener('wheel', this.handleWheelZoom);
                     // 添加窗口大小变化事件监听器
                     window.addEventListener('resize', this.handleResize);
+                    // 添加画板拖拽的监听器
+                    this.stage.on('mousedown', this.handleMouseDown);
+                    this.stage.on('mouseup', this.handleMouseUp);
+                    this.stage.on('mousemove', this.handleMouseMove);
 
                     const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
                         return new Promise((resolve, reject) => {
@@ -314,11 +362,6 @@
                     node.on('mouseenter', (evt) => showTooltip(parentSpaceUnit.name, evt));
                     node.on('mouseleave', hideTooltip);
                     node.on('mousemove', (evt) => showTooltip(parentSpaceUnit.name, evt));
-
-                    // 添加画板拖拽的监听器
-                    this.stage.on('mousedown', this.handleMouseDown);
-                    this.stage.on('mouseup', this.handleMouseUp);
-                    this.stage.on('mousemove', this.handleMouseMove);
                 },
 
                 findElementByKonvaId(layers, elementId) {
@@ -415,66 +458,83 @@
 
                 toggleSector(sectorId) { // 切换楼层
                     if (this.layers[0].id !== sectorId) {
-                        this.currentSectorId = sectorId;
-                        this.refreshData();
+                        this.refreshData(sectorId);
                     }
                 },
 
-                
+                openBoothApplyModal() {
+                    const myModal = new bootstrap.Modal(document.getElementById('createBoothApplyModal'));
+                    myModal.show(); // 显示模态框
+                },
+
+                openFilterModal() {
+                    const filterModal = new bootstrap.Modal(document.getElementById('filterBoothsModal'));
+                    filterModal.show();
+                },
+
+                submitApplication() {
+                    const formElement = document.getElementById('application-form');
+                    const formData = new FormData(formElement);
+                    const url = formElement.action;  // 直接从表单元素获取action
+                    const container = document.getElementById('application-form-container');
+
+                    formData.set('exhib_id', {{ exhibition.pk }}); // 添加场馆ID
+                    for (let [key, value] of formData.entries())
+                        console.log(key, value);
+
+                    axios.post(url, formData, {
+                        headers: {
+                            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,  // 在请求头中包含CSRF令牌
+                            'Content-Type': 'multipart/form-data'  // 发送文件时很重要
+                        }
+                    }).then(response => {
+                        if (response.data.success) {  // 检查响应中是否包含“success”
+                            container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('createBoothApplyModal'));
+                            setTimeout(() => {
+                                modal.hide();  // 隐藏模态框
+                                window.location.reload();  // 重新加载页面以更新消息列表
+                            }, 1500);
+                        }
+                    }).catch(error => {
+                        // 记录或处理错误
+                        console.error(error);
+                        container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                        container.style.display = 'block';  // Make sure the message container is visible
+                    });
+                },
+
+                submitFilter() {
+                    const filterForm = document.getElementById('filterFrom');
+                    const container = document.getElementById('filter-booths-message-container');
+                    filterForm.addEventListener("submit", function (e) {
+                        e.preventDefault();
+                        const formData = new FormData(filterForm);
+                        const url = filterForm.action;
+                        axios.post(url, formData, {
+                            headers: {
+                                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        }).then(response => {
+                            if (response.data.success) {
+                                container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                                const modal = bootstrap.Modal.getInstance(document.getElementById('filterBoothsModal'));
+                                setTimeout(() => {
+                                    modal.hide();
+                                    window.location.reload();
+                                }, 1500);
+                            }
+                        }).catch(error => {
+                            console.error(error);
+                            container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                            container.style.display = 'block';
+                        });
+                    });
+                },
 
             }
         });
-    </script>
-    
-    
-    <script>
-        function openEditItemModal(itemId) {
-            const url = `{% url 'Inventory:edit_item' 0 %}`.replace('/0/', '/' + itemId + '/');
-            axios.get(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-                .then(response => {
-                    const item = response.data;
-                    document.getElementById('edit_name').value = item.name;
-                    document.getElementById('edit_is_using').checked = item.is_using;
-                    document.getElementById('edit_is_damaged').checked = item.is_damaged;
-                    document.getElementById('edit_power').value = item.power;
-                    document.getElementById('edit_water').value = item.water_consumption;
-                    document.getElementById('edit_location').value = item.location;
-                    document.getElementById('edit_item_id').value = itemId;
 
-                    const editModal = new bootstrap.Modal(document.getElementById('editItemModal'));
-                    editModal.show();
-                })
-                .catch(error => {
-                    console.error('There was an error fetching the item details:', error);
-                });
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const editItemForm = document.getElementById('editItemForm');
-            const container = document.getElementById('edit_item_message_container');
-            editItemForm.addEventListener('submit', function (e) {
-                e.preventDefault();  // 阻止表单的默认提交行为
-                const formData = new FormData(editItemForm);
-                const itemId = document.getElementById('edit_item_id').value;
-                axios.post(`{% url 'Inventory:edit_item' 0 %}`.replace('/0/', '/' + itemId + '/'), formData, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-                    .then(function (response) {
-                        if (response.data.success) { // 如果提交成功，显示成功消息
-                            container.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
-                            container.style.display = 'block';
-                            // 设置定时器等待1.5秒后关闭模态框并刷新页面
-                            setTimeout(function () {
-                                const editModal = new bootstrap.Modal(document.getElementById('editItemModal'));
-                                editModal.hide(); // 关闭模态框
-                                window.location.reload(); // 刷新页面
-                            }, 1500); // 1500毫秒后执行
-                        }
-                    }).catch(error => {
-                    // 记录或处理错误
-                    console.error(error);
-                    container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
-                    container.style.display = 'block';  // 确保消息容器可见
-                });
-            });
-        });
     </script>
 {% endblock %}

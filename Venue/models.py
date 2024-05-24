@@ -49,3 +49,4 @@ class Venue(models.Model):
     # unresolved_resource_applications : List<ResourceApplication>, 由Django ORM的反向关系实现
     # breakage_alerts : List<BreakageAlert>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=venue_upload_to, null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)

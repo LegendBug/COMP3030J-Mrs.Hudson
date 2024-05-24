@@ -38,7 +38,6 @@ class Message(models.Model):
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_messages')
     is_public = models.BooleanField(default=False)
     is_read = models.BooleanField(default=False)
-    detail = models.OneToOneField("MessageDetail", null=True, on_delete=models.CASCADE, related_name='related_message')
 
 
 class MessageDetail(models.Model):
@@ -59,6 +58,7 @@ class Application(models.Model):
         INITIAL_SUBMISSION = 'IS', 'INITIAL_SUBMISSION'  # 初始提交
         REJECTED = 'RJ', 'REJECTED'  # 拒绝申请
         ACCEPTED = 'AC', 'ACCEPTED'  # 完成申请
+        CANCELLED = 'CA', 'CANCELLED'  # 取消申请
 
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='applications')
     description = models.TextField(default='')

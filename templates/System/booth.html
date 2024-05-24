@@ -4,12 +4,12 @@
 {% load crispy_forms_tags %}
 
 {% block extra_head %}
-    <title>Exhibition</title>
+    <title>Booth</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 
-    <link rel="stylesheet" href="{% static 'css/Exhibition/exhibition.css' %}">
+    <link rel="stylesheet" href="{% static 'css/System/booth.css' %}">
 {% endblock %}
 
 {% block extra_nav_icons %}
@@ -20,7 +20,7 @@
                 Statistics</a>
         </li>
     {% endif %}
-    {% if user.is_authenticated and user_type != 'Exhibitor' and user_type != 'Guest' %}
+    {% if user.is_authenticated and user_type != 'Guest' %}
         <li class="nav-item">
             <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
         </li>
@@ -32,18 +32,21 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
             <li class="breadcrumb-item"><a
-                    href="{% url 'Venue:venue' exhibition.venue.id %}">{{ exhibition.venue.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ exhibition.name }}</li>
+                    href="{% url 'Venue:venue' booth.exhibition.venue.id %}">{{ booth.exhibition.venue.name }}</a></li>
+            <li class="breadcrumb-item"><a
+                    href="{% url 'Exhibition:exhibition' booth.exhibition.id %}">{{ booth.exhibition.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ booth.name }}</li>
         </ol>
     </nav>
 {% endblock %}
 
 {% block content %}
-    <div id="exhibition-app">
-
-        <div class="d-flex justify-content-between align-items-center mb-3" id="exhibition-header">
-            <div id="exhibition-name" class="exhibition-text logo-title">
-                Current Exhibition: {{ exhibition.name }}
+    <div id="booth-app">
+        <div id="booth-container" class="container mt-4"></div>
+    
+        <div class="d-flex justify-content-between align-items-center mb-3" id="booth-header">
+            <div id="booth-name" class="booth-text logo-title">
+                Current Booth: {{ booth.name }}
             </div>
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
@@ -65,125 +68,64 @@
         <div id="tooltip"
              style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
-
         <!-- Floating Action Button -->
-        {% if user.is_authenticated and user_type == 'Exhibitor' %}
-            <a @click="openBoothApplyModal" class="btn btn-success rounded-circle shadow" id="createBoothApply"
-               style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex;
-           justify-content: center; align-items: center; font-size: 30px;" title="Apply Booth">
-                📝
-            </a>
-        {% elif user.is_authenticated and user_type == 'Organizer' %}
+        {% if is_owner %}
             <a class="btn btn-success rounded-circle shadow"
                style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-               href="{% url 'Inventory:inventory' 'exhibition' exhibition.id %}" title="View Inventory">
+               href="{% url 'Inventory:inventory' 'booth' booth.id %}" title="View Inventory">
                 📦
             </a>
         {% endif %}
-        <a class="btn btn-success rounded-circle shadow" id="filter-booths-btn"
-           style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-           @click="openFilterModal;" title="Filter Booths">
-            <i class="fas fa-filter mt-1"></i>
-        </a>
 
-        <!-- 展览列表 -->
-        <div class="table-responsive" style="margin: 1rem; user-select: none">
-            <table class="table table-hover text-white">
-                <thead class="bg-dark">
-                <tr>
-                    <th></th>
-                    <th>Booth Name</th>
-                    <th>Description</th>
-                    <th>Exhibitor</th>
-                    <th>Sector</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for booth in booths %}
-                    <tr onclick="window.location.href='{% url 'Booth:booth' booth.id %}';"
-                        style="cursor: pointer;">
-                        <td><img src="{{ booth.image|default:'../../static/images/Public/poster.jpg' }}"
-                                 alt="No Poster"
-                                 class="booth-img" style="width: 100px; height: 80px;"></td>
-                        <td>{{ booth.name }}</td>
-                        <td>{{ booth.description }}</td>
-                        <td>{{ booth.exhibitor }}</td>
-                        <td>{{ booth.sectors }}</td>
-                        <td>{{ booth.start_at| date:"Y-m-d H:i" }}</td>
-                        <td>{{ booth.end_at| date:"Y-m-d H:i" }}</td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center text-white">No booths found. 💤</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        {# 申请新展台模态框 #}
-        <div class="modal fade" id="createBoothApplyModal" tabindex="-1" aria-labelledby="createBoothApplyModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="createBoothApplyModalLabel">Apply for a New Booth</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="application-form" method="post"
-                              action="{% url 'Booth:create_booth_application' %}" enctype="multipart/form-data"
-                              class="needs-validation" novalidate>
-                            {% csrf_token %}
-                            {{ application_form|crispy }}
-                            <div id="application-form-container"></div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-success" @click="submitApplication">Apply
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {# 筛选展台模态框 #}
-        <div class="modal fade" id="filterBoothsModal" tabindex="-1" aria-labelledby="filterBoothsLabel"
-             aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="filterBoothsTitle">Filter Booths</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="filterFrom" method="post" action="{% url 'Exhibition:exhibition' exhibition.pk %}"
-                              enctype="multipart/form-data"
-                              class="needs-validation" novalidate>
-                            {% csrf_token %}
-                            {{ filter_form|crispy }}
-                            <input type="hidden" name="exhibition_id" id="exhibition_id" value="{{ exhibition.pk }}">
-                            <div id="filter-booths-message-container"></div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-success">Filter Booths</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {% if is_owner and booth.booth_application.stage == "IS" %}
+            <a @click="cancelBooth()" class="btn btn-success rounded-circle shadow" id="cancelBooth"
+               style="background-color: #c9302c;border: #c9302c; position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+               title="Cancel Booth">
+                ❌
+            </a>
+        {% endif %}
 
     </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
+        // 取消展台
+        function cancelBooth() {
+            const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
+            const url = `{% url 'Booth:cancel_booth' 999 %}`.replace('999', {{ booth.pk }});
+            const container = document.getElementById('booth-container');
+
+            // 显示确认对话框
+            const confirmed = window.confirm("Are you sure you want to cancel the booth?\n\nThis action cannot be undone! 😱");
+
+            if (confirmed) {
+                axios.post(url, {}, {
+                    headers: {
+                        'X-CSRFToken': token  // 请求头中包含 CSRF 令牌
+                    }
+                }).then(response => {
+                    if (response.data.success) {
+                        container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
+                        setTimeout(() => {
+                            window.location.href = `{% url 'Venue:home' %}`;
+                        }, 2000);
+                    } else {
+                        container.innerHTML = `<div class="alert alert-danger">${response.data.error}</div>`;
+                        container.style.display = 'block';  // 确保消息容器可见
+                    }
+                })
+                    .catch(error => {
+                        // 记录或处理错误
+                        console.error(error);
+                        container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                        container.style.display = 'block';  // 确保消息容器可见
+                    });
+            }
+        }
+
         new Vue({
-            el: '#exhibition-app',
+            el: '#booth-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
                 layers: [],
@@ -203,10 +145,10 @@
                 // ----------------- 数据加载 -----------------
                 refreshData(sectorId) {
                     console.log('Refreshing data...');
-                    return axios.get('{% url "Exhibition:refresh_data" %}', {
+                    return axios.get('{% url "Booth:refresh_data" %}', {
                         params: {
                             sector_id: sectorId,
-                            exhibition_id: {{ exhibition.id }},
+                            booth_id: {{ booth.id }},
                             user_type: '{{ user_type }}',
                         }
                     }).then(response => {
@@ -416,77 +358,6 @@
                     if (this.layers[0].id !== sectorId) {
                         this.refreshData(sectorId);
                     }
-                },
-
-                openBoothApplyModal() {
-                    const myModal = new bootstrap.Modal(document.getElementById('createBoothApplyModal'));
-                    myModal.show(); // 显示模态框
-                },
-
-                openFilterModal() {
-                    const filterModal = new bootstrap.Modal(document.getElementById('filterBoothsModal'));
-                    filterModal.show();
-                },
-
-                submitApplication() {
-                    const formElement = document.getElementById('application-form');
-                    const formData = new FormData(formElement);
-                    const url = formElement.action;  // 直接从表单元素获取action
-                    const container = document.getElementById('application-form-container');
-
-                    formData.set('exhib_id', {{ exhibition.pk }}); // 添加场馆ID
-                    for (let [key, value] of formData.entries())
-                        console.log(key, value);
-
-                    axios.post(url, formData, {
-                        headers: {
-                            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,  // 在请求头中包含CSRF令牌
-                            'Content-Type': 'multipart/form-data'  // 发送文件时很重要
-                        }
-                    }).then(response => {
-                        if (response.data.success) {  // 检查响应中是否包含“success”
-                            container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('createBoothApplyModal'));
-                            setTimeout(() => {
-                                modal.hide();  // 隐藏模态框
-                                window.location.reload();  // 重新加载页面以更新消息列表
-                            }, 1500);
-                        }
-                    }).catch(error => {
-                        // 记录或处理错误
-                        console.error(error);
-                        container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
-                        container.style.display = 'block';  // Make sure the message container is visible
-                    });
-                },
-
-                submitFilter() {
-                    const filterForm = document.getElementById('filterFrom');
-                    const container = document.getElementById('filter-booths-message-container');
-                    filterForm.addEventListener("submit", function (e) {
-                        e.preventDefault();
-                        const formData = new FormData(filterForm);
-                        const url = filterForm.action;
-                        axios.post(url, formData, {
-                            headers: {
-                                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
-                                'Content-Type': 'multipart/form-data'
-                            }
-                        }).then(response => {
-                            if (response.data.success) {
-                                container.innerHTML = `<div class="alert alert-success">${response.data.success}</div>`;
-                                const modal = bootstrap.Modal.getInstance(document.getElementById('filterBoothsModal'));
-                                setTimeout(() => {
-                                    modal.hide();
-                                    window.location.reload();
-                                }, 1500);
-                            }
-                        }).catch(error => {
-                            console.error(error);
-                            container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
-                            container.style.display = 'block';
-                        });
-                    });
                 },
 
             }

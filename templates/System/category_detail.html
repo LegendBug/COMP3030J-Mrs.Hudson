@@ -1,49 +1,48 @@
-{% extends 'Public/base.html' %}
-{% load crispy_forms_filters %}
+{% extends "Public/base.html" %}
 {% load static %}
+{% load crispy_forms_filters %}
 {% load crispy_forms_tags %}
 
 {% block extra_head %}
-    <title>Booth</title>
+    <title>Category Detail</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/System/venue.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 
-    <link rel="stylesheet" href="{% static 'css/Booth/booth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/System/category_detail.css' %}">
 {% endblock %}
 
 {% block extra_nav_icons %}
-    <!-- 导航栏额外按键-->
+    <!-- 在这里添加导航栏里额外的icon-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i>
-                Statistics</a>
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
         </li>
     {% endif %}
-    {% if user.is_authenticated and user_type != 'Guest' %}
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
-        </li>
-    {% endif %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
+    </li>
 {% endblock %}
 
 {% block breadcrumbs %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' booth.exhibition.venue.id %}">{{ booth.exhibition.venue.name }}</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'Exhibition:exhibition' booth.exhibition.id %}">{{ booth.exhibition.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ booth.name }}</li>
+            <li class="breadcrumb-item"><a
+                    href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'Inventory:inventory' space_type space_id %}">Inventory</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Category</li>
         </ol>
     </nav>
 {% endblock %}
 
 {% block content %}
-    <div id="booth-app">
+    <div id="item-app">
 
-        <div class="d-flex justify-content-between align-items-center mb-3" id="booth-header">
-            <div id="booth-name" class="booth-text logo-title">
-                Current Booth: {{ booth.name }}
+        <div class="d-flex justify-content-between align-items-center mb-3" id="current-access-header">
+            <div id="current-access-name" class="current-access-text logo-title">
+                {{ current_access.name }}'s Inventory
             </div>
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
@@ -53,7 +52,8 @@
                 <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
                     {% for sector in sectors %}
                         {% comment %}你先别急, 这里是Pycharm的模板语法出现了问题, 这里其实是可以正常运行的{% endcomment %}
-                        <li><a class="dropdown-item" href="#" @click="toggleSector({{ sector.pk }})">Sector {{ sector.name }}</a></li>
+                        <li><a class="dropdown-item" href="#"
+                               @click="toggleSector({{ sector.pk }})">Sector {{ sector.name }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -64,30 +64,132 @@
         <div id="tooltip"
              style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
-        <!-- Floating Action Button -->
-        {% if user.is_authenticated and user_type == 'Exhibitor' %}
-            <a class="btn btn-success rounded-circle shadow"
-               style="position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-               href="{% url 'Inventory:inventory' 'booth' booth.id %}" title="View Inventory">
-                📦
-            </a>
-        {% endif %}
+        <div class="table-responsive" style="margin: 1rem; user-select: none">
+            <table class="table table-hover text-white">
+                <thead class="bg-dark">
+                <tr>
+                    <th></th>
+                    <th>State</th>
+                    <th>Original Location</th>
+                    <th>Current Location</th>
+                    <th>Power Consumption</th>
+                    <th>Water Consumption</th>
+                    {# TODO 放不下了<th>Last Modified</th>#}
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            {% if item.is_damaged %}
+                                Damaged ⛔️
+                            {% else %}
+                                {{ item.is_using | yesno:"In used 🧰, Available ✅" }}
+                            {% endif %}
+                        </td>
+                        <td>{{ origin }}</td>
+                        <td>{{ item.affiliation.name }}</td>
+                        <td>{{ item.power }} Watts</td>
+                        <td>{{ item.water_consumption }} Liters</td>
+                        {#                    <td>{{ item.last_modified | date:"Y-m-d H:i" }}</td>#}
+                        <td>
+                            <button class="btn btn-secondary mt-1" onclick="openEditItemModal({{ item.id }})">Modify
+                            </button>
+                            {# TODO 优化筛选用户条件 #}
+                            {% if item.affiliation != item.category.origin and user_type == 'Exhibitor' %}
+                                <!-- 显示 Return 按钮 -->
+                                <form method="post" action="{% url 'Inventory:return_item' item.id %}"
+                                      style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success mt-1">Return</button>
+                                </form>
+                            {% elif user_type == 'Manager' %}
+                                <!-- 显示 Delete 按钮 -->
+                                <form method="post" action="{% url 'Inventory:delete_item' item.id %}"
+                                      style="display: inline;"
+                                      onsubmit="return confirm('Are you sure?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger mt-1">Delete</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
+        <!-- Edit Item Modal -->
+        <div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editItemModalLabel">Edit Item</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editItemForm" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="edit_name" class="form-label">Name</label>
+                                <input type="text" name="name" id="edit_name" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_is_using" class="form-label">Is Using</label>
+                                <input type="checkbox" name="is_using" id="edit_is_using" class="form-check-input">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_is_damaged" class="form-label">Is Damaged</label>
+                                <input type="checkbox" name="is_damaged" id="edit_is_damaged" class="form-check-input">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_power" class="form-label">Power Consumption (Watts)</label>
+                                <input type="number" step="0.01" name="power" id="edit_power" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_water" class="form-label">Water Consumption (Liters)</label>
+                                <input type="number" step="0.01" name="water_consumption" id="edit_water"
+                                       class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_location" class="form-label">Location</label>
+                                <select name="location" id="edit_location" class="form-control">
+                                    {% for location in locations %}
+                                        <option value="{{ location.id }}">{{ location.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <input type="hidden" name="item_id" id="edit_item_id">
+                            <div id="edit_item_message_container"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-success">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
         new Vue({
-            el: '#booth-app',
+            el: '#item-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
+                currentSectorId : 0, // 默认首次访问的是Current_Access第一个Sector
                 layers: [],
                 stage: null,
+                currentLayer: null,
                 currentElement: null,
             },
             mounted() {
-                this.refreshData(0);
+                this.refreshData();
             },
             beforeDestroy() {
                 if (this.stage) {
@@ -97,19 +199,21 @@
             },
             methods: {
                 // ----------------- 数据加载 -----------------
-                refreshData(sectorId) {
+                refreshData() {
                     console.log('Refreshing data...');
-                    return axios.get('{% url "Booth:refresh_data" %}', {
+                    return axios.get('{% url "Layout:refresh_data" %}', {
                         params: {
-                            sector_id: sectorId,
-                            booth_id: {{ booth.id }},
+                            current_sector_id : this.currentSectorId,
+                            current_access_id: {{ current_access.id }},
                             user_type: '{{ user_type }}',
                         }
                     }).then(response => {
                         if (response.data && response.data.id) {
                             console.log('Data synchronized:', response.data);
+                            this.currentSectorId = response.data.id;
                             this.layers = []; // 清空Vue实例的layers数组
                             this.layers = [response.data];
+                            console.log('Current Sector ID:', this.currentSectorId);
                             this.renderKonva(); // 重新初始化Konva
                         } else {
                             console.error('Unexpected response data:', response.data);
@@ -134,11 +238,7 @@
                     this.stage.container().addEventListener('wheel', this.handleWheelZoom);
                     // 添加窗口大小变化事件监听器
                     window.addEventListener('resize', this.handleResize);
-                    // 添加画板拖拽的监听器
-                    this.stage.on('mousedown', this.handleMouseDown);
-                    this.stage.on('mouseup', this.handleMouseUp);
-                    this.stage.on('mousemove', this.handleMouseMove);
-                    
+
                     const loadImage = (url, nodeData, group, element, spaceUnit) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
                         return new Promise((resolve, reject) => {
                             Konva.Image.fromURL(url, (imageNode) => {
@@ -214,6 +314,11 @@
                     node.on('mouseenter', (evt) => showTooltip(parentSpaceUnit.name, evt));
                     node.on('mouseleave', hideTooltip);
                     node.on('mousemove', (evt) => showTooltip(parentSpaceUnit.name, evt));
+
+                    // 添加画板拖拽的监听器
+                    this.stage.on('mousedown', this.handleMouseDown);
+                    this.stage.on('mouseup', this.handleMouseUp);
+                    this.stage.on('mousemove', this.handleMouseMove);
                 },
 
                 findElementByKonvaId(layers, elementId) {
@@ -310,12 +415,66 @@
 
                 toggleSector(sectorId) { // 切换楼层
                     if (this.layers[0].id !== sectorId) {
-                        this.refreshData(sectorId);
+                        this.currentSectorId = sectorId;
+                        this.refreshData();
                     }
                 },
-            
+
+                
+
             }
         });
+    </script>
+    
+    
+    <script>
+        function openEditItemModal(itemId) {
+            const url = `{% url 'Inventory:edit_item' 0 %}`.replace('/0/', '/' + itemId + '/');
+            axios.get(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                .then(response => {
+                    const item = response.data;
+                    document.getElementById('edit_name').value = item.name;
+                    document.getElementById('edit_is_using').checked = item.is_using;
+                    document.getElementById('edit_is_damaged').checked = item.is_damaged;
+                    document.getElementById('edit_power').value = item.power;
+                    document.getElementById('edit_water').value = item.water_consumption;
+                    document.getElementById('edit_location').value = item.location;
+                    document.getElementById('edit_item_id').value = itemId;
 
+                    const editModal = new bootstrap.Modal(document.getElementById('editItemModal'));
+                    editModal.show();
+                })
+                .catch(error => {
+                    console.error('There was an error fetching the item details:', error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const editItemForm = document.getElementById('editItemForm');
+            const container = document.getElementById('edit_item_message_container');
+            editItemForm.addEventListener('submit', function (e) {
+                e.preventDefault();  // 阻止表单的默认提交行为
+                const formData = new FormData(editItemForm);
+                const itemId = document.getElementById('edit_item_id').value;
+                axios.post(`{% url 'Inventory:edit_item' 0 %}`.replace('/0/', '/' + itemId + '/'), formData, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                    .then(function (response) {
+                        if (response.data.success) { // 如果提交成功，显示成功消息
+                            container.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
+                            container.style.display = 'block';
+                            // 设置定时器等待1.5秒后关闭模态框并刷新页面
+                            setTimeout(function () {
+                                const editModal = new bootstrap.Modal(document.getElementById('editItemModal'));
+                                editModal.hide(); // 关闭模态框
+                                window.location.reload(); // 刷新页面
+                            }, 1500); // 1500毫秒后执行
+                        }
+                    }).catch(error => {
+                    // 记录或处理错误
+                    console.error(error);
+                    container.innerHTML = `<div class="alert alert-danger">${error.response.data.error}</div>`;
+                    container.style.display = 'block';  // 确保消息容器可见
+                });
+            });
+        });
     </script>
 {% endblock %}

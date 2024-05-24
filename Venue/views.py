@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from Booth.models import Booth
 from Exhibition.forms import ExhibApplicationForm, FilterExhibitionsForm
 from Exhibition.models import Exhibition
+from Exhibition.views import cancel_exhibition
 from Layout.serializers import SpaceUnitSerializer
 from Venue.forms import CreateVenueForm
 from Venue.models import Venue
@@ -16,12 +17,15 @@ from django.contrib import messages
 def home(request):
     if request.method == 'GET':
         # GET请求，展示场馆列表和空的创建表单
-        venues = Venue.objects.all()
+        venues = Venue.objects.filter(is_deleted=False)
         form = CreateVenueForm()  # 创建一个空的表单实例
-        return render(request, 'Venue/home.html',
-                      {'venues': venues, 'user_type': request.session.get('user_type', 'Guest'),
-                       'messages': messages.get_messages(request),
-                       'form': form})
+        return render(request, 'System/home.html',
+                      {
+                          'venues': venues,
+                          'user_type': request.session.get('user_type', 'Guest'),
+                          'messages': messages.get_messages(request),
+                          'form': form
+                      })
     else:  # POST请求
         if not request.user.is_authenticated or not hasattr(request.user, 'manager'):
             return JsonResponse({'error': 'Permission denied!'}, status=403)
@@ -60,7 +64,14 @@ def delete_venue(request, venue_id):
     venue = Venue.objects.filter(id=venue_id).first()
     if venue is None:
         return JsonResponse({'error': 'Venue not found!'}, status=404)
-    venue.delete()
+
+    for exhibition in venue.exhibitions.all():
+        cancel_exhibition(request, exhibition.id)  # 取消所有展览
+
+    # 逻辑删除当前场馆
+    venue.is_deleted = True
+    venue.save()
+
     return JsonResponse({'success': 'Venue deleted successfully!'})
 
 
@@ -70,7 +81,7 @@ def venue(request, venue_id):  # TODO 在展览过期后, 将绑定的SpaceUnit�
         return redirect('Venue:home')
     request.session['venue_id'] = venue_id  # 将venue_id存入session
 
-    user_type = request.session.get('user_type', 'Guest')
+    user_type = request.session.get('user_type', '')
     exhibitions = None
     if request.method == 'GET':
         # 筛选end_at在今日或者今日之后的展会,并按照从最近开始到最远开始的顺序排序
@@ -96,6 +107,8 @@ def venue(request, venue_id):  # TODO 在展览过期后, 将绑定的SpaceUnit�
             continue
         elif stage == 'ACCEPTED':
             stage = '✅ ACCEPTED'
+        elif stage == 'CANCELLED':
+            stage = '❌ CANCELLED'
         elif exhibition.end_at < timezone.now():  # 展览已结束
             stage = '🔴 OUTDATED'
         elif exhibition.start_at < timezone.now() < exhibition.end_at:  # 展览进行中
@@ -114,7 +127,7 @@ def venue(request, venue_id):  # TODO 在展览过期后, 将绑定的SpaceUnit�
             'stage': stage
         })
 
-    return render(request, 'Venue/venue.html', {
+    return render(request, 'System/venue.html', {
         'venue': current_venue,
         'exhibitions': exhibitions_list,
         'floor_range': range(1, current_venue.floor + 1),
