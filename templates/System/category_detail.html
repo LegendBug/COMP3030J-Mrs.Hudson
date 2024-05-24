@@ -17,11 +17,11 @@
     <!-- 在这里添加导航栏里额外的icon-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> Statistics</a>
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar"></i> </a>
         </li>
     {% endif %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
+        <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> </a>
     </li>
 {% endblock %}
 
@@ -182,7 +182,7 @@
             el: '#item-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
-                currentSectorId : 0, // 默认首次访问的是Current_Access第一个Sector
+                currentSectorId: 0, // 默认首次访问的是Current_Access第一个Sector
                 layers: [],
                 stage: null,
                 currentLayer: null,
@@ -203,7 +203,7 @@
                     console.log('Refreshing data...');
                     return axios.get('{% url "Layout:refresh_data" %}', {
                         params: {
-                            current_sector_id : this.currentSectorId,
+                            current_sector_id: this.currentSectorId,
                             current_access_id: {{ current_access.id }},
                             user_type: '{{ user_type }}',
                         }
@@ -420,13 +420,12 @@
                     }
                 },
 
-                
 
             }
         });
     </script>
-    
-    
+
+
     <script>
         function openEditItemModal(itemId) {
             const url = `{% url 'Inventory:edit_item' 0 %}`.replace('/0/', '/' + itemId + '/');

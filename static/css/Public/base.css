@@ -56,7 +56,7 @@ image, h1, h2, h3, h4, h5, h6 {
     color: #1f1f1f;
     transition: color 0.3s ease;
     font-family: 'Great Vibes', cursive;
-    font-size: 24px; /* 调整字体大小 */
+    font-size: 22px; /* 调整字体大小 */
     font-weight: bold; /* 加粗文本 */
 }
 
@@ -64,7 +64,7 @@ image, h1, h2, h3, h4, h5, h6 {
     color: #f0f0f0;
     transition: color 0.3s ease;
     font-family: 'Great Vibes', cursive;
-    font-size: 24px; /* 调整字体大小 */
+    font-size: 22px; /* 调整字体大小 */
     font-weight: bold; /* 加粗文本 */
 }
 
