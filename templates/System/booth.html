@@ -16,12 +16,14 @@
     <!-- 导航栏额外按键-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link me-2" href="{% url 'Statistic:statistic' %}"><i class="fas fa-chart-bar fa-lg"></i></a>
+            <a class="nav-link me-2" href="{% url 'Statistic:statistic' %}" title="Statistic"><i
+                    class="fas fa-chart-bar fa-lg fa-lg"></i></a>
         </li>
     {% endif %}
     {% if user.is_authenticated and user_type != 'Guest' %}
         <li class="nav-item">
-            <a class="nav-link me-2" href="{% url 'Layout:layout' %}"><i class="fas fa-edit fa-lg"></i></a>
+            <a class="nav-link me-2" href="{% url 'Layout:layout' %}" title="Layout"><i
+                    class="fas fa-edit fa-lg fa-lg"></i></a>
         </li>
     {% endif %}
 {% endblock %}
@@ -42,7 +44,7 @@
 {% block content %}
     <div id="booth-app">
         <div id="booth-container" class="container mt-4"></div>
-    
+
         <div class="d-flex justify-content-between align-items-center mb-3" id="booth-header">
             <div id="booth-name" class="booth-text logo-title">
                 Current Booth: {{ booth.name }}
@@ -68,7 +70,7 @@
              style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
         <!-- Floating Action Button -->
-        {% if is_owner  %}
+        {% if is_owner %}
             <a class="btn btn-success rounded-circle shadow"
                style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
                href="{% url 'Inventory:inventory' 'booth' booth.id %}" title="View Inventory">

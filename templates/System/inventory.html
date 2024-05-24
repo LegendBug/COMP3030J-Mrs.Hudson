@@ -9,25 +9,20 @@
 {% endblock %}
 
 {% block extra_nav_icons %}
-    <!-- 使用 Bootstrap Icons -->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Statistic:statistic' %}"><i class="bi bi-bar-chart"></i> Statistics</a>
+            <a class="nav-link me-2" href="{% url 'Statistic:statistic' %}" title="Statistic"><i
+                    class="fas fa-chart-bar fa-lg"></i></a>
         </li>
     {% endif %}
-    <li class="nav-item">
-            <a class="nav-link" href="{% url 'Layout:layout' %}"><i class="fas fa-edit"></i> Layout</a>
-    </li>
-    {#    <li class="nav-item">#}
-    {#        <a class="nav-link" href="{% url 'Inventory:inventory ' %}"><i class="bi bi-box-seam"></i> Inventory</a>#}
-    {#    </li>#}
 {% endblock %}
 
 {% block breadcrumbs %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_space.pk %}">{{ current_space.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_space.pk %}">{{ current_space.name }}</a>
+            </li>
             <li class="breadcrumb-item active" aria-current="page">Inventory</li>
         </ol>
     </nav>
@@ -35,11 +30,12 @@
 
 {% block content %}
     {% if user.is_authenticated and user_type == 'Manager' %}
-        <h1 class="logo-title"><a href="{% url 'Venue:venue' current_space.pk %}">{{ current_space.name }}</a> 
+        <h1 class="logo-title"><a href="{% url 'Venue:venue' current_space.pk %}">{{ current_space.name }}</a>
             <small>Inventory</small></h1>
     {% elif user.is_authenticated and user_type == 'Organizer' %}
         <h1 class="logo-title"><a
-                href="{% url 'Exhibition:exhibition' current_space.pk %}">{{ current_space.name }}</a> <small>Inventory</small>
+                href="{% url 'Exhibition:exhibition' current_space.pk %}">{{ current_space.name }}</a>
+            <small>Inventory</small>
         </h1>
     {% elif user.is_authenticated and user_type == 'Exhibitor' %}
         <h1 class="logo-title"><a href="{% url 'Booth:booth' current_space.pk %}">{{ current_space.name }}</a> <small>Inventory</small>
@@ -83,8 +79,9 @@
                                     <div class="d-flex flex-column">
                                         {% if is_owner %}
                                             <div class="btn-group">
-                                                <button type="button" class="btn btn-secondary btn-sm" 
-                                                        onclick="openEditCategoryModal({{ category.pk }})">Modify</button>
+                                                <button type="button" class="btn btn-secondary btn-sm"
+                                                        onclick="openEditCategoryModal({{ category.pk }})">Modify
+                                                </button>
                                                 <button type="button" class="btn btn-danger btn-sm"
                                                         onclick="confirmDelete({{ category.id }})">Delete
                                                 </button>
@@ -168,9 +165,10 @@
             </div>
         </div>
     </div>
-    
+
     <!-- 修改库存类别的模态框 -->
-    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel"
+         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -178,7 +176,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="editCategoryForm" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <form id="editCategoryForm" method="post" enctype="multipart/form-data" class="needs-validation"
+                          novalidate>
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="edit_name" class="form-label">Name</label>
@@ -223,7 +222,7 @@
     <script>
         function openEditCategoryModal(categoryId) {
             const url = `{% url 'Inventory:edit-category' 0 %}`.replace('/0/', '/' + categoryId + '/');
-            axios.get(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            axios.get(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
                 .then(response => {
                     const category = response.data;
                     document.getElementById('edit_name').value = category.name;
@@ -232,7 +231,7 @@
                     document.getElementById('edit_rent').value = category.rent;
                     document.getElementById('edit_is_public').checked = category.is_public;
                     document.getElementById('edit_category_id').value = categoryId;
-                    
+
                     const editModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
                     editModal.show();
                 })
@@ -240,6 +239,7 @@
                     console.error('There was an error fetching the category details:', error);
                 });
         }
+
         document.addEventListener('DOMContentLoaded', function () {
             const editCategoryForm = document.getElementById('editCategoryForm');
             const container = document.getElementById('edit_category_message_container');
@@ -247,7 +247,7 @@
                 e.preventDefault();  // 阻止表单的默认提交行为
                 const formData = new FormData(editCategoryForm);
                 const categoryId = document.getElementById('edit_category_id').value;
-                axios.post(`{% url 'Inventory:edit-category' 0 %}`.replace('/0/', '/' + categoryId + '/'), formData, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                axios.post(`{% url 'Inventory:edit-category' 0 %}`.replace('/0/', '/' + categoryId + '/'), formData, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
                     .then(function (response) {
                         if (response.data.success) { // 如果提交成功，显示成功消息
                             container.innerHTML = '<div class="alert alert-success">' + response.data.success + '</div>';
@@ -268,7 +268,7 @@
             });
         });
     </script>
-    
+
     <script>
         function confirmDelete(categoryId) {
             if (confirm('Are you sure to delete this category and all its items?')) {
@@ -285,8 +285,8 @@
             const filterModal = new bootstrap.Modal(document.getElementById('createResApplyModal'));
             filterModal.show();
         }
-        
-        
+
+
         document.addEventListener('DOMContentLoaded', function () {
             const addInventoryForm = document.getElementById('addInventoryForm');
             const container = document.getElementById('add_inventory-message-container');

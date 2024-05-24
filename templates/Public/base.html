@@ -57,32 +57,36 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item me-2">
-                        <a class="nav-link" href="#" id="theme-toggle" title="Theme"><i class="fas fa-moon fa-lg"></i></a>
+                        <a class="nav-link" href="#" id="theme-toggle" title="Theme"><i
+                                class="fas fa-moon fa-lg"></i></a>
                     </li>
 
                     {% block extra_nav_icons %}
                         <!-- 在这里添加额外的icon-->
                     {% endblock %}
-
-                    <li class="nav-item">
-                        <a class="nav-link me-2" href="{% url 'System:copilot' %}"><i class="fas fa-robot fa-lg" title="Watson Copilot"></i></a>
-                    </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link me-2" href="{% url 'User:view_message' %}" title="Message"><i class="fas fa-envelope fa-lg"></i></a>
+                            <a class="nav-link me-2" href="{% url 'System:copilot' %}"><i class="fas fa-robot fa-lg"
+                                                                                          title="Watson Copilot"></i></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link me-2" href="{% url 'User:logout' %}" title="Logout"><i class="fas fa-sign-out-alt fa-lg"></i></a>
+                            <a class="nav-link me-2" href="{% url 'User:view_message' %}" title="Message"><i
+                                    class="fas fa-envelope fa-lg"></i></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link me-2" href="{% url 'User:logout' %}" title="Logout"><i
+                                    class="fas fa-sign-out-alt fa-lg"></i></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link me-2" href="{% url 'User:profile' %}" title="Profile"><i
+                                    class="fas fa-user fa-lg"></i></a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link me-2" href="{% url 'User:login' %}" title="Login"><i class="fas fa-sign-in-alt fa-lg"></i></a>
+                            <a class="nav-link me-2" href="{% url 'User:login' %}" title="Login"><i
+                                    class="fas fa-sign-in-alt fa-lg"></i></a>
                         </li>
                     {% endif %}
-
-                    <li class="nav-item">
-                        <a class="nav-link me-2" href="{% url 'User:profile' %}" title="Profile"><i class="fas fa-user fa-lg"></i></a>
-                    </li>
                 </ul>
             </div>
         </div>
