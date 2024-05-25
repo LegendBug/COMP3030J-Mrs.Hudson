@@ -2,7 +2,7 @@
 
 **H.U.D.S.O.N.** stands for **Holistic Utility Deployment & Sustainability Overseeing Network**.
 
-An internal resource management system developed for COMP3030J Software Engineering Project 2.
+It is an internal resource management system aimed to boost sustainability of exhibition centers developed for COMP3030J Software Engineering Project 2.
 
 ## Project Background
 
@@ -13,6 +13,16 @@ Its primary service is exhibition design and construction: the company is respon
 ## Project Solution
 
 To address the outlined issues, we’re developing a resource management system called **Mrs. Hudson**, serving as a comprehensive manager for the exhibition center to minimize waste and optimize asset and energy usage. The system will feature an online repository where exhibitors can find and select needed items like sound systems and lighting, boosting item reusability and the company’s sustainability. The Holmes Exhibition Company will supply these items based on repository stock levels, ensuring efficient use. Additionally, energy management will adapt to the exhibition center’s fluctuating foot traffic, increasing air conditioning during busy times and reducing energy use during quieter periods, thus conserving resources.
+
+## Functionalities
+
++ Graphical Venue Layout Management
++ Venue, Exhibition & Booth Management
++ Venue Statistics Analysis
++ Venue Inventory Management
++ AI Copilot for User Accessibility
++ Internal Communication System
++ User Management
 
 ## Deployment
 
@@ -50,13 +60,4 @@ DB_USERNAME='your_username'
 MYSQL_ROOT_PASSWORD='your_password'
 MYSQL_DATABASE='hudson'
 OPENAI_API_KEY='your_openai_api_key'
-```
-
-### Additional Commands
-Using these commands to create superusers and new Django apps:
-``` shell
-# Create a superuser:
-python manage.py createsuperuser
-# Create a new app:
-python manage.py startapp <app_name>
 ```
