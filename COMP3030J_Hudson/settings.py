@@ -16,6 +16,8 @@ ALLOWED_HOSTS = ["*"]  # TODO 在测试时使用，允许所有的主机访问;�
 
 # Application definition
 INSTALLED_APPS = [
+    'grappelli',
+    'grappelli_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -155,6 +157,10 @@ CORS_ALLOW_ALL_ORIGINS = True
 # 增加允许的上传文件大小
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 这里设置为10MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 同样设置为10MB
+
+
+GRAPPELLI_ADMIN_TITLE = "Hudson Admin Dashboard"
+GRAPPELLI_INDEX_DASHBOARD = 'COMP3030J_Hudson.dashboard.CustomIndexDashboard'
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
