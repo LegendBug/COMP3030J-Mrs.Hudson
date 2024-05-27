@@ -99,17 +99,17 @@
         {% else %}
             <!-- 无消息说明 -->
             <div class="message-info mt-4 ms-5">
-                {% if item_type == 'unread' %}
-                    <p class="message-info">Great job. All messages have been addressed 👍</p>
-                {% elif item_type == 'inbox' %}
-                    <p class="message-info">No message received yet 😌</p>
-                {% elif item_type == 'sent' %}
-                    <p class="message-info">No sent messages 😲</p>
-                {% elif item_type == 'applications' %}
-                    <p class="message-info">No Applications 😇</p>
-                {% endif %}
-            </div>
+            {% if item_type == 'unread' %}
+                <p class="message-info">Great job. All messages have been addressed 👍</p>
+            {% elif item_type == 'inbox' %}
+                <p class="message-info">No message received yet 😌</p>
+            {% elif item_type == 'sent' %}
+                <p class="message-info">No sent messages 😲</p>
+            {% elif item_type == 'applications' %}
+                <p class="message-info">No Applications 😇</p>
+            {% endif %}
         {% endif %}
+        </div>
     </div>
 
     {#回复消息模态框#}

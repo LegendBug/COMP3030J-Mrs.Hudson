@@ -23,7 +23,7 @@ def welcome(request):  # url: path('welcome/', views.welcome, name='welcome'),
         exhibitions = Exhibition.objects.all()
         photo_list = [exhibition.image.url for exhibition in exhibitions]
 
-        return render(request, 'User/welcome.html', { 'exhibitions_photos': photo_list})
+        return render(request, 'User/welcome.html', {'exhibitions_photos': photo_list})
     else:
         if request.user.is_authenticated:
             return redirect('Venue:home')
@@ -362,7 +362,7 @@ def reply_message(request, message_id):
 
             # 获取消息关联的申请
             message = Message.objects.get(id=message_id)
-            message_detail = message.related_detail
+            message_detail = MessageDetail.objects.filter(message=message).first()
             # 如果消息关联了申请，则将回复消息也关联到申请
             if message_detail.application_object_id is not None:
                 application = message_detail.application
@@ -370,16 +370,12 @@ def reply_message(request, message_id):
                     return JsonResponse({'error': 'Application has been processed.'}, status=200)
                 application_type = ContentType.objects.get_for_model(application)
                 new_message = Message.objects.create(title=title, sender=request.user, recipient=message.sender)
-                new_message_detail = MessageDetail.objects.create(message=new_message, content=content,
-                                                                  application_object_id=application.id,
-                                                                  application_content_type=application_type)
-                new_message.related_detail = new_message_detail
-                new_message.save()
+                MessageDetail.objects.create(message=new_message, content=content,
+                                             application_object_id=application.id,
+                                             application_content_type=application_type)
             else:  # 无关联申请的消息
                 new_message = Message.objects.create(title=title, sender=request.user, recipient=message.sender)
-                new_message_detail = MessageDetail.objects.create(message=new_message, content=content)
-                new_message.related_detail = new_message_detail
-                new_message.save()
+                MessageDetail.objects.create(message=new_message, content=content)
             return JsonResponse({'success': 'Reply sent successfully.'}, status=200)
         except Exception as e:
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
@@ -428,9 +424,9 @@ def reject_application(request, application_type, application_id):
             new_message = Message.objects.create(title=application_type.capitalize() + ' Application Rejected',
                                                  sender=request.user, recipient=application.applicant)
             MessageDetail.objects.create(message=new_message,
-                                                              content=content,
-                                                              application_object_id=application.id,
-                                                              application_content_type=application_content_type)
+                                         content=content,
+                                         application_object_id=application.id,
+                                         application_content_type=application_content_type)
             return JsonResponse({'success': 'Application rejected successfully.'}, status=200)
         except Exception as e:
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
