@@ -204,6 +204,7 @@
             });
         });
 
+        // 同步切换所有以 .chat-container 开头的类 (针对Copilot页面)
         document.querySelectorAll('[class*="chat-container"]').forEach(el => {
             el.classList.forEach(className => {
                 if (className.startsWith('chat-container')) {
