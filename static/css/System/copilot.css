@@ -53,6 +53,21 @@ html {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+.chat-container.dark-mode {
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(86, 86, 86, 0.4); /* Frosted glass effect */
+    backdrop-filter: blur(10px); /* Adds the blur effect */
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    margin-bottom: 20px;
+    height: 80vh; /* Fixed height */
+    max-height: 80vh; /* Ensures the container doesn't grow larger than the viewport */
+}
+
+
+
 .chat-message-header {
     font-size: 0.9em;
     color: #6c757d;

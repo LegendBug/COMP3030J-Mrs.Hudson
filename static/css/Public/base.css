@@ -397,7 +397,7 @@ h1 a:hover {
 }
 
 .logo-title.dark-mode {
-    color: #4f7497;
+    color: #3d98ec;
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
     font-size: 48px; /* 增加字体大小 */
     font-weight: 700; /* 使用700的字重，前提是字体支持 */

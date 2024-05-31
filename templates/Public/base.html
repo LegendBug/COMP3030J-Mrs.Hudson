@@ -204,6 +204,17 @@
             });
         });
 
+        document.querySelectorAll('[class*="chat-container"]').forEach(el => {
+            el.classList.forEach(className => {
+                if (className.startsWith('chat-container')) {
+                    el.classList.toggle('dark-mode', theme === 'dark-mode');
+                }
+            });
+        });
+
+        
+
+
         // 切换其他需要的元素
         document.querySelectorAll('.sidebar').forEach(el => el.classList.toggle('dark-mode', theme === 'dark-mode'));
         document.querySelectorAll('.public-base-footer').forEach(el => el.classList.toggle('dark-mode', theme === 'dark-mode'));
