@@ -1,13 +1,14 @@
 import os
+import multiprocessing
 
 # 绑定的 IP 和端口
-bind = '0.0.0.0:8000'
+bind = '127.0.0.1:5000'
 
 # 工作模式，如同步工作模式或异步工作模式（如 gevent）
 worker_class = 'sync'  # 可以改为 'gevent' 以提高并发性能
 
 # 启动的工作进程数量,根据服务器的 CPU 核心数来调整
-workers = 2 * os.cpu_count() + 1
+workers = multiprocessing.cpu_count() * 2 + 1
 
 # 最大请求量，超过此数量后将重启一个工作进程
 max_requests = 1000
