@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block extra_head %}
-    <title>Monitor</title>
+    <title>Watson Overseer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -34,7 +34,7 @@
                 <li class="breadcrumb-item"><a
                         href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
             {% endif %}
-            <li class="breadcrumb-item active" aria-current="page">Monitor</li>
+            <li class="breadcrumb-item active" aria-current="page">Watson Overseer</li>
         </ol>
     </nav>
 {% endblock %}
