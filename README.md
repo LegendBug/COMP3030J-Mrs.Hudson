@@ -24,12 +24,26 @@ To address the outlined issues, we’re developing a resource management system 
 + Internal Communication System
 + User Management
 
+## Project Details
+
+### Tech Stack
+
++ Django
++ JQuery
++ Vue (for the Layout module)
++ Bootstrap 5
++ Konva.js
++ PyTorch (for the Statistics/Watson Inspect module)
+
+### Entity-relationship Model for the database scheme
+
+<img src="https://github.com/LegendBug/COMP3030J-Hudson/blob/ec8acd096d9e878540fda57d4252277848d815a2/ER%20Diagram.png" alt="ER Diagram" style="zoom:100%;" />
+
 ## Deployment
 
 ### Recommended Environment
 
 + **Python 3.11**
-+ **Django 5.x**
 + **MySQL 8.x**
 
 ### Project Setup
