@@ -79,6 +79,7 @@ def delete_venue(request, venue_id):
 
     # 逻辑删除当前场馆
     venue.is_deleted = True
+    venue.delete_image()
     venue.save()
 
     return JsonResponse({'success': 'Venue deleted successfully!'})

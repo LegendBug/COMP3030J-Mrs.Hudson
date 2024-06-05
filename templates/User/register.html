@@ -4,7 +4,6 @@
 {% block extra_head %}
     <title>Register</title>
     <link rel="stylesheet" href="{% static 'css/User/register.css' %}">
-    <link href="https://fonts.googleapis.com/css?family=Pacifico&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -37,10 +36,21 @@
                     <div class="form-group">
                         <label for="account_type" class="form-label">Account Type:</label>
                         <select name="account_type" id="account_type" class="form-control" required>
-                            <option value="Manager">Manager</option>
+                            <option value="" selected disabled>Select Account Type</option>
                             <option value="Organizer">Organizer</option>
                             <option value="Exhibitor">Exhibitor</option>
+                            <option value="Manager">Manager</option>
                         </select>
+                        {% if form.authorization_code.errors %}
+                            <div class="alert alert-danger">
+                                {{ form.authorization_code.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group" id="auth-code-group" style="display:none;">
+                        <label for="authorization_code" class="form-label">Authorization Code:</label>
+                        <input type="text" class="form-control" id="authorization_code" name="authorization_code">
                     </div>
 
                     <div class="form-group">
@@ -58,7 +68,7 @@
                         <input type="password" class="form-control" id="password2" name="password2" required>
                         {% if form.password2.errors %}
                             <div class="alert alert-danger">
-                                {{ form.password2.errors.0}}
+                                {{ form.password2.errors.0 }}
                             </div>
                         {% endif %}
                     </div>
@@ -73,5 +83,14 @@
 {% endblock %}
 
 {% block scripts %}
-    {# 自定义脚本可以在这里插入，如果需要的话 #}
+    <script>
+        document.getElementById('account_type').addEventListener('change', function () {
+            var authCodeGroup = document.getElementById('auth-code-group');
+            if (this.value === 'Manager') {
+                authCodeGroup.style.display = 'block';
+            } else {
+                authCodeGroup.style.display = 'none';
+            }
+        });
+    </script>
 {% endblock %}

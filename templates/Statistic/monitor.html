@@ -6,11 +6,6 @@
 {% block extra_head %}
     <title>Watson Overseer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
-    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
-
     <link rel="stylesheet" href="{% static 'css/Statistic/monitor.css' %}">
 {% endblock %}
 
@@ -585,10 +580,6 @@
                     this.stage.container().addEventListener('wheel', this.handleWheelZoom);
                     // 添加窗口大小变化事件监听器
                     window.addEventListener('resize', this.handleResize);
-                    // 添加画板拖拽的监听器
-                    this.stage.on('mousedown', this.handleMouseDown);
-                    this.stage.on('mouseup', this.handleMouseUp);
-                    this.stage.on('mousemove', this.handleMouseMove);
 
                     const loadImage = (url, nodeData, group, element, spaceUnit, isMonitor) => { // 保证图片的同步而非异步加载, 这样能够避免图层的乱序
                         return new Promise((resolve, reject) => {
@@ -816,37 +807,6 @@
                 },
 
                 // ----------------- konva.js: 控制Stage上的交互事件 -----------------
-
-                handleMouseDown(e) {
-                    // 确保是左键点击
-                    if (e.evt.button === 0) {
-                        this.isDragging = true;
-                        this.lastPointerPosition = this.stage.getPointerPosition();
-                    }
-                },
-
-                handleMouseUp() {
-                    this.isDragging = false; // 停止拖动
-                },
-
-                handleMouseMove(e) {
-                    if (this.isDragging) {
-                        // 计算移动距离
-                        const pointerPosition = this.stage.getPointerPosition();
-                        const dx = pointerPosition.x - this.lastPointerPosition.x;
-                        const dy = pointerPosition.y - this.lastPointerPosition.y;
-
-                        // 更新位置
-                        this.stage.x(this.stage.x() + dx);
-                        this.stage.y(this.stage.y() + dy);
-
-                        // 更新最后的指针位置
-                        this.lastPointerPosition = pointerPosition;
-
-                        // 重新渲染
-                        this.stage.batchDraw();
-                    }
-                },
 
                 handleWheelZoom(event) {
                     // 检查是否按下了Ctrl键
