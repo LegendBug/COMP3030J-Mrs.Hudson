@@ -22,6 +22,13 @@ class Venue(models.Model):
         # 保存图片到新的路径
         super().save(*args, **kwargs)
 
+    def delete_image(self):
+        # 删除相关图片文件
+        if self.image:
+            if os.path.isfile(self.image.path):
+                os.remove(self.image.path)
+
+
     def delete(self, *args, **kwargs):  # 重写了delete方法,使得删除前能够移除图片文件
         # 删除相关图片文件
         if self.image:

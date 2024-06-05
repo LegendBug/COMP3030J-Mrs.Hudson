@@ -13,6 +13,7 @@ class RegisterForm(UserCreationForm):
 
     email = forms.EmailField(required=True)
     account_type = forms.ChoiceField(choices=ACCOUNT_TYPES)
+    authorization_code = forms.CharField(required=False)
 
     class Meta:
         model = User
@@ -25,6 +26,14 @@ class RegisterForm(UserCreationForm):
         if User.objects.filter(email=email).exists():
             raise ValidationError("A user with that email already exists.")
         return email
+
+    def clean_authorization_code(self):
+        account_type = self.cleaned_data.get('account_type')
+        authorization_code = self.cleaned_data.get('authorization_code')
+        if account_type == 'Manager':
+            if authorization_code != 'LFobuC5UHf6CT3BlbkFJldFawYhXcw0zQ8D93sBo':
+                raise ValidationError("Invalid authorization code for Manager account.")
+        return authorization_code
 
     def save(self, commit=True):
         user = super(RegisterForm, self).save(commit=False)
