@@ -30,12 +30,12 @@ To address the outlined issues, we’re developing a resource management system 
 
 + Django
 + JQuery
-+ Vue (for the Layout module)
 + Bootstrap 5
-+ Konva.js
-+ PyTorch (for the Statistics/Watson Inspect module)
++ Konva.js *(for the Layout module)*
++ Vue *(for the Layout module)*
++ PyTorch *(for the Statistics/Watson Overseer module)*
 
-### Entity-relationship Model for the database scheme
+### Entity-relationship Model for the Database Schema
 
 <img src="https://github.com/LegendBug/COMP3030J-Hudson/blob/ec8acd096d9e878540fda57d4252277848d815a2/ER%20Diagram.png" alt="ER Diagram" style="zoom:100%;" />
 
