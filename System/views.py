@@ -15,14 +15,21 @@ client = OpenAI(
 def custom_404_interceptor(request, exception): # 该视图函数用于无效页面的重定向
     return redirect('User:welcome')
 
+
+
 def copilot(request):
     context = {}
     user_input = None
     if request.method == 'POST':
         user_input = request.POST.get('user_input')
 
+        previous_conversations = Conversation.objects.filter(user=request.user).order_by('timestamp')
+
+        CONVERSATION_HISTORY_THRESHOLD = 5
+
         prompt_template = """
         You are Watson, a knowledgeable assistant for a system called "Mrs. Hudson". 
+        "HUDSON" stands for "Holistic Utility Deployment and Sustainability Overseeing Network".
         Mrs. Hudson is a comprehensive resource manager for exhibition centers to minimize waste and optimize asset and energy usage. 
         Mrs. Hudson can be divided into six modules:
         1. User Module
@@ -71,19 +78,61 @@ def copilot(request):
                         "role": "system",
                         "content": prompt_template
                     },
-                    {
-                        "role": "user",
-                        "content": user_input
-                    }
         ]
 
+        print(len(previous_conversations))
+
+        if len(previous_conversations) > CONVERSATION_HISTORY_THRESHOLD:
+            # Create a string of all past conversations for summarization
+            conversation_text = " ".join([conv.user_input + " " + conv.copilot_response for conv in previous_conversations])
+
+            try:
+                summary_response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "Summarize the following conversation:"},
+                        {"role": "user", "content": conversation_text}
+                    ],
+                    max_tokens=350
+                )
+
+                summary = summary_response.choices[0].message.content
+                print(summary)
+                messages.append({"role": "assistant", "content": summary})
+            except Exception as e:
+                context['error'] = "Failed to summarize the conversation: <Error: " + str(e) + ">"
+                return render(request, 'System/copilot.html', context)
+        else:
+            for conversation in previous_conversations:
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": conversation.user_input
+                    },
+                )
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": conversation.copilot_response
+                    },
+                )
+        
+
         if user_input:
+            messages.append(
+                {
+                    "role": "user",
+                    "content": user_input
+                }
+            )
+            
             try: 
                 response = client.chat.completions.create(
                     model="gpt-4o",
                     messages=messages,
                     max_tokens=300
                 )
+                
                 chat_response = response.choices[0].message.content
                 # saving the response to the database
                 Conversation.objects.create(user=request.user, user_input=user_input, copilot_response=chat_response)
