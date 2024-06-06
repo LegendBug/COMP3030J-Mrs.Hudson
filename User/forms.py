@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
-
+from django.conf import settings
 
 class RegisterForm(UserCreationForm):
     ACCOUNT_TYPES = [
@@ -31,7 +31,7 @@ class RegisterForm(UserCreationForm):
         account_type = self.cleaned_data.get('account_type')
         authorization_code = self.cleaned_data.get('authorization_code')
         if account_type == 'Manager':
-            if authorization_code != 'LFobuC5UHf6CT3BlbkFJldFawYhXcw0zQ8D93sBo':
+            if authorization_code != settings.AUTHORIZATION_CODE:
                 raise ValidationError("Invalid authorization code for Manager account.")
         return authorization_code
 
