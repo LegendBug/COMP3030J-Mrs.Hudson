@@ -34,30 +34,6 @@
 
 {% block content %}
     <div id="venue-app">
-
-        <div class="d-flex justify-content-between align-items-center mb-3" id="venue-header">
-            <div id="venue-name" class="venue-text logo-title">
-                Current Venue: {{ venue.name }}
-            </div>
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    Current Floor: [[this.floor]]
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
-                    {% for floor_number in floor_range %}
-                        <li><a class="dropdown-item" href="#"
-                               @click="toggleFloor({{ floor_number }})">Floor {{ floor_number }}</a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-
-        <div id="konva-container"></div>
-        <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
-        <div id="tooltip"
-             style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
-
         <!-- Floating Action Button -->
         {% if user.is_authenticated and user_type == 'Organizer' %}
             <a @click="openExhibApplyModal()" class="btn btn-success rounded-circle shadow" id="createExhibApply"
@@ -79,8 +55,34 @@
             <i class="fas fa-filter mt-1"></i>
         </a>
 
+
+        <div id="venue-container" class="container mt-4"></div>
+    
+        <div class="d-flex justify-content-between align-items-center mb-3" id="venue-header">
+            <div id="venue-name" class="venue-text logo-title">
+                Venue: {{ venue.name }}
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownFloorMenu"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    Current Floor: [[this.floor]]
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownFloorMenu">
+                    {% for floor_number in floor_range %}
+                        <li><a class="dropdown-item" href="#"
+                               @click="toggleFloor({{ floor_number }})">Floor {{ floor_number }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div id="konva-container" class="konva" style="margin: 1rem 3rem 1rem 3rem"></div>
+        <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
+        <div id="tooltip"
+             style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
+
         <!-- 展览列表 -->
-        <div class="table-responsive" style="margin: 1rem; user-select: none">
+        <div class="table-responsive" style="margin: 1rem 3rem 1rem 3rem; user-select: none">
             <table class="table table-hover text-white">
                 <thead class="bg-dark">
                 <tr>
@@ -402,8 +404,8 @@
                 },
 
                 handleResize() {
-                    const width = window.innerWidth * 0.9;
-                    const height = window.innerHeight * 0.91;
+                    const width = window.innerWidth;
+                    const height = window.innerHeight;
                     this.stage.size({width, height});
                 },
 

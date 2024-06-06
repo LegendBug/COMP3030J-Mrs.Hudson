@@ -1,28 +1,18 @@
-/* 以下是从layout.css迁移过来的部分样式: */
+body::before {
+    background: linear-gradient(rgba(224, 224, 224, 0.4), rgba(205, 205, 205, 0.5)), url('../../images/Public/venue.png') no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+body.dark-mode::before {
+    background: linear-gradient(rgba(34, 34, 34, 0.8), rgba(24, 24, 24, 0.9)), url('../../images/Public/venue.png') no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+}
 
 /* 确保动画和过渡的平滑性 */
 * {
     transition: all 0.2s ease-in-out;
-}
-
-#konva-container {
-    position: relative;
-    height: 95vh;
-    width: 95%;
-    box-sizing: border-box; /* 包含边框和内边距在内的总宽高 */
-    overflow: hidden; /* 防止内容溢出 */
-    margin: 2.5vh auto 0; /* Centers it vertically with top margin */
-    margin-bottom: 2.5vh;
-
-    border: 1px solid #ccc;  /* 浅灰色边框 */
-    background-color: #fff;  /* 白色背景 */
-    border-radius: 10px;  /* 圆角边框 */
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);  /* 轻微阴影 */
-
-/*    background-image: url('../../images/Layout/Grid_Blue.jpg'); !* 确保路径正确 *!
-    background-size: cover; !* 覆盖整个容器 *!
-    background-position: center; !* 居中背景图 *!
-    background-repeat: no-repeat;*/
 }
 
 #venue-header {

@@ -34,8 +34,9 @@
                     <h5 class="card-title">Create the company's first venue</h5>
                     <p class="card-text">and begin your journey towards a more sustainable business!</p>
                     {% if user.is_authenticated and user_type == 'Manager' %}
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#venueModal" class="btn btn-primary">Add your
-                            first venue!</a>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#venueModal" class="btn btn-success">
+                            Add your first venue!
+                        </a>
                     {% endif %}
                 </div>
             </div>

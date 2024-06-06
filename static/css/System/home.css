@@ -12,7 +12,7 @@
 #add-venue-btn {
     background-color: #009631;
     color: white;
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.5);
+    box-shadow: 0 4px 8px #009631;
 }
 
 .message-info {
@@ -27,7 +27,7 @@
     font-family: 'Montserrat', sans-serif;
     font-weight: 700; /* 使用较粗的字重以增强标题的视觉冲击力 */
     font-size: 48px; /* 根据需要调整字号大小 */
-    background: linear-gradient(45deg, rgba(0, 128, 0, 0.8), rgba(255, 255, 255, 0)); /* 渐变背景 */
+    background: linear-gradient(180deg, rgba(86, 197, 86, 0.9), rgb(0, 87, 0)); /* 渐变背景 */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }

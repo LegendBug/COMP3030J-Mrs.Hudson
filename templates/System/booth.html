@@ -40,6 +40,22 @@
 
 {% block content %}
     <div id="booth-app">
+        <!-- Floating Action Button -->
+        {% if is_owner %}
+            <a class="btn btn-success rounded-circle shadow"
+               style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+               href="{% url 'Inventory:inventory' 'booth' booth.id %}" title="View Inventory">
+                📦
+            </a>
+        {% endif %}
+
+        {% if is_owner and booth.booth_application.stage == "IS" %}
+            <a @click="cancelBooth()" class="btn btn-success rounded-circle shadow" id="cancelBooth"
+               style="background-color: #c9302c;border: #c9302c; position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
+               title="Cancel Booth">
+                ❌
+            </a>
+        {% endif %}
         <div id="booth-container" class="container mt-4"></div>
 
         <div class="d-flex justify-content-between align-items-center mb-3" id="booth-header">
@@ -61,27 +77,10 @@
             </div>
         </div>
 
-        <div id="konva-container"></div>
+        <div id="konva-container" class="konva" style="margin: 1rem 3rem 1rem 3rem"></div>
         <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
         <div id="tooltip"
              style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
-
-        <!-- Floating Action Button -->
-        {% if is_owner %}
-            <a class="btn btn-success rounded-circle shadow"
-               style="position: fixed; bottom: 170px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-               href="{% url 'Inventory:inventory' 'booth' booth.id %}" title="View Inventory">
-                📦
-            </a>
-        {% endif %}
-
-        {% if is_owner and booth.booth_application.stage == "IS" %}
-            <a @click="cancelBooth()" class="btn btn-success rounded-circle shadow" id="cancelBooth"
-               style="background-color: #c9302c;border: #c9302c; position: fixed; bottom: 100px; right: 10px; z-index: 1040; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 30px;"
-               title="Cancel Booth">
-                ❌
-            </a>
-        {% endif %}
 
     </div>
 {% endblock %}
@@ -170,8 +169,8 @@
                     console.log('Rendering Konva...');
                     this.stage = new Konva.Stage({
                         container: 'konva-container',
-                        width: window.innerWidth * 0.9,
-                        height: window.innerHeight * 0.9,
+                        width: window.innerWidth,
+                        height: window.innerHeight,
                     });
 
                     // 添加滚轮缩放事件监听器

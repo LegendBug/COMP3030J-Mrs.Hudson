@@ -4,24 +4,31 @@ html, body {
     margin: 0;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(rgba(224, 224, 224, 0.4), rgba(205, 205, 205, 0.5)), url('../../images/Public/poster.jpg') no-repeat;
-    background-size: cover;
-    background-attachment: fixed;
     overflow-x: hidden; /* Prevent scroll on narrow devices  */
     transition: background 0.3s;
     scroll-behavior: smooth;
+    position: relative;
 }
 
-body.dark-mode {
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
+    background: linear-gradient(rgba(224, 224, 224, 0.4), rgba(205, 205, 205, 0.5)), url('../../images/Public/poster.jpg') no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    filter: blur(5px); /* 高斯模糊效果 */
+    z-index: -1;
+}
+
+body.dark-mode::before {
     background: linear-gradient(rgba(34, 34, 34, 0.8), rgba(24, 24, 24, 0.9)), url('../../images/Public/poster.jpg') no-repeat;
     background-size: cover;
     background-attachment: fixed;
-    overflow-x: hidden;
-    transition: background 0.3s;
+    filter: blur(5px);
 }
 
 
@@ -266,13 +273,31 @@ image, h1, h2, h3, h4, h5, h6 {
     border-left: 4px solid #dc3545; /* 红色边框 */
 }
 
+
+/* konva样式 */
+#konva-container {
+    position: relative;
+    max-height: 65vh;
+    box-sizing: border-box; /* 包含边框和内边距在内的总宽高 */
+    overflow: hidden; /* 防止内容溢出 */
+    background-color: #f0f0f050;
+    border-radius: 1rem;  /* 圆角边框 */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);  /* 轻微阴影 */
+    transition: background-color 0.3s;
+    animation: fadeInUp 1s ease-in-out; /* 平滑的背景色过渡 */
+
+/*    background-image: url('../../images/Layout/Grid_Blue.jpg'); !* 确保路径正确 *!
+    background-size: cover; !* 覆盖整个容器 *!
+    background-position: center; !* 居中背景图 *!
+    background-repeat: no-repeat;*/
+}
+
 /* 表格全局样式 */
 .table {
     color: #f0f0f0; /* 使用较亮的字体颜色，如浅灰色或纯白色 */
     background-color: rgba(255, 255, 255, 0.1); /* 表格背景半透明，稍微调整透明度 */
     border: 1px solid #444; /* 边框颜色 */
     border-radius: 0.5rem; /* 边框圆角 */
-    width: 100%; /* Ensures the table spans the full width */
     margin-bottom: 0; /* Removes bottom margin */
 }
 
@@ -397,7 +422,7 @@ h1 a:hover {
 }
 
 .logo-title.dark-mode {
-    color: #3d98ec;
+    color: #3c5670;
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
     font-size: 48px; /* 增加字体大小 */
     font-weight: 700; /* 使用700的字重，前提是字体支持 */
