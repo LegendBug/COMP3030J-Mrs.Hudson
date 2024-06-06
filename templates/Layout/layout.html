@@ -148,7 +148,7 @@
                             <i class="material-icons" style="vertical-align: middle;">info</i> Page Usage Instructions
                         </h6>
                         <p style="color: #6c757d; line-height: 1.6; text-align: justify;">
-                            The Offcanvas contains a hierarchical structure of layers and elements. Each Layer represents a usable space within the current building. You can add elements such as images, lines, arrows, and common shapes under a space to design your area. If you are a Manager or Organizer, you can also adjust the availability status of a space by setting the Layer's available property. If Available is set to True, the space can be booked by an Organizer or Exhibitor. Otherwise, the space is marked as unavailable for booking.
+                           Offcanvas contains a hierarchical structure of layers and elements. Each floor represents the available space within the current building. You can call up the context menu by right-clicking a layer. After selecting the 'Add Element' option, you can add elements such as images, lines, arrows, and common shapes under that space to design your area. If you are a manager or organizer, you can also adjust the availability of the space by setting the available properties of the layer. If Available is set to True, the space can be reserved by the organizer or exhibitor. Otherwise, the space will be marked as not available for booking.
                         </p>
                     </div>
                 </div>
@@ -666,6 +666,7 @@
             mounted() {
                 this.refreshData()
                 window.addEventListener('keydown', this.handleKeyDown);
+                document.addEventListener('click', this.handleOutsideClick);
             },
             beforeDestroy() {
                 if (this.stage) {
@@ -673,6 +674,7 @@
                 }
                 window.removeEventListener('resize', this.handleResize);
                 window.removeEventListener('keydown', this.handleKeyDown);
+                document.removeEventListener('click', this.handleOutsideClick);
             },
             computed: {
                 buttonStyle() {
@@ -691,7 +693,19 @@
                 }
             },
             methods: {
-                // ----------------- 数据加载 -----------------
+                // ----------------- 全局点击事件 -----------------
+                handleOutsideClick(e) {
+                    // 检查点击事件是否来源于悬浮按钮
+                    if (e.target.id === 'toggle-offcanvas-btn' || e.target.closest('#toggle-offcanvas-btn')) {
+                        // 如果是从悬浮按钮点击的，则不执行关闭操作
+                        return;
+                    }
+            
+                    if (this.offcanvasOpen && !e.target.closest('.offcanvas')) {
+                        this.offcanvasOpen = false; // 关闭Offcanvas
+                    }
+                },
+                
                 handleKeyDown(event) {
                     if (event.ctrlKey && event.key === 's') {
                         event.preventDefault(); // 防止浏览器的默认保存行为
@@ -699,6 +713,8 @@
                     }
                 },
                 
+                // ----------------- 数据加载 -----------------
+
                 refreshData() {
                     console.log('Refreshing data...');
                     return axios.get('{% url "Layout:refresh_data" %}', {
@@ -743,10 +759,13 @@
                 
                 renderKonva() {
                     console.log('Rendering Konva...');
+                    const container = document.getElementById('konva-container');
+                    const width = container.offsetWidth;
+                    const height = container.offsetHeight;
                     this.stage = new Konva.Stage({
                         container: 'konva-container',
-                        width: window.innerWidth,
-                        height: window.innerHeight,
+                        width: width,
+                        height: height,
                     });
 
                     // 添加滚轮缩放事件监听器

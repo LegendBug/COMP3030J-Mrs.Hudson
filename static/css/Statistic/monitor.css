@@ -170,3 +170,7 @@ td a:hover {
 .table-warning {
     background-color: rgb(84, 109, 129) !important; /* 浅灰色 */
 }
+
+#konva-container {
+    min-height: 100vh;
+}

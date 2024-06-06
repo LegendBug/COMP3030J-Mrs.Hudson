@@ -416,7 +416,8 @@ def get_monthly_consumption(year, venue):
 
     # 将结果按月份排序
     sorted_monthly_consumption = sorted(monthly_consumption.items(), key=lambda x: x[0])
-
+    print(sorted_monthly_consumption)
+    # get_monthly_consumption:[(datetime.datetime(2024, 6, 1, 0, 0, tzinfo=datetime.timezone.utc), {'total_power': 0.05425561166666666, 'total_water': 0.0})]
     return sorted_monthly_consumption
 
 
