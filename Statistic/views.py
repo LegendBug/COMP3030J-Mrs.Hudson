@@ -162,12 +162,15 @@ def recognize_flow(request):  # {url (Statistic:recognize_flow)}
         return JsonResponse({'image': img_str, 'person_count': person_count})
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
-
-def capture(request, monitor_id):
+@csrf_exempt
+def capture(request, monitor_id): # {url 'Statistic:capture monitor_id'}
     if request.method == 'POST' and request.FILES.get('image'):
         load_model()  # 确保模型已经加载
 
         monitor = get_object_or_404(Monitor, id=monitor_id)
+        if not monitor.is_online: # 检查监控是否在线
+            return JsonResponse({'error': 'The monitor is offline!'}, status=400)
+
         uploaded_image = request.FILES['image']
         img = Image.open(uploaded_image).convert("RGB")
 

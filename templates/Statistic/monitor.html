@@ -96,7 +96,7 @@
             </div>
         </div>
         
-        <monitor-list :monitors="monitors" @open-api-modal="openApiDemoModal" @update-current-element="setCurrentElement"></monitor-list>
+        <monitor-list :monitors="monitors" @open-api-modal="openApiDemoModal" @open-capture-modal="openCaptureModal" @update-current-element="setCurrentElement"></monitor-list>
 
         <!-- Help Modal -->
         <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
@@ -209,11 +209,11 @@
         </div>
         
         <!-- API Usage Modal -->
-        <div class="modal fade" id="apiDemoModal" tabindex="-1" aria-labelledby="apiDemoModalLabel" aria-hidden="true">
+        <div class="modal fade" id="apiDemoModal" tabindex="-1" aria-labelledby="apiDemoModalLabel" aria-hidden="true" @hidden.bs.modal="clearImageData">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="apiDemoModalLabel">API Usage Information</h5>
+                        <h5 class="modal-title" id="apiDemoModalLabel">API Usage Help</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -232,10 +232,38 @@
                         
                         <!-- Image upload area -->
                         <div class="card border-primary mb-3" style="cursor: pointer;">
-                            <div class="card-body text-center" @click="$refs.fileInput.click()">
+                            <div class="card-body text-center" @click="$refs.apiFileInput.click()">
                                 <i class="fas fa-upload fa-2x text-primary"></i>
                                 <p class="card-text text-secondary">Click or drag and drop an image here to upload.</p>
-                                <input ref="fileInput" type="file" @change="handleFileUpload" accept="image/*" class="d-none" id="file-upload">
+                                <input ref="apiFileInput" type="file" @change="uploadDemoImageToServer" accept="image/*" class="d-none" id="file-upload">
+                            </div>
+                        </div>
+                        
+                        <!-- Display processed image and results -->
+                        <div v-if="processedImage">
+                            <p class="mt-2" style="text-align: center"><strong>Detected persons:</strong> [[ personCount ]]</p>
+                            <img :src="'data:image/jpeg;base64,' + processedImage" alt="Processed Image" class="img-fluid">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Monitor Capture Modal -->
+        <div class="modal fade" id="monitorCaptureModal" tabindex="-1" aria-labelledby="monitorCaptureModalLabel" aria-hidden="true" @hidden.bs.modal="clearImageData">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="monitorCaptureModalLabel">Upload and Process Image</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Image upload area -->
+                        <div class="card border-primary mb-3" style="cursor: pointer;">
+                            <div class="card-body text-center" @click="$refs.monitorFileInput.click()">
+                                <i class="fas fa-upload fa-2x text-primary"></i>
+                                <p class="card-text text-secondary">Click or drag and drop an image here to upload.</p>
+                                <input ref="monitorFileInput" type="file" @change="uploadCapturedImageToServer" accept="image/*" class="d-none" id="file-upload">
                             </div>
                         </div>
                         
@@ -274,12 +302,12 @@
                             <tr v-if="monitors.length === 0">
                                 <td colspan="5" class="text-center">No monitors found. 💤</td>
                             </tr>
-                            <tr v-else v-for="monitor in monitors" :key="monitor.id" @click="editMonitor(monitor)" :class="{'table-success': monitor.is_online, 'table-danger': !monitor.is_online}" style="cursor: pointer;">
-                                <td><img :src="monitor.image" alt="No image" class="monitor-img img-thumbnail"></td>
-                                <td>[[ monitor.name ]]</td>
-                                <td>[[ monitor.layer.name ]]</td>
-                                <td><span :class="monitor.is_online ? 'badge bg-success' : 'badge bg-danger'">[[ monitor.is_online ? 'Online' : 'Offline' ]]</span></td>
-                                <td>POST: <a href='#' class="text-info">https://hostname/Statistic/monitor/capture/[[ monitor.id ]]/</a></td>
+                            <tr v-else v-for="monitor in monitors" :key="monitor.id" :class="{'table-success': monitor.is_online, 'table-danger': !monitor.is_online}" style="cursor: pointer;">
+                                <td @click.stop="editMonitor(monitor)"><img :src="monitor.image" alt="No image" class="monitor-img img-thumbnail"></td>
+                                <td @click.stop="editMonitor(monitor)"><strong>[[ monitor.name ]]</strong></td>
+                                <td @click.stop="editMonitor(monitor)"><strong>[[ monitor.layer.name ]]</strong></td>
+                                <td @click.stop="editMonitor(monitor)"><span :class="monitor.is_online ? 'badge bg-success' : 'badge bg-danger'">[[ monitor.is_online ? 'Online' : 'Offline' ]]</span></td>
+                                <td><strong>Post:</strong> <a href='#' class="text-info" @click="openCaptureModal(monitor)">https://hostname/Statistic/monitor/capture/[[ monitor.id ]]/</a></td>
                             </tr>
                         </tbody>
                     </table>
@@ -289,6 +317,17 @@
             methods: {
                 openApiDemoModal() {
                     this.$emit('open-api-modal');
+                },
+                
+                openCaptureModal(monitor) {
+                    // 仅当监控器在线时，才触发打开模态框的事件
+                    if (monitor.is_online) {
+                        this.$emit('update-current-element', monitor);
+                        this.$emit('open-capture-modal', monitor);
+                    } else {
+                        // 可以在这里添加一个提示，通知用户该监控器当前离线，不能操作
+                        alert("This monitor is currently offline and cannot be accessed.");
+                    }
                 },
                 
                 editMonitor(monitor) {
@@ -524,6 +563,11 @@
             mounted() {
                 this.refreshData()
                 document.addEventListener('click', this.handleOutsideClick);
+                const apiModal = document.getElementById('apiDemoModal');
+                const monitorModal = document.getElementById('monitorCaptureModal');
+
+                apiModal.addEventListener('hidden.bs.modal', this.clearImageData);
+                monitorModal.addEventListener('hidden.bs.modal', this.clearImageData);
             },
             beforeDestroy() {
                 if (this.stage) {
@@ -531,6 +575,12 @@
                 }
                 window.removeEventListener('resize', this.handleResize);
                 document.removeEventListener('click', this.handleOutsideClick);
+                
+                const apiModal = document.getElementById('apiDemoModal');
+                const monitorModal = document.getElementById('monitorCaptureModal');
+            
+                apiModal.removeEventListener('hidden.bs.modal', this.clearImageData);
+                monitorModal.removeEventListener('hidden.bs.modal', this.clearImageData);
             },
             computed: {
                 buttonStyle() {
@@ -981,7 +1031,7 @@
                     this.currentElement = element;
                 },
                 
-                // ----------------- API Demo Modal的相关方法 -------------------
+                // ----------------- API Modal的相关方法 -------------------
                 
                 openApiDemoModal() {
                     let apiDemoModal = new bootstrap.Modal(document.getElementById('apiDemoModal'), {
@@ -990,13 +1040,44 @@
                     apiDemoModal.show();
                 },
                 
-                handleFileUpload(event) {
-                    const file = event.target.files[0];
-                    if (!file) return;
-                    this.uploadImageToServer(file);
+                openCaptureModal(monitor) {
+                    let captureModal = new bootstrap.Modal(document.getElementById('monitorCaptureModal'), {
+                        keyboard: false
+                    });
+                    captureModal.show();
                 },
                 
-                uploadImageToServer(file) {
+                uploadCapturedImageToServer(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    event.target.value = '';
+                    
+                    const formData = new FormData();
+                    formData.append('image', file);
+        
+                    axios.post(`/Statistic/monitor/capture/${this.currentElement.id}/`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    })
+                    .then(response => {
+                        if (response.data.image) {
+                            this.processedImage = response.data.image;
+                            this.personCount = response.data.person_count;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error processing image:', error);
+                    });
+                },
+                
+                uploadDemoImageToServer(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    event.target.value = '';
+                    
                     const formData = new FormData();
                     formData.append('image', file);
         
@@ -1014,6 +1095,18 @@
                     .catch(error => {
                         console.error('Error processing image:', error);
                     });
+                },
+                
+                clearImageData() {
+                    console.log('Clearing image data...');
+                    this.processedImage = null;  // 清除显示的处理后的图片
+                    this.personCount = 0;        // 如果有需要，也清除人数计数等其他相关数据
+                    if (this.$refs.apiFileInput) {
+                        this.$refs.apiFileInput.value = "";
+                    }
+                    if (this.$refs.monitorFileInput) {
+                        this.$refs.monitorFileInput.value = "";
+                    }
                 },
                 
             }
