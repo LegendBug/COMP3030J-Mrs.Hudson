@@ -61,11 +61,9 @@
             </div>
         </div>
 
-        <div id="konva-container"></div>
-
+        <div id="konva-container" class="konva" style="margin: 1rem 3rem 1rem 3rem"></div>
         <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
-        <div id="tooltip"
-             style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
+        <div id="tooltip" style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
         <!-- Offcanvas -->
         <div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" id="offcanvasScrolling"
@@ -242,7 +240,7 @@
             props: ['monitors'],
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             template: `
-                <div class="table-responsive" style="margin: 1rem; user-select: none">
+                <div class="table-responsive" style="margin: 1rem 3rem 1rem 3rem; user-select: none">
                     <table class="table table-hover text-white">
                         <thead class="bg-dark">
                         <tr>
@@ -254,13 +252,16 @@
                         </tr> 
                         </thead>
                         <tbody>
-                        <tr v-for="monitor in monitors" :key="monitor.id" @click="editMonitor(monitor)" :class="{'table-success': monitor.is_online, 'table-warning': !monitor.is_online}" style="cursor: pointer;">
-                            <td><img :src="monitor.image" alt="No image" class="monitor-img img-thumbnail"></td>
-                            <td>[[ monitor.name ]]</td>
-                            <td>[[ monitor.layer.name ]]</td>
-                            <td>[[ monitor.is_online ? 'Online' : 'Offline' ]]</td>
-                            <td>POST: <a href='#' class="text-info">https://hostname/Statistic/monitor/capture/[[ monitor.id ]]/</a></td>
-                        </tr>
+                            <tr v-if="monitors.length === 0">
+                                <td colspan="5" class="text-center text-white">No monitors found. 💤</td>
+                            </tr>
+                            <tr v-else v-for="monitor in monitors" :key="monitor.id" @click="editMonitor(monitor)" :class="{'table-success': monitor.is_online, 'table-warning': !monitor.is_online}" style="cursor: pointer;">
+                                <td><img :src="monitor.image" alt="No image" class="monitor-img img-thumbnail"></td>
+                                <td>[[ monitor.name ]]</td>
+                                <td>[[ monitor.layer.name ]]</td>
+                                <td>[[ monitor.is_online ? 'Online' : 'Offline' ]]</td>
+                                <td>POST: <a href='#' class="text-info">https://hostname/Statistic/monitor/capture/[[ monitor.id ]]/</a></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
