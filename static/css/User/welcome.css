@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display&family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display&family=Roboto&family=Great+Vibes&display=swap');
 
 body {
     background: linear-gradient(rgba(224, 224, 224, 0.4), rgba(205, 205, 205, 0.5)), url('../../images/User/background.jpg') no-repeat;
@@ -66,7 +66,7 @@ ul {
 }
 
 .platform-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Great Vibes', cursive;
     font-size: 4em;
     color: #3d7055;
     font-weight: bold;
@@ -89,12 +89,23 @@ ul {
 .carousel-item img {
     width: 100%;
     height: 100%;
-    max-height: 500px; /* Adjust the max-height as needed */
-    object-fit: cover; /* Maintain aspect ratio and cover the container */
+    max-height: 500px; /* 根据需要调整最大高度 */
+    object-fit: cover; /* 保持纵横比并覆盖容器 */
 }
 
 .carousel-image {
     width: 100%;
-    max-height: 500px; 
+    max-height: 500px;
     object-fit: contain;
+}
+
+/* 添加卡片背景透明度 */
+.card {
+    background-color: rgba(224, 224, 224, 0.7); /* 调整透明度值，0.9表示90%不透明度 */
+    transition: transform 0.3s ease-in-out;
+}
+
+/* 鼠标悬停浮动动画 */
+.card:hover {
+    transform: translateY(-10px);
 }

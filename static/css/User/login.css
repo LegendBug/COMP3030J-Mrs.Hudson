@@ -1,11 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&display=swap');
 .container {
     max-width: 600px; /* 保持容器的最大宽度不变 */
-    margin: 7rem auto; /* 增加上下边距使容器居中，并提供空间 */
+    margin: 8rem auto; /* 增加上下边距使容器居中，并提供空间 */
     background-color: rgba(255, 255, 255, 0.4); /* 半透明黑色背景 */
     border-radius: 8px; /* 边角圆润 */
     padding: 40px; /* 增加更多内边距以提高高度 */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 轻微的阴影效果 */
+    transform: scale(1.25); /* 略微放大容器及其中内容 */
 }
 
 .form-control {
@@ -38,4 +40,11 @@
     margin-top: 0; /* 如果需要的话，调整上边距以使其与容器边缘对齐 */
     margin-bottom: 1rem; /* 调整下边距以提供足够的空间 */
     /* 添加更多样式来增强视觉效果 */
+}
+
+.form-label,
+p,
+a {
+    font-family: 'Roboto Slab', serif;
+    font-weight: 700; /* 确保字体加粗 */
 }

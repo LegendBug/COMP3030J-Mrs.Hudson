@@ -405,8 +405,8 @@
                     .then(response => response.json())
                     .then(data => {
                         // 提取出用水量和用电量的数据并传递给 selectDataSource() 函数
-                        const waterStatistics = data.water_statistics;
-                        const electricStatistics = data.electric_statistics;
+                        {#const waterStatistics = data.water_statistics;#}
+                        {#const electricStatistics = data.electric_statistics;#}
 
                         // 询问用户选择数据源
                         const chooseDataSource = confirm("Would you like to select a data source now?");
@@ -421,6 +421,37 @@
             } else {
                 alert('Invalid year entered!');
             }
+        }
+        
+        
+        const waterStatistics = {
+            "Month 1": 1200,
+            "Month 2": 1600,
+            "Month 3": 1000,
+            "Month 4": 800,
+            "Month 5": 900,
+            "Month 6": 1600,
+            "Month 7": 2100,
+            "Month 8": 2200,
+            "Month 9": 1800,
+            "Month 10": 1500,
+            "Month 11": 1300,
+            "Month 12": 900,
+        }
+        
+        const electricStatistics = {
+            "Month 1": 100,
+            "Month 2": 1600,
+            "Month 3": 1000,
+            "Month 4": 800,
+            "Month 5": 900,
+            "Month 6": 1600,
+            "Month 7": 210,
+            "Month 8": 2200,
+            "Month 9": 1800,
+            "Month 10": 150,
+            "Month 11": 1300,
+            "Month 12": 900,
         }
 
 

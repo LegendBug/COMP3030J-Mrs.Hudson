@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&display=swap');
 .container {
     max-width: 600px;
     margin: 4rem auto;
@@ -6,6 +7,7 @@
     border-radius: 8px;
     padding: 40px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05); /* 略微放大容器及其中内容 */
 }
 
 .form-control {
@@ -47,4 +49,11 @@
     color: #721c24;
     border: 1px solid #f5c6cb;
     border-radius: 5px;
+}
+
+.form-label,
+p,
+a {
+    font-family: 'Roboto Slab', serif;
+    font-weight: 700; /* 确保字体加粗 */
 }
