@@ -25,36 +25,37 @@
 
 /* 调整Accordion */
 .accordion-button {
-    background-color: #e9ecef;  /* 浅灰色背景 */
-    color: #495057;  /* 深灰色文本 */
-    border: 1px solid #dee2e6;  /* 细边框 */
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);  /* 轻微的阴影 */
-    padding: 0.75rem 1.25rem;  /* 内边距调整 */
-    transition: background-color 0.3s ease;  /* 平滑的背景色过渡 */
+    background-color: #f8f9fa;  /* 浅灰色背景，更现代 */
+    color: #333;  /* 更新文本颜色为深灰 */
+    border: 1px solid #dee2e6;  /* 更细的边框 */
+    padding: 0.75rem 1.25rem;  /* 适当的内边距 */
+    border-radius: 0.5rem;  /* 圆角风格 */
+    box-shadow: none;  /* 移除阴影 */
 }
 
 .accordion-button:not(.collapsed) {
-    background-color: #d1e7dd;  /* 展开时的背景颜色 */
-    color: #0f5132;  /* 展开时的文本颜色 */
+    background-color: #e2e6ea;  /* 更柔和的展开背景色 */
+    color: #495057;  /* 展开时的深色文本 */
 }
 
 .accordion-item {
-    border-bottom: 1px solid #dee2e6;  /* 每个项底部边框 */
-    margin-bottom: 0.5rem;  /* 项间距 */
+    border-bottom: 1px solid transparent;   /* 每个项底部边框 */
+    margin-bottom: 0.5rem;  /* 保持项间距 */
 }
 
-.accordion-collapse.collapse {
+.accordion-collapse.collapse.show {
     overflow: hidden;
+    border: none; /* 移除内部边框 */
 }
 
 .accordion-header {
     margin: 0;  /* 确保没有外边距 */
+    transition: background-color 0.2s; /* 平滑背景色过渡 */
 }
 
-
 .list-group-item-action:hover {
-    background-color: #f8f9fa;  /* 鼠标悬浮背景颜色 */
-    color: #212529;  /* 鼠标悬浮文本颜色 */
+    background-color: #d1e7dd;  /* 鼠标悬浮时的背景颜色，更清新 */
+    color: #155724;  /* 鼠标悬浮时的文字颜色，更鲜明 */
 }
 
 /* 确保动画和过渡的平滑性 */

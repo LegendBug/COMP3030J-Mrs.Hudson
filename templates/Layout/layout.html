@@ -7,13 +7,15 @@
     <title>Layout</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/Layout/layout.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
 {% endblock %}
 
 {% block extra_nav_icons %}
     <!-- 在这里添加导航栏里额外的icon-->
     {% if user.is_authenticated and user_type == 'Manager' %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'Statistic:statistic' %}" title="Statistic"><i class="fas fa-chart-bar  fa-lg"></i> </a>
+            <a class="nav-link" href="{% url 'Statistic:statistic' %}" title="Statistic"><i
+                    class="fas fa-chart-bar  fa-lg"></i> </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="{% url 'Layout:layout' %}" title="Layout"><i class="fas fa-edit fa-lg"></i> </a>
@@ -25,20 +27,30 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'Venue:home' %}">Home</a></li>
-            {% if user.is_authenticated and user_type == 'Exhibitor'%}
+            {% if user.is_authenticated and user_type == 'Exhibitor' %}
                 {% if current_access and current_access.exhibition and current_access.exhibition.venue %}
-                    <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.exhibition.venue.id %}">{{ current_access.exhibition.venue.name }}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'Exhibition:exhibition' current_access.exhibition.id %}">{{ current_access.exhibition.name }}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'Booth:booth' current_access.id %}">{{ current_access.name }}</a></li>
+                    <li class="breadcrumb-item"><a
+                            href="{% url 'Venue:venue' current_access.exhibition.venue.id %}">{{ current_access.exhibition.venue.name }}</a>
+                    </li>
+                    <li class="breadcrumb-item"><a
+                            href="{% url 'Exhibition:exhibition' current_access.exhibition.id %}">{{ current_access.exhibition.name }}</a>
+                    </li>
+                    <li class="breadcrumb-item"><a
+                            href="{% url 'Booth:booth' current_access.id %}">{{ current_access.name }}</a></li>
                 {% endif %}
-            {% elif user.is_authenticated and user_type == 'Organizer'%}
+            {% elif user.is_authenticated and user_type == 'Organizer' %}
                 {% if current_access and current_access.venue %}
-                    <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.venue.id %}">{{ current_access.venue.name }}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'Exhibition:exhibition' current_access.id %}">{{ current_access.name }}</a></li>
+                    <li class="breadcrumb-item"><a
+                            href="{% url 'Venue:venue' current_access.venue.id %}">{{ current_access.venue.name }}</a>
+                    </li>
+                    <li class="breadcrumb-item"><a
+                            href="{% url 'Exhibition:exhibition' current_access.id %}">{{ current_access.name }}</a>
+                    </li>
                 {% endif %}
-            {% elif user.is_authenticated and user_type == 'Manager'%}
+            {% elif user.is_authenticated and user_type == 'Manager' %}
                 {% if current_access %}
-                    <li class="breadcrumb-item"><a href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
+                    <li class="breadcrumb-item"><a
+                            href="{% url 'Venue:venue' current_access.id %}">{{ current_access.name }}</a></li>
                 {% endif %}
             {% endif %}
             <li class="breadcrumb-item active" aria-current="page">Layout</li>
@@ -57,7 +69,8 @@
         <div id="konva-container"></div>
 
         <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
-        <div id="tooltip" style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
+        <div id="tooltip"
+             style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
         <!-- Offcanvas -->
         <div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" id="offcanvasScrolling"
@@ -70,31 +83,81 @@
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownSectorMenu"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            Select Sector
+                        Select Sector
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownSectorMenu">
-                            {% for sector in sectors %}
-                                {% comment %}我知道你想debug,但这个错误不影响程序的正常运行,单纯是IDE对Django模板渲染的错误提示,你可以忽略它{% endcomment %}
-                                <li><a class="dropdown-item" href="#" @click="changeSector({{ sector.id }})">Sector {{ sector.name }}</a></li>
-                            {% endfor %}
+                        {% for sector in sectors %}
+                            {% comment %}我知道你想debug,但这个错误不影响程序的正常运行,单纯是IDE对Django模板渲染的错误提示,你可以忽略它{% endcomment %}
+                            <li><a class="dropdown-item" href="#"
+                                   @click="changeSector({{ sector.id }})">Sector {{ sector.name }}</a></li>
+                        {% endfor %}
                     </ul>
                 </div>
-                {# 按钮: Save#}
-                <button type="button" class="btn btn-primary" @click="synchronizeElementsData()">Save</button>
+                
+                {# 按钮组#}
+                <div class="btn-group" role="group" aria-label="Basic example">
+                    {# 按钮: Save#}
+                    <button type="button" class="btn btn-primary" @click="synchronizeElementsData()" title="Save"
+                            style="position: relative; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-icons" style="font-size:26px; vertical-align: middle;">save</span>
+                    </button>
+                    
+                    {# Icon: Export#}
+                    <button type="button" class="btn btn-primary" @click="exportImage()" id="exportStage" title="Export as Image"
+                            style="display: flex; align-items: center; justify-content: center;">
+                        <span class="material-icons" style="font-size: 26px; vertical-align: middle;">download</span>
+                    </button>
+                    
+                    {# Icon: Help#}
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#helpModal"
+                            style="display: flex; align-items: center; justify-content: center;">
+                        <span class="material-icons" style="font-size: 26px; vertical-align: middle;">help_outline</span>
+                    </button>
+                </div>
+                
             </div>
 
             <div class="offcanvas-body">
                 <!-- Top层级Accordion -->
                 <div class="accordion" id="accordion">
                     <layer-component v-for="(layer, index) in layers" :key="layer.id" :layer="layer"
-                    @update-current-layer="setCurrentLayer" @update-current-element="setCurrentElement" @element-added="addElement" @data-updated="refreshData">
+                                     @update-current-layer="setCurrentLayer" @update-current-element="setCurrentElement"
+                                     @element-added="addElement" @data-updated="refreshData">
                     </layer-component>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help Modal -->
+        <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 10px;">
+                    <div class="modal-header" style="border-bottom: 1px solid #e9ecef;">
+                        <h5 class="modal-title" id="helpModalLabel"><strong>Help & Shortcuts</strong></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6 style="font-weight: 600; color: #495057; margin-bottom: 16px;">
+                            <i class="material-icons" style="vertical-align: middle;">keyboard</i> Keyboard Shortcuts
+                        </h6>
+                        <ul style="padding-left: 20px; margin-bottom: 24px;">
+                            <li style="margin-bottom: 10px;"><strong>ctrl + Mouse Wheel:</strong> Zoom in/out the current page</li>
+                            <li style="margin-bottom: 10px;"><strong>ctrl + S:</strong> Export the page as an image</li>
+                        </ul>
+                        <h6 style="font-weight: 600; color: #495057; margin-bottom: 16px;">
+                            <i class="material-icons" style="vertical-align: middle;">info</i> Page Usage Instructions
+                        </h6>
+                        <p style="color: #6c757d; line-height: 1.6; text-align: justify;">
+                            The Offcanvas contains a hierarchical structure of layers and elements. Each Layer represents a usable space within the current building. You can add elements such as images, lines, arrows, and common shapes under a space to design your area. If you are a Manager or Organizer, you can also adjust the availability status of a space by setting the Layer's available property. If Available is set to True, the space can be booked by an Organizer or Exhibitor. Otherwise, the space is marked as unavailable for booking.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Add SubLayer Modal -->
-        <div class="modal fade" id="addSubLayerModal" tabindex="-1" aria-labelledby="addSubLayerModalLabel" aria-hidden="true">
+        <div class="modal fade" id="addSubLayerModal" tabindex="-1" aria-labelledby="addSubLayerModalLabel"
+             aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -116,7 +179,8 @@
         </div>
 
         <!-- Edit Layer Modal -->
-        <div class="modal fade" id="editLayerModal" tabindex="-1" aria-labelledby="editLayerModalLabel" aria-hidden="true">
+        <div class="modal fade" id="editLayerModal" tabindex="-1" aria-labelledby="editLayerModalLabel"
+             aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -138,7 +202,8 @@
         </div>
 
         <!-- Set Konva Element Properties Modal -->
-        <div class="modal fade" id="elementPropertiesModal" tabindex="-1" aria-labelledby="elementPropertiesModalLabel" aria-hidden="true">
+        <div class="modal fade" id="elementPropertiesModal" tabindex="-1" aria-labelledby="elementPropertiesModalLabel"
+             aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -172,7 +237,7 @@
                                     <option value="thick">Thick Border</option>
                                 </select>
                             </div>
-                             <!-- Border Color -->
+                            <!-- Border Color -->
                             <div class="mb-3">
                                 <label for="borderColor" class="form-label">Border Color</label>
                                 <input type="color" id="borderColor" class="form-control form-control-color">
@@ -190,7 +255,8 @@
                             <!-- Image upload field, shown only for Image type -->
                             <div v-if="newElementType === 'Image'" class="mb-3">
                                 <label for="imageUpload" class="form-label">Upload Image</label>
-                                <input type="file" id="imageUpload" class="form-control" accept="image/*" @change="handleImageUpload" :required="newElementType === 'Image'">
+                                <input type="file" id="imageUpload" class="form-control" accept="image/*"
+                                       @change="handleImageUpload" :required="newElementType === 'Image'">
                             </div>
                         </form>
                     </div>
@@ -203,7 +269,8 @@
         </div>
 
         <!-- Edit Konva Element Properties Modal -->
-        <div class="modal fade" id="editElementPropertiesModal" tabindex="-1" aria-labelledby="editElementPropertiesModalLabel" aria-hidden="true">
+        <div class="modal fade" id="editElementPropertiesModal" tabindex="-1"
+             aria-labelledby="editElementPropertiesModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -255,7 +322,8 @@
                             <!-- Image upload field, shown only for Image type -->
                             <div v-if="currentElement && currentElement.type === 'Image'" class="mb-3">
                                 <label for="editedImageUpload" class="form-label">Upload Image</label>
-                                <input type="file" id="editedImageUpload" class="form-control" accept="image/*" @change="handleImageUpload">
+                                <input type="file" id="editedImageUpload" class="form-control" accept="image/*"
+                                       @change="handleImageUpload">
                             </div>
                         </form>
                     </div>
@@ -276,9 +344,9 @@
         Vue.component('layer-component', {
             props: ['layer'],
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
-            data: function() {
+            data: function () {
                 return {
-                    open: false,  // 每个组件控制自己的打开状态
+                    open: true,  // 每个组件控制自己的打开状态
                     isContextMenuVisible: false,  // 上下文菜单是否可见
                     isElementMenuVisible: false,
                     contextMenuX: '0px',  // 上下文菜单的X坐标
@@ -294,7 +362,7 @@
                           :class="{'collapsed': !open}"
                           @click="open = !open;"
                           @contextmenu.prevent="openContextMenu($event, layer)"
-                          style="background-color: #8bc0fa;">
+                          style="background-color: #ebbe70;">
                     <i class="fas fa-layer-group" style="margin-right: 5px;"></i> <!-- 添加图标 -->
                     [[ layer.name ]]
                   </button>
@@ -362,7 +430,7 @@
                   </a>
                   <a class="list-group-item list-group-item-action"
                      @click="addElement('Line',layer); closeContextMenu()">
-                    <i class="fas fa-grip-lines-vertical"></i> Line
+                    <i class="fas fa-grip-lines-vertical"></i>   Line
                   </a>
                   <a class="list-group-item list-group-item-action"
                      @click="addElement('Arrow',layer); closeContextMenu()">
@@ -387,6 +455,7 @@
                         this.isElementMenuVisible = false;
                     }
                 },
+                
                 openContextMenu(event) { // 上下文菜单事件处理
                     event.preventDefault();
                     if (this.isContextMenuVisible) {
@@ -398,25 +467,29 @@
                             this.isContextMenuVisible = true;  // 显示上下文菜单
                         });
                     } else {
-                            this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
-                            this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
-                            this.isContextMenuVisible = true;  // 显示上下文菜单
+                        this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
+                        this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
+                        this.isContextMenuVisible = true;  // 显示上下文菜单
                     }
                 },
+                
                 openElementMenu() {
                     const buttonRect = this.$refs.addElementButton.getBoundingClientRect();
                     this.elementMenuX = (buttonRect.left + buttonRect.width) + 'px';
                     this.elementMenuY = (buttonRect.top - 4 * buttonRect.height) + 'px';
                     this.isElementMenuVisible = true;
                 },
+                
                 closeContextMenu() {
                     this.isElementMenuVisible = false;
                     this.isContextMenuVisible = false;  // 隐藏上下文菜单
                 },
+                
                 openAddSubLayerModal(layer) {  // 打开添加子层模态框
                     this.$emit('update-current-layer', layer);
                     $('#addSubLayerModal').modal('show');
                 },
+                
                 openEditLayerModal(layer) { // 打开添加子层模态框
                     this.$emit('update-current-layer', layer);
                     // 为模态框填充数据
@@ -425,10 +498,11 @@
                     $('#editLayerForm input[name="available"]').prop('checked', layer.available);
                     $('#editLayerModal').modal('show');
                 },
+                
                 deleteLayer(layer) {
                     if (confirm("Are you sure you want to delete current layer and its sub-elements?")) {
                         const deletedLayerId = layer.id;
-                        while (layer.parent_unit != null){ // 查询currentSectorId
+                        while (layer.parent_unit != null) { // 查询currentSectorId
                             layer = layer.parent_unit;
                         }
                         const currentSectorId = layer.id;
@@ -439,18 +513,19 @@
                                 user_type: '{{ user_type }}',
                             }
                         })
-                        .then(response => {
-                            if (response.data && response.data.success) {
-                                this.$emit('data-updated');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error deleting layer:', error);
-                        });
+                            .then(response => {
+                                if (response.data && response.data.success) {
+                                    this.$emit('data-updated');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error deleting layer:', error);
+                            });
                     }
                 },
+                
                 addElement(type, layer) {
-                    console.log('addElement is activated in layer-component: ','type: ', type,' layer: ');
+                    console.log('addElement is activated in layer-component: ', 'type: ', type, ' layer: ');
                     this.$emit('update-current-layer', layer);
                     this.$emit('element-added', type);
                 }
@@ -469,12 +544,12 @@
                 };
             },
             template:
-            `
+                `
               <div class="accordion-item">
                 <h2 class="accordion-header">
                   <button class="accordion-button" type="button"
                           @contextmenu.prevent="openContextMenu($event)"
-                          style="background-color: #c3dcf6;">
+                          style="background-color: #8f9396;">
                     <i class="fas fa-cogs" style="margin-right: 5px;"></i>
                     [[ element.name ]]
                   </button>
@@ -483,8 +558,8 @@
                 <div v-show="isContextMenuVisible" :style="{top: contextMenuY, left: contextMenuX}"
                      class="list-group context-menu">
                   <a class="list-group-item list-group-item-action"
-                     @click="openEditElement(element); closeContextMenu()">Edit Element</a>
-                  <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()">Delete
+                     @click="openEditElement(element); closeContextMenu()"><i class="fas fa-edit"></i> Edit Element</a>
+                  <a class="list-group-item list-group-item-action" @click="deleteElement(element); closeContextMenu()"><i class="fas fa-trash-alt"></i> Delete
                     Item</a>
                 </div>
               </div>
@@ -503,6 +578,7 @@
                         this.closeContextMenu();
                     }
                 },
+                
                 openContextMenu(event) {
                     event.preventDefault();
                     if (this.isContextMenuVisible) {
@@ -514,15 +590,17 @@
                             this.isContextMenuVisible = true;  // 显示上下文菜单
                         });
                     } else {
-                            this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
-                            this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
-                            this.isContextMenuVisible = true;  // 显示上下文菜单
+                        this.contextMenuX = event.clientX + 'px';  // 根据事件位置设置上下文菜单的横坐标
+                        this.contextMenuY = event.clientY + 'px';  // 根据事件位置设置上下文菜单的纵坐标
+                        this.isContextMenuVisible = true;  // 显示上下文菜单
                     }
                     this.$emit('update-current-element', this.element);
                 },
+                
                 closeContextMenu() {
                     this.isContextMenuVisible = false;
                 },
+                
                 deleteElement(element) {
                     // 确认删除操作
                     if (confirm("Are you sure you want to delete this element?")) {
@@ -532,21 +610,22 @@
                                 user_type: '{{ user_type }}',
                             }
                         })
-                        .then(response => {
-                            if (response.data && response.data.success) {
-                                console.log('Element deleted:', response.data.success);
-                                this.$emit('data-updated');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error deleting layer:', error);
-                        });
+                            .then(response => {
+                                if (response.data && response.data.success) {
+                                    console.log('Element deleted:', response.data.success);
+                                    this.$emit('data-updated');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error deleting layer:', error);
+                            });
                     }
                     this.closeContextMenu();
 
 
                 },
-                openEditElement(element){
+                
+                openEditElement(element) {
                     this.$emit('update-current-element', element);
                     // 设置表单字段的值
                     setTimeout(() => {
@@ -573,7 +652,7 @@
             el: '#layout-app',
             delimiters: ['[[', ']]'], // 更改Vue的插值表达式定界符
             data: {
-                currentSectorId : 0, // 默认首次访问的是Current_Access第一个Sector
+                currentSectorId: 0, // 默认首次访问的是Current_Access第一个Sector
                 layers: [],
                 currentLayer: null,
                 currentElement: null,
@@ -581,17 +660,19 @@
                 offcanvasOpen: false,
                 newElementType: null, // 用户选择添加的新元素的类型
                 imageSrc: null, // 存储上传的图像的Data URL, 这用于在添加图像元素时直接在画板上显示图像
-                elementProps : null,
+                elementProps: null,
                 points: []
             },
             mounted() {
                 this.refreshData()
+                window.addEventListener('keydown', this.handleKeyDown);
             },
             beforeDestroy() {
-                if (this.stage){
+                if (this.stage) {
                     this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
                 }
                 window.removeEventListener('resize', this.handleResize);
+                window.removeEventListener('keydown', this.handleKeyDown);
             },
             computed: {
                 buttonStyle() {
@@ -600,7 +681,7 @@
                         bottom: '45vh',
                         left: this.offcanvasOpen ? '400px' : '10px', // Adjust '400px' as needed
                         zIndex: '1040',
-                        width: '25px' ,
+                        width: '25px',
                         height: '50px',
                         display: 'flex',
                         justifyContent: 'center',
@@ -611,11 +692,18 @@
             },
             methods: {
                 // ----------------- 数据加载 -----------------
+                handleKeyDown(event) {
+                    if (event.ctrlKey && event.key === 's') {
+                        event.preventDefault(); // 防止浏览器的默认保存行为
+                        this.exportImage();
+                    }
+                },
+                
                 refreshData() {
                     console.log('Refreshing data...');
                     return axios.get('{% url "Layout:refresh_data" %}', {
                         params: {
-                            current_sector_id : this.currentSectorId,
+                            current_sector_id: this.currentSectorId,
                             current_access_id: {{ current_access.id }},
                             user_type: '{{ user_type }}',
                         }
@@ -652,12 +740,13 @@
                 // ----------------- 以下是与konva.js相关的函数 -----------------
 
                 // ----------------- konva.js: 加载数据 -----------------
+                
                 renderKonva() {
                     console.log('Rendering Konva...');
                     this.stage = new Konva.Stage({
                         container: 'konva-container',
                         width: window.innerWidth,
-                        height:  window.innerHeight,
+                        height: window.innerHeight,
                     });
 
                     // 添加滚轮缩放事件监听器
@@ -712,7 +801,7 @@
                     rootLayer.draw();
                 },
 
-                addListenersForElement(node, element, parentSpaceUnit){
+                addListenersForElement(node, element, parentSpaceUnit) {
                     // 添加变换和拖拽结束的事件监听器
                     node.on('transformend dragend', () => {
                         let element = this.findElementByKonvaId(this.layers, node.id());
@@ -739,11 +828,8 @@
                             enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top-center', 'bottom-center', 'middle-left', 'middle-right'],
                             rotateEnabled: true,
                             keepRatio: true,
-                            // 旋转把手偏移量
-                            rotateAnchorOffset: 60,
-                            // 可变形操作的视觉样式
-                            borderStroke: 'blue',
-                            borderDash: [3, 3],
+                            rotateAnchorOffset: 60, // 旋转把手偏移量
+                            borderStroke: 'grey', // 可变形操作的视觉样式
                             anchorStroke: 'grey',
                             anchorFill: 'grey',
                             anchorSize: 8,
@@ -817,10 +903,10 @@
 
                 // ----------------- konva.js: 数据上传 -----------------
 
-                synchronizeElementsData(){
+                synchronizeElementsData() {
                     console.log('Synchronizing elements data...');
                     return axios.post('{% url 'Layout:synchronize_elements_data' %}', {
-                        root : this.layers[0]
+                        root: this.layers[0]
                     }).then(response => {
                         console.log('Data synchronized successfully:', response.data);
                     }).catch(error => {
@@ -830,9 +916,19 @@
 
                 uploadElement(newElement, elementProps) {
                     console.log('Uploading new element:', newElement.toJSON());
-                    const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc} = elementProps;
+                    const {
+                        name,
+                        textContent,
+                        fillColor,
+                        strokeWidth,
+                        stroke,
+                        draggable,
+                        transformable,
+                        imageFile,
+                        imageSrc
+                    } = elementProps;
                     const formData = new FormData();
-                    formData.append('name', name );
+                    formData.append('name', name);
                     formData.append('transformable', transformable);
                     if (this.newElementType === 'Image' && imageFile) {
                         formData.append('image', imageFile);
@@ -846,22 +942,22 @@
                             'Content-Type': 'multipart/form-data'
                         }
                     })
-                    .then(response => {
-                        console.log('Element added successfully:', response.data);
-                        this.refreshData();
-                        this.resetState(); // 重置添加状态
-                    })
-                    .catch(error => {
-                        console.error('Error adding element:', error);
-                    });
+                        .then(response => {
+                            console.log('Element added successfully:', response.data);
+                            this.refreshData();
+                            this.resetState(); // 重置添加状态
+                        })
+                        .catch(error => {
+                            console.error('Error adding element:', error);
+                        });
                 },
 
-                editElementProperties(){
+                editElementProperties() {
                     this.synchronizeElementsData().then(() => { // 确保在修改新元素后刷新本地数据前更新画板上的数据到后端
                         // const element = this.findElementByKonvaId(this.layers, this.currentElement.id)
                         const konvaElement = this.stage.findOne('#' + this.currentElement.id);
                         const textContent = this.currentElement.type === 'Text' ? document.getElementById('editedTextContent').value : null;
-                        const fillColor = this.currentElement.type !== 'Image' ?  document.getElementById('editedFillColor').value : null;
+                        const fillColor = this.currentElement.type !== 'Image' ? document.getElementById('editedFillColor').value : null;
                         const borderStyle = document.getElementById('editedBorderStyle').value;
                         const borderColor = borderStyle !== 'none' ? document.getElementById('editedBorderColor').value : null;
                         const draggable = document.getElementById('editedDraggable').checked;
@@ -869,7 +965,7 @@
                         const transformable = document.getElementById('editedTransformable').checked;
                         const imageFile = this.currentElement.type === 'Image' ? document.getElementById('editedImageUpload').files[0] : null;
                         // 更新KonvaElement的属性
-                        if(textContent){
+                        if (textContent) {
                             konvaElement.text(textContent);
                         }
                         if (fillColor) {
@@ -898,22 +994,22 @@
                                 'Content-Type': 'multipart/form-data'
                             }
                         })
-                        .then(response => {
-                            console.log('Element edited successfully:', response.data);
-                            this.refreshData();
-                            this.resetState(); // 重置添加状态
+                            .then(response => {
+                                console.log('Element edited successfully:', response.data);
+                                this.refreshData();
+                                this.resetState(); // 重置添加状态
 
-                            // 隐藏模态框
-                            $('#editElementPropertiesModal').modal('hide');
-                        })
-                        .catch(error => {
-                            console.error('Error editing element:', error);
-                        });
+                                // 隐藏模态框
+                                $('#editElementPropertiesModal').modal('hide');
+                            })
+                            .catch(error => {
+                                console.error('Error editing element:', error);
+                            });
                     });
                 },
 
                 // ----------------- konva.js: 控制Stage上的交互事件 -----------------
-                
+
                 handleWheelZoom(event) {
                     // 检查是否按下了Ctrl键
                     if (event.ctrlKey) {
@@ -926,7 +1022,7 @@
                         const scaleBy = 1.1;
                         const newScale = event.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
 
-                        this.stage.scale({ x: newScale, y: newScale });
+                        this.stage.scale({x: newScale, y: newScale});
 
                         const mousePointTo = {
                             x: (pointer.x - this.stage.x()) / oldScale,
@@ -970,7 +1066,7 @@
                 handleResize() {
                     const width = window.innerWidth * 0.9;
                     const height = window.innerHeight * 0.91;
-                    this.stage.size({ width, height });
+                    this.stage.size({width, height});
                 },
 
                 // ----------------- konva.js: 添加Konva Element到Stage -----------------
@@ -995,8 +1091,8 @@
 
                 confirmElementProperties() {
                     const name = document.getElementById('elementName').value;
-                    const textContent = this.newElementType === 'Text'? document.getElementById('textContent').value : null;
-                    const fillColor = this.newElementType !== 'Image' ?  document.getElementById('fillColor').value : null;
+                    const textContent = this.newElementType === 'Text' ? document.getElementById('textContent').value : null;
+                    const fillColor = this.newElementType !== 'Image' ? document.getElementById('fillColor').value : null;
                     const borderStyle = document.getElementById('borderStyle').value;
                     const borderColor = borderStyle !== 'none' ? document.getElementById('borderColor').value : null;
                     const transformable = document.getElementById('transformable').checked;
@@ -1013,18 +1109,18 @@
                         transformable,
                         imageFile,
                         imageSrc: this.imageSrc, // 存储图像的dataURL
-                        points : [],
+                        points: [],
                     };
 
                     // 关闭模态框
                     $('#elementPropertiesModal').modal('hide');
 
                     document.getElementById('konva-container').style.cursor = 'crosshair';
-                     // 阻止画布的默认右键菜单
+                    // 阻止画布的默认右键菜单
                     this.stage.container().addEventListener('contextmenu', (e) => {
                         e.preventDefault();
                     });
-                    this.stage.on('mousedown touchstart',  this.handleStageClick);
+                    this.stage.on('mousedown touchstart', this.handleStageClick);
                 },
 
                 handleLineDrawing(e) {
@@ -1113,7 +1209,18 @@
                 placeElement(elementProps) {
                     const pos = this.stage.getPointerPosition();
                     let newElement;
-                    const { name, textContent, fillColor, strokeWidth, stroke, draggable, transformable, imageFile, imageSrc, points} = elementProps;
+                    const {
+                        name,
+                        textContent,
+                        fillColor,
+                        strokeWidth,
+                        stroke,
+                        draggable,
+                        transformable,
+                        imageFile,
+                        imageSrc,
+                        points
+                    } = elementProps;
                     // 根据不同类型创建Konva图形实例
                     switch (this.newElementType) {
                         case 'Rect':
@@ -1186,12 +1293,15 @@
                         case 'Image':
                             const imageObj = new Image();
                             imageObj.onload = () => {
+                                const aspectRatio = imageObj.width / imageObj.height;
+                                const height = 200;
+                                const width = height * aspectRatio;
                                 newElement = new Konva.Image({
                                     image: imageObj,
                                     x: pos.x,
                                     y: pos.y,
-                                    width: 100,
-                                    height: 100,
+                                    width: width,
+                                    height: height,
                                     stroke: stroke,
                                     strokeWidth: strokeWidth,
                                     draggable: draggable,
@@ -1206,7 +1316,7 @@
                             imageObj.src = imageSrc;
                             break;
                     }
-                    if (newElement && this.newElementType !== 'Image' ) {
+                    if (newElement && this.newElementType !== 'Image') {
                         this.synchronizeElementsData().then(() => { // 确保在创建新元素前更新本地数据到后端
                             const konvaLayer = this.stage.getLayers()[0]; // 获取stage中的第一个Layer
                             konvaLayer.add(newElement);
@@ -1215,7 +1325,6 @@
                         });
                     }
                 },
-
 
                 // ----------------- Offcanvas ------------------
 
@@ -1231,6 +1340,16 @@
                         this.refreshData();
                     }
                 },
+                
+                exportImage() {
+                    let link = document.createElement('a');
+                    link.download = 'stage.png';
+                    link.href = this.stage.toDataURL({ pixelRatio: 3 });
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    delete link;
+                },
 
                 // ----------------- Accordion的相关方法 -----------------
 
@@ -1239,7 +1358,7 @@
                     this.currentLayer = layer;
                 },
 
-                setCurrentElement(element){
+                setCurrentElement(element) {
                     console.log('Setting current element:', element);
                     this.currentElement = element;
                 },
