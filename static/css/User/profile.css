@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 
 .profile-container {
-    max-width: 700px;
-    margin: auto;
+    max-width: 900px;
     animation: fadeIn 1s ease-in-out;
 }
 
@@ -46,3 +45,33 @@
     margin-bottom: 1rem; /* 调整下边距以提供足够的空间 */
     /* 添加更多样式来增强视觉效果 */
 }
+
+
+.font-title {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 2rem; /* Adjust the size as needed */
+    font-weight: bold;
+    color: #333;
+}
+
+.font-body {
+    font-family: Arial, sans-serif;
+    font-size: 1rem; /* Adjust the size as needed */
+    color: #666;
+}
+
+.font-artistic {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 1rem;
+    color: #444;
+}
+
+.margin-right-10cm {
+    margin-right: 10cm;
+}
+
+.transparent-card-header {
+    background: transparent !important;
+    border-bottom: none
+}
+

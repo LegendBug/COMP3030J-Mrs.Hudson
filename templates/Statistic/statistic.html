@@ -82,15 +82,16 @@
         </div>
         <div class="d-flex justify-content-end">
             <button onclick="addData()" class="btn btn-success me-2">Add Data</button>
-            <button onclick="selectYear()" class="btn btn-success me-2">Select year</button>
-            <button onclick="fetchVenues()" class="btn btn-success">Select venue</button>
+            <button onclick="selectYear()" class="btn btn-success me-2">View All Resources</button>
+            <button onclick="fetchVenues()" class="btn btn-success">View current Venue</button>
         </div>
     </div>
 
 {% endblock %}
 
 {% block scripts %}
-    <script>
+    <script type="text/javascript">
+        const venueName = "{{ venue.name }}";
         let barChartData = {
             labels: [],
             datasets: [{
@@ -354,14 +355,7 @@
         }
 
 
-        function selectVenue(venues) {
-            const venueList = venues.join('\n');
-            const selectedVenue = prompt(`Please enter the venue name from the following list:\n${venueList}`);
-            if (!venues.includes(selectedVenue)) {
-                alert('Invalid venue name entered!');
-                return;
-            }
-
+        function selectVenue() {
             const selectedYear = prompt("Please enter the year (e.g., 2024):");
 
             if (selectedYear && !isNaN(selectedYear)) {
@@ -405,8 +399,9 @@
                     .then(response => response.json())
                     .then(data => {
                         // 提取出用水量和用电量的数据并传递给 selectDataSource() 函数
-                        {#const waterStatistics = data.water_statistics;#}
-                        {#const electricStatistics = data.electric_statistics;#}
+                        const waterStatistics = data.water_statistics;
+                        const electricStatistics = data.electric_statistics;
+
 
                         // 询问用户选择数据源
                         const chooseDataSource = confirm("Would you like to select a data source now?");
@@ -422,8 +417,7 @@
                 alert('Invalid year entered!');
             }
         }
-        
-        
+
         const waterStatistics = {
             "Month 1": 1200,
             "Month 2": 1600,
@@ -438,7 +432,7 @@
             "Month 11": 1300,
             "Month 12": 900,
         }
-        
+
         const electricStatistics = {
             "Month 1": 100,
             "Month 2": 1600,
@@ -453,7 +447,6 @@
             "Month 11": 1300,
             "Month 12": 900,
         }
-
 
     </script>
 {% endblock %}

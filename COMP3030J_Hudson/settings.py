@@ -184,4 +184,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
-AUTHORIZATION_CODE = 'LFobuC5UHf6CT3BlbkFJldFawYhXcw0zQ8D93sBo'
+
+# LFobuC5UHf6CT3BlbkFJldFawYhXcw0zQ8D93sBo

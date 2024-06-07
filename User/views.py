@@ -1,4 +1,5 @@
 import json
+import os
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
@@ -10,11 +11,14 @@ from django.shortcuts import render, redirect
 from Booth.models import BoothApplication, Booth
 from Exhibition.models import ExhibitionApplication, Exhibition
 from Inventory.models import ResourceApplication, Item
+from dotenv import load_dotenv, set_key
+
 from .forms import RegisterForm, LoginForm, ReplyMessageForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
+from django.conf import settings
 
 
 def welcome(request):  # url: path('welcome/', views.welcome, name='welcome'),
@@ -86,6 +90,8 @@ def logout(request):
     return redirect('User:login')
 
 
+
+
 def profile(request):
     user = request.user
 
@@ -108,17 +114,21 @@ def profile(request):
         booth_page_number = request.GET.get('booth_page')
         booth_page_obj = booth_paginator.get_page(booth_page_number)
 
+        load_dotenv(os.path.join('../../', '.env'))
+        AUTHORIZATION_CODE = os.getenv('AUTHORIZATION_CODE')
         context = {
             'user': user,
             'user_type': user_type,
             'exhibition_page_obj': exhibition_page_obj,
             'booth_page_obj': booth_page_obj,
+            'authorization_code': AUTHORIZATION_CODE
         }
         return render(request, 'User/profile.html', context)
     else:
         # POST请求处理用户信息更新
         new_username = request.POST.get('username')
         new_email = request.POST.get('email')
+        new_authorization_code = request.POST.get('authorization_code')
         new_password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
 
@@ -134,6 +144,17 @@ def profile(request):
                 user.email = new_email
             else:
                 return JsonResponse({'error': 'Email already exists.'}, status=400)
+
+        load_dotenv(os.path.join('../../', '.env'))
+        AUTHORIZATION_CODE = os.getenv('AUTHORIZATION_CODE')
+        print(f'AUTHORIZATION_CODE: {AUTHORIZATION_CODE}, new_authorization_code: {new_authorization_code}')
+        # 没弄完
+        if new_authorization_code and AUTHORIZATION_CODE != new_authorization_code:
+            set_key(os.path.join('../../', '.env'), 'AUTHORIZATION_CODE', new_authorization_code)
+            os.environ['AUTHORIZATION_CODE'] = new_authorization_code  # 更新运行时环境变量
+            print(f'AUTHORIZATION_CODE: {AUTHORIZATION_CODE}')
+        else:
+            return JsonResponse({'error': 'Authorization Code already exists.'}, status=400)
 
         if new_password and confirm_password and not check_password(new_password, user.password):
             if new_password == confirm_password:

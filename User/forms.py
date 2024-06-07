@@ -1,8 +1,12 @@
+import os
+
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from dotenv import load_dotenv
+
 
 class RegisterForm(UserCreationForm):
     ACCOUNT_TYPES = [
@@ -31,7 +35,10 @@ class RegisterForm(UserCreationForm):
         account_type = self.cleaned_data.get('account_type')
         authorization_code = self.cleaned_data.get('authorization_code')
         if account_type == 'Manager':
-            if authorization_code != settings.AUTHORIZATION_CODE:
+            # Assuming your .env file is in the same directory as your settings module
+            load_dotenv(os.path.join('../../', '.env'))
+            AUTHORIZATION_CODE = os.getenv('AUTHORIZATION_CODE')
+            if authorization_code != AUTHORIZATION_CODE:
                 raise ValidationError("Invalid authorization code for Manager account.")
         return authorization_code
 
