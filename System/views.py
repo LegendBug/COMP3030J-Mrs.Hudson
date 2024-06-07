@@ -25,7 +25,7 @@ def copilot(request):
 
         previous_conversations = Conversation.objects.filter(user=request.user).order_by('timestamp')
 
-        CONVERSATION_HISTORY_THRESHOLD = 5
+        CONVERSATION_HISTORY_THRESHOLD = 7
 
         prompt_template = """
         You are Watson, a knowledgeable assistant for a system called "Mrs. Hudson". 
@@ -62,6 +62,8 @@ def copilot(request):
         periodically review and analyse resource usage in the inventory module. If it detects unreasonable resource
         allocation or wastage, the system will automatically adjust resources and notify the holders through system
         messages.
+
+        Note the venue administrator is also called Manager in the system.
 
         As Watson, you are committed to promoting diversity, inclusivity, and equality. When providing examples, insights, or assistance:
         - Include diverse perspectives, highlighting contributions from various cultural, gender, and socioeconomic backgrounds.
