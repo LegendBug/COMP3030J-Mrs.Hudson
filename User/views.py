@@ -11,14 +11,12 @@ from django.shortcuts import render, redirect
 from Booth.models import BoothApplication, Booth
 from Exhibition.models import ExhibitionApplication, Exhibition
 from Inventory.models import ResourceApplication, Item
-from dotenv import load_dotenv, set_key
 
 from .forms import RegisterForm, LoginForm, ReplyMessageForm  # 导入注册和登录表单类
 from django.contrib.auth import authenticate, login as auth_login  # 导入认证和登录方法
 from .models import *
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
-from django.conf import settings
 
 
 def welcome(request):  # url: path('welcome/', views.welcome, name='welcome'),
@@ -93,36 +91,35 @@ def logout(request):
     return redirect('User:login')
 
 
-
-
 def profile(request):
     user = request.user
 
     if request.method == 'GET':
         user_type = 'Manager' if hasattr(user, 'manager') else 'Organizer' if hasattr(user,
                                                                                       'organizer') else 'Exhibitor'
-        exhibitions = []
-        booths = []
+
+        from django.core.paginator import Paginator
 
         if user_type == 'Organizer':
-            exhibitions = ExhibitionApplication.objects.filter(applicant=user).order_by('exhibition__start_at')
+            exhibitions = ExhibitionApplication.objects.filter(applicant=user).exclude(
+                stage__in=['REJECTED', 'CANCELLED']).order_by(
+                'exhibition__start_at')
+            paginator = Paginator(exhibitions, 3)
         elif user_type == 'Exhibitor':
-            booths = BoothApplication.objects.filter(applicant=user).order_by('booth__start_at')
+            booths = BoothApplication.objects.filter(applicant=user).exclude(
+                stage__in=['REJECTED', 'CANCELLED']).order_by('booth__start_at')
+            paginator = Paginator(booths, 3)
+        else:
+            paginator = None
 
-        exhibition_paginator = Paginator(exhibitions, 10)
-        exhibition_page_number = request.GET.get('exhibition_page')
-        exhibition_page_obj = exhibition_paginator.get_page(exhibition_page_number)
-
-        booth_paginator = Paginator(booths, 10)
-        booth_page_number = request.GET.get('booth_page')
-        booth_page_obj = booth_paginator.get_page(booth_page_number)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
         AUTHORIZATION_CODE = GlobalSetting.objects.get(key='AUTHORIZATION_CODE').value
         context = {
             'user': user,
             'user_type': user_type,
-            'exhibition_page_obj': exhibition_page_obj,
-            'booth_page_obj': booth_page_obj,
+            'page_obj': page_obj,
             'authorization_code': AUTHORIZATION_CODE
         }
         return render(request, 'User/profile.html', context)

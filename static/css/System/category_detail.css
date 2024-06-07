@@ -35,7 +35,6 @@ body.dark-mode::before {
     padding: 0.5rem 1rem;
 }
 
-
 .table-responsive {
     background: linear-gradient(#00397311, #00336311);
     border-radius: 15px;

@@ -13,6 +13,7 @@ from User.models import Application
 @login_required
 def booth(request, booth_id):
     if request.method == 'GET':
+        print(booth_id)
         current_booth = Booth.objects.filter(id=booth_id).first()
         if current_booth is None:
             exhibition_id = request.session.get('exhibition_id', None)
