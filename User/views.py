@@ -431,12 +431,10 @@ def reject_application(request, application_type, application_id):
             if application_type == 'exhibition':
                 for sector in application.exhibition.sectors.all():
                     sector.inherit_from = None
-                    sector.parent_unit.available = True
                     sector.save()
             elif application_type == 'booth':
                 for sector in application.booth.sectors.all():
                     sector.inherit_from = None
-                    sector.parent_unit.available = True
                     sector.save()
 
             # 发送拒绝消息
@@ -464,19 +462,9 @@ def accept_application(request, application_type, application_id):
             if application_type == 'exhibition':
                 application = ExhibitionApplication.objects.get(id=application_id)
                 content = 'Congratulations! Your application ' + application.exhibition.name + ' has been accepted.'
-
-                for sector in application.exhibition.sectors.all():
-                    sector.inherit_from = application.exhibition
-                    sector.parent_unit.available = False
-                    sector.save()
             elif application_type == 'booth':
                 application = BoothApplication.objects.get(id=application_id)
                 content = 'Congratulations! Your application for ' + application.booth.name + ' has been accepted.'
-
-                for sector in application.booth.sectors.all():
-                    sector.inherit_from = application.booth
-                    sector.parent_unit.available = False
-                    sector.save()
             elif application_type == 'resource':
                 application = ResourceApplication.objects.get(id=application_id)
                 content = 'Congratulations! Your application for ' + application.category.name + ' has been accepted.'

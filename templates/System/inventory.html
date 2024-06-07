@@ -29,79 +29,100 @@
 {% endblock %}
 
 {% block content %}
-    {% if user.is_authenticated and user_type == 'Manager' %}
-        <h1 class="logo-title"><a href="{% url 'Venue:venue' current_space.pk %}">{{ current_space.name }}</a>
-            <small>Inventory</small></h1>
-    {% elif user.is_authenticated and user_type == 'Organizer' %}
-        <h1 class="logo-title"><a
-                href="{% url 'Exhibition:exhibition' current_space.pk %}">{{ current_space.name }}</a>
-            <small>Inventory</small>
-        </h1>
-    {% elif user.is_authenticated and user_type == 'Exhibitor' %}
-        <h1 class="logo-title"><a href="{% url 'Booth:booth' current_space.pk %}">{{ current_space.name }}</a> <small>Inventory</small>
-        </h1>
-    {% endif %}
-
-    <div class="container mt-3">
-        <div class="row justify-content-center">
+    <div class="container mt-3 d-flex justify-content-center align-items-center container-bg"
+         style="min-height: 200px;">
+        <div class="row justify-content-center w-100">
             <div class="col-12">
-                <div class="card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div class="d-flex flex-column p-3 col text-center me-4">
-                            <h5 class="card-title" style="font-size: xx-large">
-                                <i class="fas fa-boxes fa-1x mb-2"></i>
-                                <strong>Overview</strong>
-                            </h5>
-                            <div class="d-flex justify-content-between">
-                                <p class="font-weight-bold"><strong>Categories:</strong></p>
-                                <p>{{ inventory_info.total_categories }}</p>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <p class="font-weight-bold"><strong>Items:</strong></p>
-                                <p>{{ inventory_info.total_items }}</p>
-                            </div>
-                        </div>
-                        {% if user_type == 'Manager' %}
-                            <div class="d-flex flex-column p-3 col text-center me-4">
-                                <h5 class="card-title" style="font-size: xx-large">
-                                    <i class="fas fa-clipboard-list fa-1x mb-2"></i>
-                                    <strong>Rent</strong>
-                                </h5>
-                                <div class="d-flex justify-content-between">
-                                    <p class="font-weight-bold"><strong>In Rent:</strong></p>
-                                    <p class="ml-2">{{ inventory_info.rented_items }}</p>
+                <div class="row justify-content-center">
+                    <div class="col-md-3 mb-3 d-flex align-items-stretch">
+                        <div class="card w-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-boxes fa-5x"></i>
                                 </div>
-                                <div class="d-flex justify-content-between">
-                                    <p class="font-weight-bold"><strong>Available:</strong></p>
-                                    <p class="ml-2">{{ inventory_info.available_items }}</p>
+                                <div>
+                                    <h5 class="card-title" style="font-size: 1.5rem;"><strong>Inventory</strong></h5>
+                                    <div>
+                                        <p class="mb-0">
+                                            <strong>Categories:</strong>
+                                            {{ inventory_info.total_categories }}
+                                        </p>
+
+                                        <p class="mb-1">
+                                            <strong>Items:</strong>
+                                            {{ inventory_info.remaining_items }} / {{ inventory_info.total_items }}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        {% endif %}
-                        <div class="d-flex flex-column p-3 col text-center me-4">
-                            <h5 class="card-title" style="font-size: xx-large">
-                                <i class="fas fa-bolt fa-1x mb-2"></i>
-                                <strong>Consume</strong>
-                            </h5>
-                            <div class="d-flex justify-content-between">
-                                <p class="font-weight-bold"><strong>Power:</strong></p>
-                                <p class="ml-2">{{ inventory_info.total_power }} W</p>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <p class="font-weight-bold"><strong>Water:</strong></p>
-                                <p class="ml-2">{{ inventory_info.total_water }} L</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3 d-flex align-items-stretch">
+                        <div class="card w-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-clipboard-list fa-5x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title" style="font-size: 1.5rem;"><strong>Items Status</strong>
+                                    </h5>
+                                    <div>
+                                        {% if user.is_authenticated and user_type == 'Manager' %}
+                                            <p class="mb-1"><strong>In Rent:</strong>
+                                                {{ inventory_info.lent_items }}
+                                            </p>
+                                            <p class="mb-1"><strong>In Using:</strong>
+                                                {{ inventory_info.is_using_items }}
+                                            </p>
+                                        {% elif user.is_authenticated and user_type == 'Organizer' %}
+                                            <p class="mb-1"><strong>In Using:</strong>
+                                                {{ inventory_info.is_using_items }}
+                                            </p>
+                                        {% elif user.is_authenticated and user_type == 'Exhibitor' %}
+                                            <p class="mb-1"><strong>In Borrowing:</strong>
+                                                {{ inventory_info.borrowed_items }}
+                                            </p>
+                                            <p class="mb-1"><strong>In Using:</strong>
+                                                {{ inventory_info.is_using_items }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="d-flex flex-column p-3 col text-center">
-                            <h5 class="card-title" style="font-size: xx-large">
-                                <i class="fas fa-lightbulb fa-1x mb-2"></i>
-                                <strong>Advise</strong>
-                            </h5>
-                            <div class="d-flex justify-content-between">
-                                <p class="ml-2">{{ inventory_info.suggestion }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3 d-flex align-items-stretch">
+                        <div class="card w-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-bolt fa-5x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title" style="font-size: 1.5rem;"><strong>Consumption</strong></h5>
+                                    <div>
+                                        <p class="mb-1"><strong>Power:</strong> {{ inventory_info.total_power }}
+                                            <strong>KW/h</strong></p>
+                                        <p class="mb-0"><strong>Water:</strong> {{ inventory_info.total_water }}
+                                            <strong>L/h</strong></p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center p-3" style="border-left: 2px solid #ccc;">
-                            <button class="btn btn-success" onclick="refreshInventory()">Refresh</button>
+                    </div>
+
+                    <div class="col-md-3 mb-3 d-flex align-items-stretch">
+                        <div class="card w-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-lightbulb fa-5x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title" style="font-size: 1.5rem;"><strong>Advise</strong></h5>
+                                    <div>
+                                        <p>{{ inventory_info.suggestion }}</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
