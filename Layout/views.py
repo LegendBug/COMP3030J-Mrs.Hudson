@@ -9,8 +9,6 @@ from .forms import AddLayerForm, EditLayerForm
 from .serializers import *
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view
-
 
 def layout(request):
     user_type = request.session.get('user_type', 'Guest')
@@ -29,11 +27,12 @@ def layout(request):
     add_sublayer_form = AddLayerForm(
         initial={'parent_id': 1, 'floor': current_access.sectors.filter(parent_unit=None).first().floor})
     edit_layer_form = EditLayerForm()
+    for sector in current_access.sectors.filter(parent_unit=None).order_by('created_at'):
+        print(sector.id, sector.name, sector.floor, sector.parent_unit)
     return render(request, 'Layout/layout.html',
                   {'current_access': current_access, 'user_type': user_type,
                    'sectors': current_access.sectors.filter(parent_unit=None).order_by('created_at'),
                    'add_sublayer_form': add_sublayer_form, 'edit_layer_form': edit_layer_form})
-
 
 def refresh_data(request):
     if request.method == 'GET':

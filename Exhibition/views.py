@@ -83,12 +83,10 @@ def exhibition(request, exhibition_id):
             'stage': stage
         })
 
-    sectors = current_exhibition.sectors.filter(inherit_from__isnull=False).order_by('created_at')
-
     return render(request, 'System/exhibition.html', {
         'exhibition': current_exhibition,
         'booths': booth_list,
-        'sectors': sectors,
+        'sectors': current_exhibition.sectors.filter(inherit_from__isnull=False).order_by('created_at'),
         'is_owner': is_owner,
         'user_type': user_type,
         'filter_form': FilterBoothsForm(),
