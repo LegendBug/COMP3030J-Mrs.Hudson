@@ -19,8 +19,8 @@ body.dark-mode::before {
     width: 100%; /* 确保header占满整个容器宽度 */
     display: flex;
     justify-content: space-between; /* 使左右两侧内容分别对齐到各自的边缘 */
-    padding-left: 5rem; /* 根据需要调整，以匹配画板的左侧边距 */
-    padding-right: 5rem; /* 根据需要调整，以匹配画板的右侧边距 */
+    padding-left: 3rem; /* 根据需要调整，以匹配画板的左侧边距 */
+    padding-right: 3rem; /* 根据需要调整，以匹配画板的右侧边距 */
     align-items: center; /* 确保所有元素在垂直方向上居中 */
 }
 
@@ -92,29 +92,6 @@ td a:hover {
     color: #FFFFFF;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden; /* Prevents horizontal scrolling if the page width exceeds the viewport */
+#konva-container {
+    min-height: 100vh;
 }
-
-#venue-container {
-  padding: 10px; /* Reduced from perhaps 20px or more */
-}
-
-
-#konva-container, .table-responsive {
-  margin-right: 1%; /* Adjusted from maybe 2% or more */
-  margin-left: 1%;  /* Adjusted from maybe 2% or more */
-  flex: 0 0 49%;    /* Optional: Adjust if you've changed component widths */
-}
-
-@media (min-width: 100vh) {
-    #konva-container, .table-responsive {
-        flex: 0 0 100%;
-        margin-right: 0;
-        margin-left: 0;
-        margin-bottom: 1rem; /* Adds space between them when stacked */
-    }
-}
-

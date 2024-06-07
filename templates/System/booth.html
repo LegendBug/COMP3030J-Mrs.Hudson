@@ -167,10 +167,13 @@
                 // ----------------- konva.js: 加载数据 -----------------
                 renderKonva() {
                     console.log('Rendering Konva...');
+                    const container = document.getElementById('konva-container');
+                    const width = container.offsetWidth;
+                    const height = container.offsetHeight;
                     this.stage = new Konva.Stage({
                         container: 'konva-container',
-                        width: window.innerWidth,
-                        height: window.innerHeight,
+                        width: width,
+                        height: height,
                     });
 
                     // 添加滚轮缩放事件监听器
@@ -344,8 +347,9 @@
                 },
 
                 handleResize() {
-                    const width = window.innerWidth;
-                    const height = window.innerHeight;
+                    const container = document.getElementById('konva-container');
+                    const width = container.offsetWidth;
+                    const height = container.offsetHeight;
                     this.stage.size({width, height});
                 },
 

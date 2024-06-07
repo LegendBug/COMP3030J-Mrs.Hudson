@@ -41,7 +41,7 @@
                     {% for application in page_obj %}
                         <div class="list-group-item cursor-pointer"
                              style="background-color: rgba(255, 255, 255, 0.6)"
-                             onclick="loadApplicationDetail('{{ application.id }}', '{% url 'User:view_application_detail' applications_type application.id %}')">
+                             onclick="loadApplicationDetail('{{ application.id }}', '{{ applications_type }}', '{% url 'User:view_application_detail' applications_type application.id %}')">
                             {% if applications_type == 'exhibition' %}
                                 <h5 class="mb-1">{{ application.exhibition.name }}</h5>
                             {% elif applications_type == 'booth' %}
@@ -220,7 +220,7 @@
         <h5><strong>Application</strong></h5>
         <div class="card shadow-sm"
             style="background-color: rgba(255, 255, 255, 0.6); cursor: pointer;"
-            onclick="loadApplicationDetail('${data.application_id}', '${application_url}')">
+            onclick="loadApplicationDetail('${data.application_id}', '', '${application_url}')">
             <div class="card-body">
                 <p class="card-text cursor-pointer"><strong>Application Type:</strong> ${data.application_type}</p>
             </div>
@@ -233,8 +233,12 @@
                 }
 
                 <!-- 加载申请详情 -->
-                function loadApplicationDetail(applicationId, url) {
+                function loadApplicationDetail(applicationId, applicationType, url) {
                     currentId = applicationId; // Store message ID when loading details
+                    if (applicationType !== '') {
+                        currentType = applicationType;
+                    }
+                    console.log('application_currentType!!!!!!!!!!!!!!!!!!!!!!!!', currentType);
                     console.log('application_currentId', currentId);
                     console.log('application_url_final', url)
                     axios.get(url)

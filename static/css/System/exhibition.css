@@ -92,3 +92,6 @@ td a:hover {
     color: #FFFFFF;
 }
 
+#konva-container {
+    min-height: 100vh;
+}
