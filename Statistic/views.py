@@ -78,38 +78,6 @@ def statistic(request):
     return render(request, 'Statistic/statistic.html', {'user_type': user_type, 'venue': venue})
 
 
-# water_statistics = {
-#     "Month 1": 1200,
-#     "Month 2": 1600,
-#     "Month 3": 1000,
-#     "Month 4": 800,
-#     "Month 5": 900,
-#     "Month 6": 1600,
-#     "Month 7": 2100,
-#     "Month 8": 2200,
-#     "Month 9": 1800,
-#     "Month 10": 1500,
-#     "Month 11": 1300,
-#     "Month 12": 900,
-# }
-#
-# # 生成用电量的假数据
-# electric_statistics = {
-#     "Month 1": 100,
-#     "Month 2": 1600,
-#     "Month 3": 1000,
-#     "Month 4": 800,
-#     "Month 5": 900,
-#     "Month 6": 1600,
-#     "Month 7": 210,
-#     "Month 8": 2200,
-#     "Month 9": 1800,
-#     "Month 10": 150,
-#     "Month 11": 1300,
-#     "Month 12": 900,
-# }
-
-
 model = None
 weights = None
 preprocess = None

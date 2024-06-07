@@ -1,5 +1,4 @@
 import os
-import shutil
 from glob import glob
 
 def find_files(base, pattern):
