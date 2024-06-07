@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/Statistic/monitor.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 {% endblock %}
 
 {% block extra_nav_icons %}
@@ -96,7 +97,7 @@
             </div>
         </div>
         
-        <monitor-list :monitors="monitors" @open-api-modal="openApiDemoModal" @open-capture-modal="openCaptureModal" @update-current-element="setCurrentElement"></monitor-list>
+        <monitor-list :monitors="monitors" @open-api-modal="openApiDemoModal" @open-capture-modal="openCaptureModal" @open-statistic-modal="openStatisticModal" @update-current-element="setCurrentElement"></monitor-list>
 
         <!-- Help Modal -->
         <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
@@ -277,6 +278,29 @@
             </div>
         </div>
 
+        <!-- Flow Statistic Modal -->
+        <div class="modal fade" id="flowStatisticModal" tabindex="-1" aria-labelledby="flowStatisticModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="flowStatisticModalLabel">Flow Statistics</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- 时间选择器 -->
+                        <input type="date" id="flowDate" class="form-control mb-3" v-model="selectedDate">
+                        
+                        <!-- 柱状图容器 -->
+                        <canvas id="flowChart"></canvas>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" @click="fetchFlowData">Query</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
     </div>
 
 {% endblock %}
@@ -295,6 +319,7 @@
                                 <th>Monitor Name</th>
                                 <th>Sector</th>
                                 <th>Status</th>
+                                <th>Flow Statistic</th> 
                                 <th>API Url <i class="fas fa-question-circle" data-bs-toggle="modal" data-bs-target="#apiModal" @click="openApiDemoModal"></i></th>
                             </tr> 
                         </thead>
@@ -307,6 +332,7 @@
                                 <td @click.stop="editMonitor(monitor)"><strong>[[ monitor.name ]]</strong></td>
                                 <td @click.stop="editMonitor(monitor)"><strong>[[ monitor.layer.name ]]</strong></td>
                                 <td @click.stop="editMonitor(monitor)"><span :class="monitor.is_online ? 'badge bg-success' : 'badge bg-danger'">[[ monitor.is_online ? 'Online' : 'Offline' ]]</span></td>
+                                <td><i class="fas fa-chart-bar" @click="openFlowStatisticModal(monitor)"></i></td> <!-- 统计图标 -->
                                 <td><strong>Post:</strong> <a href='#' class="text-info" @click="openCaptureModal(monitor)">https://hostname/Statistic/monitor/capture/[[ monitor.id ]]/</a></td>
                             </tr>
                         </tbody>
@@ -328,6 +354,11 @@
                         // 可以在这里添加一个提示，通知用户该监控器当前离线，不能操作
                         alert("This monitor is currently offline and cannot be accessed.");
                     }
+                },
+                
+                openFlowStatisticModal(monitor) {
+                    this.$emit('update-current-element', monitor);
+                    this.$emit('open-statistic-modal', monitor);
                 },
                 
                 editMonitor(monitor) {
@@ -558,29 +589,17 @@
                 imageSrc: null, // 存储上传的图像的Data URL, 这用于在添加图像元素时直接在画板上显示图像
                 elementProps: null,
                 processedImage: null,
-                personCount: 0
+                personCount: 0,
+                selectedDate: new Date().toISOString().slice(0, 10),  // 默认为今天的日期
+                flowChart: null,  // 用于存放Chart.js图表实例
+                flowData: {}  // 存储后端返回的流量数据
             },
             mounted() {
                 this.refreshData()
-                document.addEventListener('click', this.handleOutsideClick);
-                const apiModal = document.getElementById('apiDemoModal');
-                const monitorModal = document.getElementById('monitorCaptureModal');
-
-                apiModal.addEventListener('hidden.bs.modal', this.clearImageData);
-                monitorModal.addEventListener('hidden.bs.modal', this.clearImageData);
+                this.addGlobalListener();
             },
             beforeDestroy() {
-                if (this.stage) {
-                    this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
-                }
-                window.removeEventListener('resize', this.handleResize);
-                document.removeEventListener('click', this.handleOutsideClick);
-                
-                const apiModal = document.getElementById('apiDemoModal');
-                const monitorModal = document.getElementById('monitorCaptureModal');
-            
-                apiModal.removeEventListener('hidden.bs.modal', this.clearImageData);
-                monitorModal.removeEventListener('hidden.bs.modal', this.clearImageData);
+                this.removeGlobalListener();
             },
             computed: {
                 buttonStyle() {
@@ -606,12 +625,43 @@
                         // 如果是从悬浮按钮点击的，则不执行关闭操作
                         return;
                     }
-            
+
                     if (this.offcanvasOpen && !e.target.closest('.offcanvas')) {
                         this.offcanvasOpen = false; // 关闭Offcanvas
                     }
                 },
                 
+                addGlobalListener(){
+                    document.addEventListener('click', this.handleOutsideClick);
+                    const apiModal = document.getElementById('apiDemoModal');
+                    const monitorModal = document.getElementById('monitorCaptureModal');
+    
+                    apiModal.addEventListener('hidden.bs.modal', this.clearImageData);
+                    monitorModal.addEventListener('hidden.bs.modal', this.clearImageData);
+                    
+                    let flowStatisticModal = new bootstrap.Modal(document.getElementById('flowStatisticModal'), {
+                        keyboard: false
+                    });
+                    document.getElementById('flowStatisticModal').addEventListener('shown.bs.modal', () => {
+                        this.selectedDate = new Date().toISOString().slice(0, 10);  // 确保每次打开模态框时日期都是最新的
+                        this.fetchFlowData();  // 加载数据并渲染图表
+                    });
+                },
+                
+                removeGlobalListener(){
+                    if (this.stage) {
+                        this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
+                    }
+                    window.removeEventListener('resize', this.handleResize);
+                    document.removeEventListener('click', this.handleOutsideClick);
+                    
+                    const apiModal = document.getElementById('apiDemoModal');
+                    const monitorModal = document.getElementById('monitorCaptureModal');
+                
+                    apiModal.removeEventListener('hidden.bs.modal', this.clearImageData);
+                    monitorModal.removeEventListener('hidden.bs.modal', this.clearImageData);
+                },
+
                 // ----------------- 数据加载 -----------------
                 refreshData() {
                     console.log('Refreshing data...');
@@ -1030,32 +1080,32 @@
                     console.log('Setting current element:', element);
                     this.currentElement = element;
                 },
-                
+
                 // ----------------- API Modal的相关方法 -------------------
-                
+
                 openApiDemoModal() {
                     let apiDemoModal = new bootstrap.Modal(document.getElementById('apiDemoModal'), {
                         keyboard: false
                     });
                     apiDemoModal.show();
                 },
-                
+
                 openCaptureModal(monitor) {
                     let captureModal = new bootstrap.Modal(document.getElementById('monitorCaptureModal'), {
                         keyboard: false
                     });
                     captureModal.show();
                 },
-                
+
                 uploadCapturedImageToServer(event) {
                     const file = event.target.files[0];
                     if (!file) return;
-                    
+
                     event.target.value = '';
-                    
+
                     const formData = new FormData();
                     formData.append('image', file);
-        
+
                     axios.post(`/Statistic/monitor/capture/${this.currentElement.id}/`, formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data'
@@ -1071,16 +1121,16 @@
                         console.error('Error processing image:', error);
                     });
                 },
-                
+
                 uploadDemoImageToServer(event) {
                     const file = event.target.files[0];
                     if (!file) return;
-                    
+
                     event.target.value = '';
-                    
+
                     const formData = new FormData();
                     formData.append('image', file);
-        
+
                     axios.post('{% url 'Statistic:recognize_flow' %}', formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data'
@@ -1096,7 +1146,7 @@
                         console.error('Error processing image:', error);
                     });
                 },
-                
+
                 clearImageData() {
                     console.log('Clearing image data...');
                     this.processedImage = null;  // 清除显示的处理后的图片
@@ -1107,6 +1157,53 @@
                     if (this.$refs.monitorFileInput) {
                         this.$refs.monitorFileInput.value = "";
                     }
+                },
+                
+                openStatisticModal(monitor) {
+                    this.currentElement = monitor;
+                    this.selectedDate = new Date().toISOString().slice(0, 10);  // 重置日期选择器为今天
+                    let modal = new bootstrap.Modal(document.getElementById('flowStatisticModal'), {
+                        keyboard: false
+                    });
+                    modal.show();
+                },
+                
+                fetchFlowData() {
+                    const url = `/Statistic/monitor/query_flow_by_day?date=${this.selectedDate}&monitor_id=${this.currentElement.id}`;
+                    axios.get(url).then(response => {
+                        console.log("Received flow data:", response.data); // 查看返回的数据
+                        this.flowData = response.data;
+                        this.renderChart();
+                    }).catch(error => {
+                        console.error('Error fetching flow data:', error);
+                    });
+                },
+                
+                renderChart() {
+                    const ctx = document.getElementById('flowChart').getContext('2d');
+                    if (this.flowChart) {
+                        this.flowChart.destroy();  // 销毁之前的图表实例
+                    }
+                    this.flowChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(this.flowData),
+                            datasets: [{
+                                label: 'Number of people',
+                                data: Object.values(this.flowData),
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
                 },
                 
             }
