@@ -75,6 +75,19 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal for "Loading Answer" -->
+    <div class="modal" id="loadingModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="loading-spinner"></div>
+                    <p class="mt-3">Loading answer. Please wait for a while...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container mt-4">
         
         <div class="chat-container">
@@ -119,7 +132,7 @@
                     <textarea name="user_input" class="form-control" rows="3" placeholder="Type your question here..."></textarea>
                     <div class="d-flex justify-content-between mt-3">
                         <div>
-                            <button type="submit" class="btn btn-success">Ask Watson</button>
+                            <button type="submit" class="btn btn-success" id="askWatsonButton">Ask Watson</button>
                             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete History</button>
                         </div>
                         <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#warningModal">?</button>
@@ -128,4 +141,14 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.getElementById('askWatsonButton').addEventListener('click', function() {
+            $('#loadingModal').modal('show');
+            // Automatically hide the modal after 60 seconds
+            setTimeout(function() {
+                $('#loadingModal').modal('hide');
+            }, 60000);
+        });
+    </script>
 {% endblock %}
