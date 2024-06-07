@@ -277,28 +277,32 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Flow Statistic Modal -->
         <div class="modal fade" id="flowStatisticModal" tabindex="-1" aria-labelledby="flowStatisticModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title" id="flowStatisticModalLabel">Flow Statistics</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <!-- 时间选择器 -->
-                        <input type="date" id="flowDate" class="form-control mb-3" v-model="selectedDate">
-                        
+                        <div class="mb-3">
+                            <label for="flowDate" class="form-label">Select Date:</label>
+                            <input type="date" id="flowDate" class="form-control" v-model="selectedDate">
+                        </div>
                         <!-- 柱状图容器 -->
-                        <canvas id="flowChart"></canvas>
+                        <canvas id="flowChart" class="border rounded p-3 bg-light"></canvas>
                     </div>
                     <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button class="btn btn-primary" @click="fetchFlowData">Query</button>
                     </div>
                 </div>
             </div>
         </div>
+
 
 
     </div>
@@ -319,7 +323,7 @@
                                 <th>Monitor Name</th>
                                 <th>Sector</th>
                                 <th>Status</th>
-                                <th>Flow Statistic</th> 
+                                <th>Flow Statistic</th>
                                 <th>API Url <i class="fas fa-question-circle" data-bs-toggle="modal" data-bs-target="#apiModal" @click="openApiDemoModal"></i></th>
                             </tr> 
                         </thead>
@@ -332,7 +336,7 @@
                                 <td @click.stop="editMonitor(monitor)"><strong>[[ monitor.name ]]</strong></td>
                                 <td @click.stop="editMonitor(monitor)"><strong>[[ monitor.layer.name ]]</strong></td>
                                 <td @click.stop="editMonitor(monitor)"><span :class="monitor.is_online ? 'badge bg-success' : 'badge bg-danger'">[[ monitor.is_online ? 'Online' : 'Offline' ]]</span></td>
-                                <td><i class="fas fa-chart-bar" @click="openFlowStatisticModal(monitor)"></i></td> <!-- 统计图标 -->
+                                <td><i class="fas fa-chart-bar" @click="openFlowStatisticModal(monitor)" style="font-size: 32px;"></i></td> <!-- 统计图标 -->
                                 <td><strong>Post:</strong> <a href='#' class="text-info" @click="openCaptureModal(monitor)">https://hostname/Statistic/monitor/capture/[[ monitor.id ]]/</a></td>
                             </tr>
                         </tbody>
@@ -355,7 +359,7 @@
                         alert("This monitor is currently offline and cannot be accessed.");
                     }
                 },
-                
+
                 openFlowStatisticModal(monitor) {
                     this.$emit('update-current-element', monitor);
                     this.$emit('open-statistic-modal', monitor);
@@ -630,15 +634,15 @@
                         this.offcanvasOpen = false; // 关闭Offcanvas
                     }
                 },
-                
+
                 addGlobalListener(){
                     document.addEventListener('click', this.handleOutsideClick);
                     const apiModal = document.getElementById('apiDemoModal');
                     const monitorModal = document.getElementById('monitorCaptureModal');
-    
+
                     apiModal.addEventListener('hidden.bs.modal', this.clearImageData);
                     monitorModal.addEventListener('hidden.bs.modal', this.clearImageData);
-                    
+
                     let flowStatisticModal = new bootstrap.Modal(document.getElementById('flowStatisticModal'), {
                         keyboard: false
                     });
@@ -647,17 +651,17 @@
                         this.fetchFlowData();  // 加载数据并渲染图表
                     });
                 },
-                
+
                 removeGlobalListener(){
                     if (this.stage) {
                         this.stage.container().removeEventListener('wheel', this.handleWheelZoom);
                     }
                     window.removeEventListener('resize', this.handleResize);
                     document.removeEventListener('click', this.handleOutsideClick);
-                    
+
                     const apiModal = document.getElementById('apiDemoModal');
                     const monitorModal = document.getElementById('monitorCaptureModal');
-                
+
                     apiModal.removeEventListener('hidden.bs.modal', this.clearImageData);
                     monitorModal.removeEventListener('hidden.bs.modal', this.clearImageData);
                 },
@@ -1158,7 +1162,7 @@
                         this.$refs.monitorFileInput.value = "";
                     }
                 },
-                
+
                 openStatisticModal(monitor) {
                     this.currentElement = monitor;
                     this.selectedDate = new Date().toISOString().slice(0, 10);  // 重置日期选择器为今天
@@ -1167,7 +1171,7 @@
                     });
                     modal.show();
                 },
-                
+
                 fetchFlowData() {
                     const url = `/Statistic/monitor/query_flow_by_day?date=${this.selectedDate}&monitor_id=${this.currentElement.id}`;
                     axios.get(url).then(response => {
@@ -1178,7 +1182,7 @@
                         console.error('Error fetching flow data:', error);
                     });
                 },
-                
+
                 renderChart() {
                     const ctx = document.getElementById('flowChart').getContext('2d');
                     if (this.flowChart) {
@@ -1205,7 +1209,7 @@
                         }
                     });
                 },
-                
+
             }
         });
 

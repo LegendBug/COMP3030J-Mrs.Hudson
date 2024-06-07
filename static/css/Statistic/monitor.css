@@ -166,3 +166,49 @@ td a:hover {
     }
 }
 
+/* Modal Header */
+.modal-header {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Button Close */
+.btn-close-white {
+    filter: invert(1);
+}
+
+/* Modal Body */
+.modal-body {
+    padding: 2rem;
+    background-color: #f8f9fa;
+}
+
+/* Form Label */
+.form-label {
+    font-weight: bold;
+}
+
+/* Date Input */
+#flowDate {
+    border-radius: 0.25rem;
+}
+
+/* Canvas Container */
+canvas {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    background-color: #ffffff;
+    padding: 1rem;
+}
+
+/* Modal Footer Buttons */
+.modal-footer .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.modal-footer .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
