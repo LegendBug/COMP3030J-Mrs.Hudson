@@ -20,7 +20,25 @@ body.dark-mode::before {
 }
 
 .card-text {
-    font-size: 12px;  /* 维持现有的字体大小设定 */
-    margin-top: 2px;  /* 减少上边距 */
-    margin-bottom: 2px;  /* 减少下边距 */
+    font-size: 12px; /* 维持现有的字体大小设定 */
+    margin-top: 2px; /* 减少上边距 */
+    margin-bottom: 2px; /* 减少下边距 */
+}
+
+.container-bg {
+    background: linear-gradient(135deg, #8cbab5, #89bce3);
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding-top: 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card i {
+    color: #17a2b8;
 }

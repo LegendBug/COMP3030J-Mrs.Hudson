@@ -223,9 +223,9 @@ def query_flow_by_day(request):  # /Statistic/monitor/query_flow_by_day
     for capture_record in filtered_captures:
         hour = capture_record.time.hour
         flow_data[hour].append(capture_record.flow_number)
-    average_flow_data = {
-        hour: (sum(values) / len(values) if values else 0) for hour, values in flow_data.items()
-    }
+    # 获得平均值后四合五入为整数
+    average_flow_data = {hour: round(sum(flow_data[hour]) / len(flow_data[hour])) if len(flow_data[hour]) > 0 else 0
+                         for hour in range(24)}
     return JsonResponse(average_flow_data)
 
 

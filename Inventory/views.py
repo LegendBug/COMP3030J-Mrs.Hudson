@@ -1,5 +1,4 @@
 import random
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
@@ -144,8 +143,7 @@ def inventory(request, space_type, space_id):
             return JsonResponse({'success': 'Resource category and items created'}, status=201)
         else:
             return JsonResponse({'error': 'There are something wrong.'}, status=400)
-    # GET请求处理展示库存
-    else:
+    else:  # GET请求处理展示库存
         # 通过当前访问的Venue/Exhibition/Booth中的所有Item,获取所有的Category并统计每个Category下的Item数量(包括租借的)
         current_items = current_space.items.all()
         current_categories = {}
@@ -169,16 +167,31 @@ def inventory(request, space_type, space_id):
 
         # 获取当前Inventory的数据信息
         inventory_info = {'total_categories': len(categories)}
+
         if (user_type == 'Manager') and space_type == 'venue':
-            inventory_info['total_items'] = sum([category.item_count for category in existing_categories])
-            inventory_info['remain_items'] = sum([category.items_quantity for category in categories])
-            inventory_info['rented_items'] = inventory_info['total_items'] - inventory_info['remain_items']
+            inventory_info['total_items'] = 0  # 被租借前的物品总数
+            for category, quantity in current_categories.items():
+                inventory_info['total_items'] += category.items.count()
+            inventory_info['remaining_items'] = current_items.count()  # 当前剩余的物品数
+            # 统计借出了多少物品
+            inventory_info['lent_items'] = inventory_info['total_items'] - inventory_info['remaining_items']
+            inventory_info['is_using_items'] = current_items.filter(is_using=True).count()
+        elif (user_type == 'Organizer') and space_type == 'exhibition':
+            inventory_info['total_items'] = current_items.count()
+            inventory_info['remaining_items'] = current_items.count()
+            inventory_info['is_using_items'] = current_items.filter(is_using=True).count()
         else:
             inventory_info['total_items'] = current_items.count()
-        inventory_info['available_items'] = sum([1 for _ in current_space.items.filter(is_using=False)])
+            inventory_info['remaining_items'] = current_items.count()
+            # 统计借了多少物品
+            inventory_info['borrowed_items'] = 0
+            for item in current_items:
+                if item.category.origin_content_type != ContentType.objects.get_for_model(current_space): # 物品的创建所在地和当前空间不相同时,说明该物品是被此空间借用了
+                    inventory_info['borrowed_items'] += 1
+            inventory_info['is_using_items'] = current_items.filter(is_using=True).count()
         # 计算total_items的总用电量,is_using=True的item的总用电量
-        inventory_info['total_power'] = 0
-        inventory_info['total_water'] = 0
+        inventory_info['total_power'] = 0.0
+        inventory_info['total_water'] = 0.0
         for category, quantity in current_categories.items():
             if quantity > 0:
                 for item in category.items.all():
@@ -579,13 +592,13 @@ def generate_suggestion(user_type, space_type, inventory_info):
 
     # 建议基于出租情况
     if user_type == 'Manager' and space_type == 'venue':
-        if inventory_info['rented_items'] > inventory_info['remain_items']:
+        if inventory_info['lent_items'] > inventory_info['remaining_items']:
             rent_suggestions = [
                 "Expand inventory to meet demand.",
                 "Review rental terms for efficiency."
             ]
             suggestions.extend(rent_suggestions)
-        elif inventory_info['rented_items'] <= inventory_info['remain_items']:
+        elif inventory_info['lent_items'] <= inventory_info['remaining_items']:
             rent_suggestions = [
                 "Let your exhibitors know about available inventory!",
                 "Review rental terms for efficiency.",
