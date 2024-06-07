@@ -64,3 +64,11 @@ class Application(models.Model):
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='applications')
     description = models.TextField(default='')
     stage = models.CharField(max_length=2, choices=Stage.choices, default=Stage.INITIAL_SUBMISSION)
+
+
+class GlobalSetting(models.Model):
+    key = models.CharField(max_length=100, unique=True)
+    value = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.key}: {self.value}"

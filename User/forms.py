@@ -7,6 +7,8 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from dotenv import load_dotenv
 
+from User.models import GlobalSetting
+
 
 class RegisterForm(UserCreationForm):
     ACCOUNT_TYPES = [
@@ -35,9 +37,7 @@ class RegisterForm(UserCreationForm):
         account_type = self.cleaned_data.get('account_type')
         authorization_code = self.cleaned_data.get('authorization_code')
         if account_type == 'Manager':
-            # Assuming your .env file is in the same directory as your settings module
-            load_dotenv(os.path.join('../../', '.env'))
-            AUTHORIZATION_CODE = os.getenv('AUTHORIZATION_CODE')
+            AUTHORIZATION_CODE = GlobalSetting.objects.get(key='AUTHORIZATION_CODE').value
             if authorization_code != AUTHORIZATION_CODE:
                 raise ValidationError("Invalid authorization code for Manager account.")
         return authorization_code

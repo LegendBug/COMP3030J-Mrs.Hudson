@@ -114,8 +114,7 @@ def profile(request):
         booth_page_number = request.GET.get('booth_page')
         booth_page_obj = booth_paginator.get_page(booth_page_number)
 
-        load_dotenv(os.path.join('../../', '.env'))
-        AUTHORIZATION_CODE = os.getenv('AUTHORIZATION_CODE')
+        AUTHORIZATION_CODE = GlobalSetting.objects.get(key='AUTHORIZATION_CODE').value
         context = {
             'user': user,
             'user_type': user_type,
@@ -145,14 +144,11 @@ def profile(request):
             else:
                 return JsonResponse({'error': 'Email already exists.'}, status=400)
 
-        load_dotenv(os.path.join('../../', '.env'))
-        AUTHORIZATION_CODE = os.getenv('AUTHORIZATION_CODE')
-        print(f'AUTHORIZATION_CODE: {AUTHORIZATION_CODE}, new_authorization_code: {new_authorization_code}')
-        # 没弄完
+        AUTHORIZATION_CODE = GlobalSetting.objects.get(key='AUTHORIZATION_CODE').value
         if new_authorization_code and AUTHORIZATION_CODE != new_authorization_code:
-            set_key(os.path.join('../../', '.env'), 'AUTHORIZATION_CODE', new_authorization_code)
-            os.environ['AUTHORIZATION_CODE'] = new_authorization_code  # 更新运行时环境变量
-            print(f'AUTHORIZATION_CODE: {AUTHORIZATION_CODE}')
+            auth_code = GlobalSetting.objects.get(key='AUTHORIZATION_CODE')
+            auth_code.value = new_authorization_code
+            auth_code.save()
         else:
             return JsonResponse({'error': 'Authorization Code already exists.'}, status=400)
 
