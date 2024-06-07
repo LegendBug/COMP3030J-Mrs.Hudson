@@ -19,7 +19,7 @@ class KonvaElementSerializer(serializers.ModelSerializer):
 class LayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpaceUnit
-        fields = ['id', 'name', 'description', 'floor', 'available']  # 选择你需要的字段
+        fields = ['id', 'name', 'description', 'floor', 'available']
 
 
 class MonitorSerializer(serializers.ModelSerializer):

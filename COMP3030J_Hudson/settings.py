@@ -179,7 +179,7 @@ STATICFILES_DIRS = [  # 静态文件目录,用于指定非static文件夹下的�
     BASE_DIR / 'static',
 ]
 
-# STATIC_ROOT 是收集完成后静态文件的目的地，即所有使用 collectstatic 命令从 STATICFILES_DIRS 和你的应用中的 static 文件夹中复制来的文件都会被存储到这个目录。在生产环境中，你的 web 服务器（如 Nginx 或 Apache）将从这个目录提供静态文件。
+# STATIC_ROOT 是收集完成后静态文件的目的地，即所有使用 collectstatic 命令从 STATICFILES_DIRS 和应用中的 static 文件夹中复制来的文件都会被存储到这个目录。在生产环境中，web 服务器（如 Nginx 或 Apache）将从这个目录提供静态文件。
 STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'

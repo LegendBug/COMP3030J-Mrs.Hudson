@@ -161,7 +161,7 @@ class ExhibApplicationForm(forms.Form):
                 application_object_id=new_exhib_application.id,
                 application_content_type=application_type
             )
-            return new_exhibition  # 或者返回创建的展览对象，根据需要调整
+            return new_exhibition
 
 
 class FilterExhibitionsForm(forms.Form):
