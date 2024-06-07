@@ -75,49 +75,48 @@
             </div>
         </div>
 
-        <div id="konva-container" class="konva" style="margin: 1rem 3rem 1rem 3rem"></div>
-        <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
-        <div id="tooltip"
-             style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
-
-        <!-- 展览列表 -->
-        <div class="table-responsive" style="margin: 1rem 3rem 1rem 3rem; user-select: none">
-            <table class="table table-hover text-white">
-                <thead class="bg-dark">
-                <tr>
-                    <th></th>
-                    <th>Exhibition Name</th>
-                    <th>Description</th>
-                    <th>Organizer</th>
-                    <th>Sector</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Stage</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for exhibition in exhibitions %}
-                    <tr onclick="window.location.href='{% url 'Exhibition:exhibition' exhibition.id %}';"
-                        style="cursor: pointer;">
-                        <td><img src="{{ exhibition.image|default:'../../static/images/Public/poster.jpg' }}"
-                                 alt="No Poster"
-                                 class="exhibition-img" style="width: 100px; height: 80px;"></td>
-                        <td>{{ exhibition.name }}</td>
-                        <td>{{ exhibition.description }}</td>
-                        <td>{{ exhibition.organizer }}</td>
-                        <td>{{ exhibition.sectors }}</td>
-                        <td>{{ exhibition.start_at|date:"Y-m-d H:i" }}</td>
-                        <td>{{ exhibition.end_at|date:"Y-m-d H:i" }}</td>
-                        <td>{{ exhibition.stage }}</td>
-                    </tr>
-                {% empty %}
+        <div class="container mt-4" style="display: flex; justify-content: space-between;">
+            <!-- Konva Container -->
+            <div id="konva-container" class="konva" style="flex: 0 0 49%; margin-right: 1%; min-height: 400px; height: 80vh;"></div>
+    
+            <!-- Table for Exhibitions -->
+            <div class="table-responsive" style="width: 1000px; flex: 0 0 49%; margin-left: 1%">
+                <table class="table table-hover text-white">
+                    <thead class="bg-dark">
                     <tr>
-                        <td colspan="8" class="text-center">No exhibitions found. 💤</td>
+                        <th></th>
+                        <th>Name</th>
+                        {% comment %} <th>Description</th> {% endcomment %}
+                        {% comment %} <th>Organizer</th> {% endcomment %}
+                        {% comment %} <th>Sector</th> {% endcomment %}
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Stage</th>
+                        {% comment %} <th>Details</th> {% endcomment %}
                     </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {% for exhibition in exhibitions %}
+                        <tr onclick="window.location.href='{% url 'Exhibition:exhibition' exhibition.id %}';" style="cursor: pointer;">
+                            <td><img src="{{ exhibition.image|default:'../../static/images/Public/poster.jpg' }}" alt="No Poster" class="exhibition-img" style="width: 100px; height: 80px;"></td>
+                            <td>{{ exhibition.name }}</td>
+                            {% comment %} <td>{{ exhibition.description }}</td> {% endcomment %}
+                            {% comment %} <td>{{ exhibition.organizer }}</td> {% endcomment %}
+                            {% comment %} <td>{{ exhibition.sectors }}</td> {% endcomment %}
+                            <td>{{ exhibition.start_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ exhibition.end_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ exhibition.stage }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No exhibitions found. 💤</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
+
 
         {# 申请新展览模态框 #}
         <div class="modal fade" id="createExhibApplyModal" tabindex="-1" aria-labelledby="createExhibApplyModalLabel"
@@ -424,6 +423,11 @@
 
                 openExhibApplyModal() {
                     const myModal = new bootstrap.Modal(document.getElementById('createExhibApplyModal'));
+                    myModal.show(); // 显示模态框
+                },
+
+                openExhibitionDetailsModal() {
+                    const myModal = new bootstrap.Modal(document.getElementById('exhibitionDetailsModal'));
                     myModal.show(); // 显示模态框
                 },
 
