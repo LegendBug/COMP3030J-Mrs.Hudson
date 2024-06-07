@@ -35,10 +35,11 @@ def booth(request, booth_id):
         else:
             is_owner = True
 
-        print(is_owner)
+        sectors = current_booth.sectors.filter(inherit_from__isnull=False).order_by('created_at')
+
         return render(request, 'System/booth.html', {
             'booth': current_booth,
-            'sectors': current_booth.sectors.all(),
+            'sectors': sectors,
             'is_owner': is_owner,
             'user_type': user_type,
         })

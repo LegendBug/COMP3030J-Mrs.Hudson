@@ -110,7 +110,8 @@ def venue(request, venue_id):
     for exhibition in exhibitions:
         sectors = ''
         for sector in exhibition.sectors.all():
-            sectors += sector.name + ' '
+            if sector.inherit_from is not None:
+                sectors += sector.name + ' '
         stage = exhibition.exhibition_application.get_stage_display()
 
         if stage == 'REJECTED' or stage == 'CANCELLED':  # 展览申请被拒绝(不显示)
