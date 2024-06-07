@@ -162,13 +162,14 @@ def recognize_flow(request):  # {url (Statistic:recognize_flow)}
         return JsonResponse({'image': img_str, 'person_count': person_count})
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+
 @csrf_exempt
-def capture(request, monitor_id): # {url 'Statistic:capture monitor_id'}
+def capture(request, monitor_id):  # {url 'Statistic:capture monitor_id'}
     if request.method == 'POST' and request.FILES.get('image'):
         load_model()  # 确保模型已经加载
 
         monitor = get_object_or_404(Monitor, id=monitor_id)
-        if not monitor.is_online: # 检查监控是否在线
+        if not monitor.is_online:  # 检查监控是否在线
             return JsonResponse({'error': 'The monitor is offline!'}, status=400)
 
         uploaded_image = request.FILES['image']
@@ -204,6 +205,28 @@ def capture(request, monitor_id): # {url 'Statistic:capture monitor_id'}
         # 返回包含 base64 图像和行人数目的 JSON 响应
         return JsonResponse({'image': img_str, 'person_count': person_count})
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def query_flow_by_day(request): # /Statistic/monitor/query_flow_by_day
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    date = request.GET.get('date', timezone.now().date()) # 获取日期
+    print(date)
+    monitor_id = request.GET.get('monitor_id', 0) # 获取monitor_id
+    monitor = get_object_or_404(Monitor, id=monitor_id)
+    captures = monitor.captures.filter(time__date=date).order_by('time') # 获取当天的所有Capture记录
+    print(captures)
+    flow_data = {hour: [] for hour in range(24)} # 创建一个字典,用于统计这一天0-23h的流量数据
+    print(flow_data)
+    # 统计每个小时的流量数据, 如果某个小时没有数据, 则默认为0; 如果某个小时有n数据, 则取平均值
+    for capture_record in captures:
+        hour = capture_record.time.hour
+        flow_data[hour].append(capture_record.flow_number)
+    average_flow_data = {
+        hour: (sum(values) / len(values) if values else 0) for hour, values in flow_data.items()
+    }
+    print(average_flow_data)
+    return JsonResponse(average_flow_data)
 
 
 def monitor_venue(request):
