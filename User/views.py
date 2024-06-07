@@ -76,7 +76,7 @@ def login(request):
                     else 'Guest'
                 request.session['user_type'] = user_type  # 将user_type存入session
                 messages.success(request, 'Login successful. Welcome!')
-                return redirect('Venue:home')  # 重定向到主页
+                return redirect('User:welcome')  # 重定向到欢迎页面
             else:
                 # 如果认证失败，将错误信息返回给用户并重新渲染登录页面
                 messages.error(request, 'Invalid login credentials.')
