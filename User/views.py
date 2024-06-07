@@ -44,6 +44,9 @@ def register(request):
             if user_type == 'Manager':
                 manager = Manager.objects.create(detail=user)
                 manager.save()
+                user.is_staff = True
+                user.is_superuser = True
+                user.save()
             elif user_type == 'Organizer':
                 organizer = Organizer.objects.create(detail=user)
                 organizer.save()
