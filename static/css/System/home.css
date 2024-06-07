@@ -36,3 +36,29 @@
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* 添加文字阴影效果 */
 }
 
+
+.modal-content {
+    border-radius: 10px;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 0.4em solid rgba(0, 0, 0, 0.1);
+    border-left: 0.4em solid #007bff;
+    border-radius: 50%;
+    animation: spinner 1.2s linear infinite;
+}
+
+@keyframes spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
