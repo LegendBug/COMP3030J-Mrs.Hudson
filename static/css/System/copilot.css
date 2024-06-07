@@ -25,18 +25,25 @@ html {
     max-height: 80vh; /* Ensures the container doesn't grow larger than the viewport */
 }
 
-
-
-
 .chat-header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-top: -15px; /* Adjust this value as needed to move the header up */
+    margin-bottom: 10px;
+}
+
+.logo-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700; /* 使用较粗的字重以增强标题的视觉冲击力 */
+    font-size: 48px; /* 根据需要调整字号大小 */
+    background: linear-gradient(180deg, rgba(86, 197, 86, 0.9), rgb(0, 87, 0)); /* 渐变背景 */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .chat-box {
     flex: 1;
     overflow-y: auto;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     padding: 10px;
     border: 1px solid #dee2e6;
     border-radius: 20px;
