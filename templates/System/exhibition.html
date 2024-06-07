@@ -86,7 +86,7 @@
         </div>
 
         <div class="container mt-4" style="display: flex; justify-content: space-between;">
-            <div id="konva-container" class="konva" style="flex: 0 0 49%; margin-right: 1%; min-height: 400px; height: 80vh;"></div>
+            <div id="konva-container" class="konva" style="flex: 0 0 49%; margin-right: 1%; min-height: 200px; height: 80vh;"></div>
             <!-- 用于展示在画板上选中的KonvaElement所在的Layer -->
             <div id="tooltip" style="position: absolute; display: none; background: lightgrey; padding: 5px; border-radius: 3px;"></div>
 
@@ -97,12 +97,9 @@
                     <tr>
                         <th></th>
                         <th>Booth Name</th>
-                        <th>Description</th>
-                        <th>Exhibitor</th>
-                        <th>Sector</th>
                         <th>Start Time</th>
                         <th>End Time</th>
-                        <th>Stage</th>
+                        <th>Details</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -113,12 +110,17 @@
                                     alt="No Poster"
                                     class="booth-img" style="width: 100px; height: 80px;"></td>
                             <td>{{ booth.name }}</td>
-                            <td>{{ booth.description }}</td>
-                            <td>{{ booth.exhibitor }}</td>
-                            <td>{{ booth.sectors }}</td>
                             <td>{{ booth.start_at| date:"Y-m-d H:i" }}</td>
                             <td>{{ booth.end_at| date:"Y-m-d H:i" }}</td>
-                            <td>{{ booth.stage }}</td>
+                            <td>
+                                <!-- Triggering the modal with additional data attributes -->
+                                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#exhibitionDetailsModal"
+                                    @click.stop="showBoothDetails(
+                                    '{{ booth.description|escapejs }}', '{{ booth.exhibitor|escapejs }}', '{{ booth.sectors|escapejs }}', 
+                                    '{{ booth.stage|escapejs }}')">
+                                    Details
+                                </button>
+                            </td>
                         </tr>
                     {% empty %}
                         <tr>
@@ -127,6 +129,25 @@
                     {% endfor %}
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Booth Details Modal -->
+        <div class="modal fade" id="boothDetailsModal" tabindex="-1" aria-labelledby="boothDetailsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="boothDetailsModalLabel">Booth Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- The details will be dynamically loaded here -->
+                        <p><strong>Description:</strong> <span id="boothDescription"></span></p>
+                        <p><strong>Exhibitor</strong> <span id="boothExhibitor"></span></p>
+                        <p><strong>Sectors:</strong> <span id="boothSector"></span></p>
+                        <p><strong>Stage:</strong> <span id="boothStage"></span></p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -147,8 +168,11 @@
                             {{ application_form|crispy }}
                             <div id="application-form-container"></div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-success" @click="submitApplication">Apply
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    Close
+                                </button>
+                                <button type="button" class="btn btn-success" @click="submitApplication">
+                                    Apply
                                 </button>
                             </div>
                         </form>
@@ -188,7 +212,17 @@
 {% endblock %}
 
 {% block scripts %}
+
     <script>
+        function showBoothDetails(description, exhibitor, sectors, stage) {
+            // Set the description in the modal
+            document.getElementById('boothDescription').textContent = description;
+            document.getElementById('boothExhibitor').textContent = exhibitor;
+            document.getElementById('boothSector').textContent = sectors;
+            document.getElementById('boothStage').textContent = stage;
+
+        }
+
         // 取消展会
         function cancelExhibition() {
             const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;  // 获取 CSRF 令牌
