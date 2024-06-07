@@ -222,6 +222,26 @@
             });
         });
 
+        // 同步切换所有以 .chat-box 开头的类 (针对Copilot页面)
+        document.querySelectorAll('[class*="chat-box"]').forEach(el => {
+            el.classList.forEach(className => {
+                if (className.startsWith('chat-box')) {
+                    el.classList.toggle('dark-mode', theme === 'dark-mode');
+                }
+            });
+        });
+
+        // 同步切换所有以 .chat-message 开头的类 (针对Copilot页面)
+        document.querySelectorAll('[class*="chat-message"]').forEach(el => {
+            el.classList.forEach(className => {
+                if (className.startsWith('chat-message')) {
+                    el.classList.toggle('dark-mode', theme === 'dark-mode');
+                }
+            });
+        });
+
+
+
 
         // 切换其他需要的元素
         document.querySelectorAll('.sidebar').forEach(el => el.classList.toggle('dark-mode', theme === 'dark-mode'));

@@ -15,29 +15,33 @@ html {
 .chat-container {
     display: flex;
     flex-direction: column;
-    background-color: rgba(255, 255, 255, 0.4); /* Frosted glass effect */
-    backdrop-filter: blur(10px); /* Adds the blur effect */
+    background: linear-gradient(135deg, rgba(187, 255, 182, 0.6), rgba(129, 219, 254, 0.6));
+    backdrop-filter: blur(10px);
     border-radius: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     padding: 20px;
     margin-bottom: 20px;
-    height: 80vh; /* Fixed height */
-    max-height: 80vh; /* Ensures the container doesn't grow larger than the viewport */
+    height: 80vh;
+    max-height: 80vh;
 }
 
 .chat-header {
     text-align: center;
-    margin-top: -15px; /* Adjust this value as needed to move the header up */
+    margin-top: -15px;
     margin-bottom: 10px;
+    background: linear-gradient(to right, #098e7c, #00ab66, #0ab8c8); /* A blend from teal to light green, deep forest green, and dark sea green */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; /* Makes the text color transparent, showing the background gradient */
+    font-size: 2em; /* Adjust the font size if needed */
 }
+
+
 
 .logo-title {
     font-family: 'Montserrat', sans-serif;
-    font-weight: 700; /* 使用较粗的字重以增强标题的视觉冲击力 */
-    font-size: 48px; /* 根据需要调整字号大小 */
-    background: linear-gradient(180deg, rgba(86, 197, 86, 0.9), rgb(0, 87, 0)); /* 渐变背景 */
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+    font-size: 48px;
+    color: transparent;
 }
 
 .chat-box {
@@ -47,33 +51,47 @@ html {
     padding: 10px;
     border: 1px solid #dee2e6;
     border-radius: 20px;
-    background-color: rgba(255, 255, 255, 0.4); /* Frosted glass effect */
-    backdrop-filter: blur(10px); /* Adds the blur effect */
+    background: linear-gradient(to bottom, rgba(255, 250, 205, 0.8), rgba(224, 255, 255, 0.8));
+    backdrop-filter: blur(10px);
 }
 
 .chat-message {
     margin-bottom: 15px;
     padding: 10px;
     border-radius: 20px;
-    background-color: rgba(255, 255, 255, 0.4); /* Frosted glass effect */
-    backdrop-filter: blur(10px); /* Adds the blur effect */
+    background: linear-gradient(to right, rgba(240, 248, 255, 0.6), rgba(245, 245, 245, 0.6));
+    backdrop-filter: blur(10px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
+
+.chat-box.dark-mode {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 5px;
+    padding: 10px;
+    border: 1px solid #414141;
+    border-radius: 20px;
+    background: linear-gradient(to bottom,#203a43, #1b5067);
+    backdrop-filter: blur(10px);
+    color: #e9e9e9;
+}
+
+.chat-message.dark-mode, .chat-message-header.dark-mode, .chat-message-body.dark-mode {
+    color: #e9e9e9;
+}
+
 
 .chat-container.dark-mode {
     display: flex;
     flex-direction: column;
-    background-color: rgba(86, 86, 86, 0.4); /* Frosted glass effect */
-    backdrop-filter: blur(10px); /* Adds the blur effect */
+    background: linear-gradient(135deg, rgba(105, 105, 105, 0.6), rgba(0, 0, 0, 0.6));
+    backdrop-filter: blur(10px);
     border-radius: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     padding: 20px;
     margin-bottom: 20px;
-    height: 80vh; /* Fixed height */
-    max-height: 80vh; /* Ensures the container doesn't grow larger than the viewport */
+    height: 80vh;
 }
-
-
 
 .chat-message-header {
     font-size: 0.9em;
@@ -95,8 +113,8 @@ html {
     border-radius: 20px;
     border: 1px solid #dee2e6;
     padding: 10px;
-    background-color: rgba(255, 255, 255, 0.4); /* Frosted glass effect */
-    backdrop-filter: blur(10px); /* Adds the blur effect */
+    background-color: rgba(255, 240, 245, 0.8);
+    backdrop-filter: blur(10px);
 }
 
 .chat-input .btn {
@@ -108,4 +126,3 @@ html {
     height: 40px;
     border-radius: 50%;
 }
-
