@@ -16,64 +16,64 @@ body.dark-mode::before {
 }
 
 #booth-header {
-    width: 100%; /* 确保header占满整个容器宽度 */
+    width: 100%;
     display: flex;
-    justify-content: space-between; /* 使左右两侧内容分别对齐到各自的边缘 */
-    padding-left: 3rem; /* 根据需要调整，以匹配画板的左侧边距 */
-    padding-right: 3rem; /* 根据需要调整，以匹配画板的右侧边距 */
-    align-items: center; /* 确保所有元素在垂直方向上居中 */
+    justify-content: space-between;
+    padding-left: 3rem;
+    padding-right: 3rem;
+    align-items: center;
 }
 
 #booth-name {
-    font-family: 'Cursive', sans-serif; /* 使用艺术字体 */
-    font-size: 28px; /* 调整字体大小以适配设计 */
+    font-family: 'Cursive', sans-serif;
+    font-size: 28px;
     font-weight: bold;
 }
 
 .dropdown .dropdown-toggle {
-    margin-top: 1rem; /* 调整下拉菜单按钮的上边距 */
-    font-size: 20px; /* 增加字体大小，使按钮显得更大 */
-    padding: 0.5rem 1rem; /* 增加内边距，使按钮本体更大 */
+    margin-top: 1rem;
+    font-size: 20px;
+    padding: 0.5rem 1rem;
 }
 
 
 .table-responsive {
-    background: linear-gradient(#00397311, #00336311);  /* 使用深蓝到浅蓝的渐变背景 */
+    background: linear-gradient(#00397311, #00336311);
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    animation: fadeInUp 1s ease-in-out; /* 平滑的背景色过渡 */
+    animation: fadeInUp 1s ease-in-out;
 }
 
 .table {
     border: none;
     margin-bottom: 0;
-    background-color: rgba(255, 255, 255, 0.1); /* 表格背景设置为半透明 */
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .table-hover tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.2); /* 鼠标悬停时更亮的背景色 */
-    transition: background-color 1s ease-in-out; /* 平滑的背景色过渡 */
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: background-color 1s ease-in-out;
 }
 
 thead {
-    color: #fff; /* 表头字体颜色 */
-    background: rgba(0,0,0,0.4); /* 表头背景色 */
+    color: #fff;
+    background: rgba(0,0,0,0.4);
 }
 
 tbody td {
-    color: #EEE; /* 调整文字颜色以适应深色背景 */
+    color: #EEE;
 }
 
 .booth-img {
     width: 100px;
     height: auto;
     border-radius: 5px;
-    transition: transform 0.3s ease-in-out; /* 图片放大效果 */
+    transition: transform 0.3s ease-in-out;
 }
 
 .booth-img:hover {
-    transform: scale(1.1); /* 鼠标悬停时图片放大 */
+    transform: scale(1.1);
 }
 
 th, td {
@@ -81,7 +81,7 @@ th, td {
     padding: 12px 15px;
     text-align: center;
     vertical-align: middle;
-    transition: all 0.5s ease; /* 添加平滑过渡效果，应用于所有属性改变 */
+    transition: all 0.5s ease;
 }
 
 td a {
@@ -94,5 +94,5 @@ td a:hover {
 }
 
 #konva-container {
-    min-height: 100vh;
+    min-height: 90vh;
 }

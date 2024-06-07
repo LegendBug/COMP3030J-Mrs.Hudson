@@ -1,6 +1,6 @@
 body {
     min-height: 100%;
-    display: flex; /* 使body使用flex布局填充屏幕 */
+    display: flex;
 }
 
 html {
@@ -8,7 +8,7 @@ html {
 
 main {
     height: 100%;
-    display: flex; /* 使body使用flex布局填充屏幕 */
+    display: flex;
     max-height: 100vh;
     overflow-x: auto;
     overflow-y: hidden;
@@ -80,8 +80,8 @@ main {
 
 .nav-link.active {
     background-color: #009631;
-    color: white; /* 文本颜色为白色 */
-    border-radius: 0.25rem; /* 轻微的圆角 */
+    color: white;
+    border-radius: 0.25rem;
 }
 
 .nav-link.active.dark-mode {
@@ -90,8 +90,8 @@ main {
 
 /* 导航栏当前活动链接样式 */
 .nav-item.active .nav-link {
-    background-color: #009631; /* 背景 */
-    color: #f0f0f0; /* 白色文字 */
+    background-color: #009631;
+    color: #f0f0f0;
 }
 
 .sidebar {
@@ -111,22 +111,22 @@ main {
 .nav-pills .nav-link {
     color: #6c757d;;
     font-weight: bold;
-    transition: background-color 0.3s; /* 添加背景色变化的过渡效果 */
+    transition: background-color 0.3s;
 }
 
 .nav-pills .nav-link:hover {
     background-color: #009631;
-    color: white; /* 文本颜色为白色 */
-    transition: background-color 0.3s; /* 添加背景色变化的过渡效果 */
+    color: white;
+    transition: background-color 0.3s;
 }
 
 /* 子菜单项的样式 */
 .child-menu .nav-link {
-    background-color: #b5b5b5; /* 更浅的背景色 */
-    color: #6c757d; /* 更浅的文字颜色 */
-    padding-left: 20px; /* 增加缩进 */
-    margin-top: 5px; /* 增加间距 */
-    border-radius: 5px; /* 添加圆角 */
+    background-color: #b5b5b5;
+    color: #6c757d;
+    padding-left: 20px;
+    margin-top: 5px;
+    border-radius: 5px;
 }
 
 /* 子菜单项的 hover 效果 */
@@ -163,12 +163,12 @@ main {
 
 /* 修改图标样式 */
 .toggle-icon i {
-    transition: transform 0.3s ease, color 0.3s ease; /* 添加颜色变化的过渡 */
+    transition: transform 0.3s ease, color 0.3s ease;
 }
 
 .toggle-icon i.collapsed {
-    transform: rotate(90deg); /* 旋转图标 */
-    color: #009631; /* 添加颜色变化 */
+    transform: rotate(90deg);
+    color: #009631;
 }
 
 

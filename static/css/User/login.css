@@ -1,29 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&display=swap');
+
 .container {
-    max-width: 600px; /* 保持容器的最大宽度不变 */
-    margin: 8rem auto; /* 增加上下边距使容器居中，并提供空间 */
-    background-color: rgba(255, 255, 255, 0.4); /* 半透明黑色背景 */
-    border-radius: 8px; /* 边角圆润 */
-    padding: 40px; /* 增加更多内边距以提高高度 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 轻微的阴影效果 */
-    transform: scale(1.25); /* 略微放大容器及其中内容 */
+    max-width: 600px;
+    margin: 8rem auto;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    padding: 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: scale(1.25);
 }
 
 .form-control {
-    margin-bottom: 1rem; /* 增加输入框之间的外边距 */
-    padding: 0.3rem; /* 增加输入框内的内边距 */
+    margin-bottom: 1rem;
+    padding: 0.3rem;
     box-shadow: none;
     background-color: rgba(255, 255, 255, 0.8);
     border: 1px solid #ccc;
 }
 
 .btn-primary {
-    padding: 0.5rem; /* 调整按钮的内边距 */
-    margin-top: 0.5rem; /* 在按钮上方增加外边距 */
+    padding: 0.5rem;
+    margin-top: 0.5rem;
     width: 100%;
     background-color: #009631;
-    border-radius: 8px; /* 边角圆润 */
+    border-radius: 8px;
     border: none;
 }
 
@@ -33,18 +34,21 @@
 }
 
 .login-title {
-    text-align: center; /* 文本居中 */
-    font-family: 'Great Vibes', cursive; /* 应用 'Great Vibes' 字体或其他您选择的字体 */
-    color: #fff; /* 根据背景调整字体颜色 */
-    font-size: 3rem; /* 调整字体大小 */
-    margin-top: 0; /* 如果需要的话，调整上边距以使其与容器边缘对齐 */
-    margin-bottom: 1rem; /* 调整下边距以提供足够的空间 */
-    /* 添加更多样式来增强视觉效果 */
+    text-align: center;
+    font-family: 'Great Vibes', cursive;
+    color: #fff;
+    font-size: 3rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
 }
 
 .form-label,
 p,
 a {
     font-family: 'Roboto Slab', serif;
-    font-weight: 700; /* 确保字体加粗 */
+    font-weight: 700;
+}
+
+.container {
+    margin-top: 200px;
 }

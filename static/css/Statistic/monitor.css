@@ -1,45 +1,44 @@
-/* 美化上下文菜单 */
 .context-menu {
     position: absolute;
-    width: 200px; /* 菜单宽度 */
-    z-index: 3000; /* 设置较高的z-index值 */
+    width: 200px;
+    z-index: 3000;
     background-color: white;
-    border: 1px solid #ddd; /* 浅灰色边框 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 较明显的阴影 */
-    border-radius: 0.25rem; /* 轻微的圆角 */
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0.25rem;
 }
 
 /* 调整Offcanvas */
 .offcanvas-header {
-    background-color: #f8f9fa; /* 浅灰色背景 */
-    border-bottom: 1px solid #dee2e6; /* 底部边框 */
-    padding: 0.75rem 1rem; /* 内边距调整 */
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
 }
 
 .offcanvas-body {
-    padding: 15px; /* 更大的内边距 */
-    background-color: #ffffff; /* 白色背景 */
-    color: #495057; /* 深灰色文本，增加对比 */
+    padding: 15px;
+    background-color: #ffffff;
+    color: #495057;
 }
 
 /* 调整Accordion */
 .accordion-button {
-    background-color: #e9ecef; /* 浅灰色背景 */
-    color: #495057; /* 深灰色文本 */
-    border: 1px solid #dee2e6; /* 细边框 */
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* 轻微的阴影 */
-    padding: 0.75rem 1.25rem; /* 内边距调整 */
-    transition: background-color 0.3s ease; /* 平滑的背景色过渡 */
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #dee2e6;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 0.75rem 1.25rem;
+    transition: background-color 0.3s ease;
 }
 
 .accordion-button:not(.collapsed) {
-    background-color: #d1e7dd; /* 展开时的背景颜色 */
-    color: #0f5132; /* 展开时的文本颜色 */
+    background-color: #d1e7dd;
+    color: #0f5132;
 }
 
 .accordion-item {
-    border-bottom: 1px solid #dee2e6; /* 每个项底部边框 */
-    margin-bottom: 0.5rem; /* 项间距 */
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 0.5rem;
 }
 
 .accordion-collapse.collapse {
@@ -47,23 +46,22 @@
 }
 
 .accordion-header {
-    margin: 0; /* 确保没有外边距 */
+    margin: 0;
 }
 
 .list-group-item-action:hover {
-    background-color: #f8f9fa; /* 鼠标悬浮背景颜色 */
-    color: #212529; /* 鼠标悬浮文本颜色 */
+    background-color: #f8f9fa;
+    color: #212529;
 }
 
-/* 确保动画和过渡的平滑性 */
 * {
     transition: all 0.2s ease-in-out;
 }
 
 .dropdown .dropdown-toggle {
-    margin-top: 1rem; /* 调整下拉菜单按钮的上边距 */
-    font-size: 20px; /* 增加字体大小，使按钮显得更大 */
-    padding: 0.5rem 1rem; /* 增加内边距，使按钮本体更大 */
+    margin-top: 1rem;
+    font-size: 20px;
+    padding: 0.5rem 1rem;
 }
 
 th, td {
@@ -71,7 +69,7 @@ th, td {
     padding: 12px 15px;
     text-align: center;
     vertical-align: middle;
-    transition: all 0.5s ease; /* 添加平滑过渡效果，应用于所有属性改变 */
+    transition: all 0.5s ease;
 }
 
 td a {
@@ -88,12 +86,12 @@ td a:hover {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    text-align: center; /* 居中对齐 */
+    text-align: center;
 }
 
 .api-endpoint {
     font-size: 16px;
-    font-weight: bold; /* 加粗 */
+    font-weight: bold;
 }
 
 .api-endpoint a {
@@ -102,7 +100,7 @@ td a:hover {
 
 .test-recognition {
     font-size: 18px;
-    font-weight: bold; /* 加粗 */
+    font-weight: bold;
     color: #007bff;
 }
 
@@ -110,59 +108,58 @@ td a:hover {
     min-height: 100vh;
 }
 
-/* 美化 monitor-list 组件 */
 .table {
-    background-color: #ffffff; /* 白色背景 */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 轻微的阴影 */
-    border-radius: 0.5rem; /* 圆角 */
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
 }
 
 .table th, .table td {
-    vertical-align: middle; /* 垂直居中 */
-    padding: 1rem; /* 调整内边距 */
+    vertical-align: middle;
+    padding: 1rem;
 }
 
 .table-hover tbody tr:hover {
-    background-color: #f1f1f1; /* 悬停背景颜色 */
+    background-color: #f1f1f1;
 }
 
 .table .monitor-img {
-    width: 70px; /* 调整图片宽度 */
-    height: auto; /* 自动高度 */
-    border-radius: 0.25rem; /* 圆角 */
+    width: 70px;
+    height: auto;
+    border-radius: 0.25re
 }
 
 .table .badge {
-    padding: 0.5rem; /* 调整徽章内边距 */
-    font-size: 1rem; /* 调整徽章字体大小 */
+    padding: 0.5rem;
+    font-size: 1rem;
 }
 
 .table .text-info {
-    font-weight: bold; /* 加粗 API 链接 */
+    font-weight: bold;
 }
 
 .table thead th {
-    background-color: #343a40; /* 深灰色背景 */
-    color: #ffffff; /* 白色文字 */
-    border-bottom: none; /* 移除边框 */
+    background-color: #343a40;
+    color: #ffffff;
+    border-bottom: none;
 }
 
 .table-dark th {
-    border-top: none; /* 移除顶部边框 */
+    border-top: none;
 }
 
 .table-success {
-    background-color: #d4edda !important; /* 在线时的背景色 */
+    background-color: #d4edda !important;
 }
 
 .table-danger {
-    background-color: #f8d7da !important; /* 离线时的背景色 */
+    background-color: #f8d7da !important;
 }
 
 @media (max-width: 768px) {
     .table th, .table td {
-        font-size: 0.875rem; /* 调整小屏设备上的字体大小 */
-        padding: 0.75rem; /* 调整内边距 */
+        font-size: 0.875rem;
+        padding: 0.75rem;
     }
 }
 

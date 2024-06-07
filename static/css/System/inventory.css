@@ -15,14 +15,14 @@ body.dark-mode::before {
 }
 
 .card-columns {
-    column-count: 3; /* Adjust based on preference, 2 for two columns */
+    column-count: 3;
     column-gap: 3rem;
 }
 
 .card-text {
-    font-size: 12px; /* 维持现有的字体大小设定 */
-    margin-top: 2px; /* 减少上边距 */
-    margin-bottom: 2px; /* 减少下边距 */
+    font-size: 12px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .container-bg {
