@@ -229,17 +229,17 @@ def view_message(request):
                      'name': '🖼️ Exhibitions',
                      'url': '?item_type=applications&applications_type=exhibition',
                      'active_class': 'active' if applications_type == 'exhibition' else ''
-                 },
+                 } if hasattr(request.user, 'manager') or hasattr(request.user, 'organizer') else None,
                  {
                      'name': '🪑 Booths',
                      'url': '?item_type=applications&applications_type=booth',
                      'active_class': 'active' if applications_type == 'booth' else ''
-                 },
+                 } if hasattr(request.user, 'manager') or hasattr(request.user, 'exhibitor') else None,
                  {
                      'name': '📦 Resources',
                      'url': '?item_type=applications&applications_type=resource',
                      'active_class': 'active' if applications_type == 'resource' else ''
-                 },
+                 } if hasattr(request.user, 'manager') or hasattr(request.user, 'exhibitor') else None
              ]}
         ]
 
@@ -342,7 +342,7 @@ def view_application_detail(request, application_type, application_id):
             data = {
                 'application_type': application_type,
                 'title': "Application for Booth '" + application.booth.name + "' at Exhibition '" + application.booth.exhibition.name + "'",
-                'image_url': application.bootfh.image.url if application.booth.image else '',
+                'image_url': application.booth.image.url if application.booth.image else '',
                 'applicant': application.applicant.username,
                 'start_at': application.booth.start_at.strftime('%Y-%m-%d %H:%M'),
                 'end_at': application.booth.end_at.strftime('%Y-%m-%d %H:%M'),

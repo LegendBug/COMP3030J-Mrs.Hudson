@@ -31,10 +31,12 @@
                     <div class="collapse {% if applications_type %}show{% endif %}" id="collapse-{{ forloop.counter }}">
                         <ul class="nav flex-column ms-3 child-menu">
                             {% for child in item.children %}
+                                {% if child is not None %}
                                 <li class="nav-item {{ child.active_class }}">
                                     <a href="{{ child.url }}"
                                        class="nav-link {{ child.active_class }}"><strong>{{ child.name }}</strong></a>
                                 </li>
+                                {% endif %}
                             {% endfor %}
                         </ul>
                     </div>
