@@ -986,8 +986,9 @@
                 },
 
                 handleResize() {
-                    const width = window.innerWidth * 0.9;
-                    const height = window.innerHeight * 0.91;
+                    const container = document.getElementById('konva-container');
+                    const width = container.offsetWidth;
+                    const height = container.offsetHeight;
                     this.stage.size({width, height});
                 },
 

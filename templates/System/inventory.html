@@ -43,6 +43,73 @@
     {% endif %}
 
     <div class="container mt-3">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div class="d-flex flex-column p-3 col text-center me-4">
+                            <h5 class="card-title" style="font-size: xx-large">
+                                <i class="fas fa-boxes fa-1x mb-2"></i>
+                                <strong>Overview</strong>
+                            </h5>
+                            <div class="d-flex justify-content-between">
+                                <p class="font-weight-bold"><strong>Categories:</strong></p>
+                                <p>{{ inventory_info.total_categories }}</p>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <p class="font-weight-bold"><strong>Items:</strong></p>
+                                <p>{{ inventory_info.total_items }}</p>
+                            </div>
+                        </div>
+                        {% if user_type == 'Manager' %}
+                            <div class="d-flex flex-column p-3 col text-center me-4">
+                                <h5 class="card-title" style="font-size: xx-large">
+                                    <i class="fas fa-clipboard-list fa-1x mb-2"></i>
+                                    <strong>Rent</strong>
+                                </h5>
+                                <div class="d-flex justify-content-between">
+                                    <p class="font-weight-bold"><strong>In Rent:</strong></p>
+                                    <p class="ml-2">{{ inventory_info.rented_items }}</p>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <p class="font-weight-bold"><strong>Available:</strong></p>
+                                    <p class="ml-2">{{ inventory_info.available_items }}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="d-flex flex-column p-3 col text-center me-4">
+                            <h5 class="card-title" style="font-size: xx-large">
+                                <i class="fas fa-bolt fa-1x mb-2"></i>
+                                <strong>Consume</strong>
+                            </h5>
+                            <div class="d-flex justify-content-between">
+                                <p class="font-weight-bold"><strong>Power:</strong></p>
+                                <p class="ml-2">{{ inventory_info.total_power }} W</p>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <p class="font-weight-bold"><strong>Water:</strong></p>
+                                <p class="ml-2">{{ inventory_info.total_water }} L</p>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column p-3 col text-center">
+                            <h5 class="card-title" style="font-size: xx-large">
+                                <i class="fas fa-lightbulb fa-1x mb-2"></i>
+                                <strong>Advise</strong>
+                            </h5>
+                            <div class="d-flex justify-content-between">
+                                <p class="ml-2">{{ inventory_info.suggestion }}</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center p-3" style="border-left: 2px solid #ccc;">
+                            <button class="btn btn-success" onclick="refreshInventory()">Refresh</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-3">
         <div class="row">
             {% if categories|length == 0 %}
                 <div class="col-12">
@@ -69,7 +136,7 @@
                                         </h4>
                                         <p class="card-text">{{ category.description }}</p>
                                         <p class="card-text ">
-                                            <strong>Quantity: </strong>{{ category.items.all.count }}
+                                            <strong>Quantity: </strong>{{ category.items_quantity }}
                                         </p>
                                         <p class="card-text">
                                             <strong>Public: </strong>{{ category.is_public|yesno:"✅,❎" }}
@@ -220,6 +287,11 @@
 
 {% block scripts %}
     <script>
+        function refreshInventory() {
+            console.log('Refreshing inventory...');
+            window.location.reload();
+        }
+
         function openEditCategoryModal(categoryId) {
             const url = `{% url 'Inventory:edit-category' 0 %}`.replace('/0/', '/' + categoryId + '/');
             axios.get(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})

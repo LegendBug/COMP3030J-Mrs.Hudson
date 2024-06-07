@@ -1,6 +1,9 @@
+import random
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework import status
@@ -143,20 +146,18 @@ def inventory(request, space_type, space_id):
             return JsonResponse({'error': 'There are something wrong.'}, status=400)
     # GET请求处理展示库存
     else:
-        # 通过当前访问的Space的所有category
-        # current_categories = current_space.inventory_categories.all()
-
-        # 通过当前访问的Venue/Exhibition/Booth中的所有Item,获取所有的Category并统计每个Category下的Item数量
+        # 通过当前访问的Venue/Exhibition/Booth中的所有Item,获取所有的Category并统计每个Category下的Item数量(包括租借的)
         current_items = current_space.items.all()
         current_categories = {}
         for current_item in current_items:
-            # 如果current_item.category不在current_categories中,则添加如果current_item.category进入字典,并为其值初始化为1
+            # 如果current_item.category不在current_categories中,则current_item.category进入字典,并为其值初始化为1
             if current_item.category not in current_categories:
                 current_categories[current_item.category] = 1
             else:
-                current_categories[current_item.category] = current_categories[current_item.category] + 1
-        # 查找那些origin为当前访问的Venue/Exhibition/Booth的InventoryCategory,并统计它们的数量, 以避免这些Category被重复创建
-        existing_categories = current_space.inventory_categories.all()
+                current_categories[current_item.category] += 1
+
+        # 查找那些origin为当前访问的Venue/Exhibition/Booth的Category,并统计它们的数量, 以避免这些Category被重复创建
+        existing_categories = current_space.inventory_categories.annotate(item_count=Count('items'))
         for existing_category in existing_categories:
             if existing_category not in current_categories:
                 current_categories[existing_category] = 0
@@ -165,6 +166,27 @@ def inventory(request, space_type, space_id):
         for category, quantity in current_categories.items():
             category.items_quantity = quantity
             categories.append(category)
+
+        # 获取当前Inventory的数据信息
+        inventory_info = {'total_categories': len(categories)}
+        if (user_type == 'Manager') and space_type == 'venue':
+            inventory_info['total_items'] = sum([category.item_count for category in existing_categories])
+            inventory_info['remain_items'] = sum([category.items_quantity for category in categories])
+            inventory_info['rented_items'] = inventory_info['total_items'] - inventory_info['remain_items']
+        else:
+            inventory_info['total_items'] = current_items.count()
+        inventory_info['available_items'] = sum([1 for _ in current_space.items.filter(is_using=False)])
+        # 计算total_items的总用电量,is_using=True的item的总用电量
+        inventory_info['total_power'] = 0
+        inventory_info['total_water'] = 0
+        for category, quantity in current_categories.items():
+            if quantity > 0:
+                for item in category.items.all():
+                    if item.is_using:
+                        inventory_info['total_power'] += item.power if item.power else 0
+                        inventory_info['total_water'] += item.water_consumption if item.water_consumption else 0
+
+        inventory_info['suggestion'] = generate_suggestion(user_type, space_type, inventory_info)
 
         create_inventory_form = CreateInventoryCategoryForm(origin=current_space, initial={'user_type': user_type})
 
@@ -177,7 +199,8 @@ def inventory(request, space_type, space_id):
                           'space_id': space_id,
                           'categories': categories,
                           'create_inventory_form': create_inventory_form,
-                          'application_form': application_form
+                          'application_form': application_form,
+                          'inventory_info': inventory_info
                       })
 
 
@@ -341,8 +364,8 @@ def create_res_application(request):
                                                  sender=request.user, recipient=Manager.objects.first().detail)
             application_type = ContentType.objects.get_for_model(new_res_application)
             MessageDetail.objects.create(message=new_message, content=content,
-                                                              application_object_id=new_res_application.id,
-                                                              application_content_type=application_type)
+                                         application_object_id=new_res_application.id,
+                                         application_content_type=application_type)
             return JsonResponse({'success': 'Resource application created successfully!'}, status=200)
         except Exception as e:
             print(e)
@@ -515,3 +538,64 @@ def refresh_data(request):
                                 status=status.HTTP_404_NOT_FOUND)
     else:
         return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def generate_suggestion(user_type, space_type, inventory_info):
+    suggestions = []
+
+    # 建议基于总用电量
+    if inventory_info['total_power'] > 50:
+        if user_type == 'Manager':
+            power_suggestions = [
+                "Upgrade to energy-efficient equipment.",
+                "Turn off equipment when not in use.",
+                "Maintain equipment regularly."
+            ]
+            suggestions.extend(power_suggestions)
+        else:
+            power_suggestions = [
+                "Try to rent energy-efficient equipment.",
+                "Turn off equipment when not in use.",
+                "Maintain equipment regularly."
+            ]
+        suggestions.extend(power_suggestions)
+
+    # 建议基于总用水量
+    if inventory_info['total_water'] > 50:
+        if user_type == 'Manager':
+            water_suggestions = [
+                "Install water-saving devices.",
+                "Check for leaks regularly.",
+                "Recycle water where possible.",
+                "Use water-efficient cleaning methods."
+            ]
+            suggestions.extend(water_suggestions)
+        else:
+            water_suggestions = [
+                "Try to rent water-saving devices.",
+                "Check for leaks regularly.",
+            ]
+        suggestions.extend(water_suggestions)
+
+    # 建议基于出租情况
+    if user_type == 'Manager' and space_type == 'venue':
+        if inventory_info['rented_items'] > inventory_info['remain_items']:
+            rent_suggestions = [
+                "Expand inventory to meet demand.",
+                "Review rental terms for efficiency."
+            ]
+            suggestions.extend(rent_suggestions)
+        elif inventory_info['rented_items'] <= inventory_info['remain_items']:
+            rent_suggestions = [
+                "Let your exhibitors know about available inventory!",
+                "Review rental terms for efficiency.",
+                "Is there a way to increase rental quantity?"
+            ]
+            suggestions.extend(rent_suggestions)
+
+    # 如果没有任何建议，则提供默认建议
+    if not suggestions:
+        suggestions.append("Inventory is well managed. Keep it up!")
+
+    # 随机选择一条建议
+    return random.choice(suggestions)
