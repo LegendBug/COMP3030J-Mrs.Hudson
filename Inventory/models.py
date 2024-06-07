@@ -47,7 +47,7 @@ class InventoryCategory(models.Model):
 # Item Model
 class Item(models.Model):
     name = models.CharField(max_length=255)
-    is_using = models.BooleanField(default=False)  # TODO 1
+    is_using = models.BooleanField(default=False)
     is_damaged = models.BooleanField(default=False)
     power = models.FloatField(blank=True, null=True)  # 每小时的功耗
     water_consumption = models.FloatField(blank=True, null=True)  # 每小时的水消耗量
