@@ -112,8 +112,11 @@ def profile(request):
         else:
             paginator = None
 
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
+        if paginator:
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+        else:
+            page_obj = None
 
         AUTHORIZATION_CODE = GlobalSetting.objects.get(key='AUTHORIZATION_CODE').value
         context = {

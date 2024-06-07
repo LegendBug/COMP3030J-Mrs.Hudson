@@ -55,7 +55,8 @@ def exhibition(request, exhibition_id):
     for booth in booths:
         sectors = ''
         for sector in booth.sectors.all():
-            sectors += sector.name + ' '
+            if sector.inherit_from is not None:
+                sectors += sector.name + ' '
         stage = booth.booth_application.get_stage_display()
 
         if stage == 'REJECTED' or stage == 'CANCELLED':  # 展览申请被拒绝(不显示)
@@ -85,7 +86,7 @@ def exhibition(request, exhibition_id):
     return render(request, 'System/exhibition.html', {
         'exhibition': current_exhibition,
         'booths': booth_list,
-        'sectors': current_exhibition.sectors.all(),
+        'sectors': current_exhibition.sectors.filter(inherit_from__isnull=False).order_by('created_at'),
         'is_owner': is_owner,
         'user_type': user_type,
         'filter_form': FilterBoothsForm(),
