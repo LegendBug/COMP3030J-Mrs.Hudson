@@ -232,7 +232,7 @@ def category_detail_view(request, category_id):
         'origin': category.origin.name,
         'space_type': space_type,
         'space_id': space_id,
-        'locations': items.first().affiliation.sectors.all(),
+        'locations': items.first().affiliation.sectors.all() if items else None,
     })
 
 

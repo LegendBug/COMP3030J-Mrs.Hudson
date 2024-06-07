@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
@@ -110,7 +111,16 @@ def cancel_booth(request, booth_id):
         # 删除展台申请关联的sector
         for sector in booth.sectors.all():
             sector.delete()
-        # TODO 锁定全部的资源
+
+        # 归还全部物品
+        for item in booth.items.all():
+            if item.affiliation != item.category.origin:
+                item.affiliation_content_type = ContentType.objects.get_for_model(item.category.origin)
+                item.affiliation_object_id = item.category.origin.pk
+                item.is_using = 0
+                item.save()
+        for category in booth.inventory_categories.all():
+            category.delete()
         return JsonResponse({'success': 'Booth application canceled successfully!'}, status=200)
     else:
         return HttpResponseNotAllowed(['POST'])

@@ -464,16 +464,23 @@ def accept_application(request, application_type, application_id):
             if application_type == 'exhibition':
                 application = ExhibitionApplication.objects.get(id=application_id)
                 content = 'Congratulations! Your application ' + application.exhibition.name + ' has been accepted.'
+
+                for sector in application.exhibition.sectors.all():
+                    sector.inherit_from = application.exhibition
+                    sector.parent_unit.available = False
+                    sector.save()
             elif application_type == 'booth':
                 application = BoothApplication.objects.get(id=application_id)
                 content = 'Congratulations! Your application for ' + application.booth.name + ' has been accepted.'
+
+                for sector in application.booth.sectors.all():
+                    sector.inherit_from = application.booth
+                    sector.parent_unit.available = False
+                    sector.save()
             elif application_type == 'resource':
                 application = ResourceApplication.objects.get(id=application_id)
                 content = 'Congratulations! Your application for ' + application.category.name + ' has been accepted.'
-            else:
-                return JsonResponse({'error': 'Application type not found'}, status=404)
 
-            if application_type == 'resource':
                 available_items = Item.objects.filter(category=application.category,
                                                       affiliation_content_type=application.category.origin_content_type,
                                                       affiliation_object_id=application.category.origin_object_id,
@@ -486,6 +493,8 @@ def accept_application(request, application_type, application_id):
                         rent_item.save()
                 else:
                     return JsonResponse({'error': 'No available item found.'}, status=404)
+            else:
+                return JsonResponse({'error': 'Application type not found'}, status=404)
 
             # 通过申请
             if application.stage != Application.Stage.INITIAL_SUBMISSION:
@@ -506,5 +515,3 @@ def accept_application(request, application_type, application_id):
             return JsonResponse({'error': 'Internal Server Error', 'details': str(e)}, status=500)
     else:
         return HttpResponseNotAllowed(['POST'])
-
-# TODO 资源重名提示

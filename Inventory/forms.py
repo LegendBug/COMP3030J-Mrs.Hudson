@@ -4,6 +4,8 @@ from django.utils.timezone import now
 from Inventory.models import InventoryCategory, Item
 from django.contrib.contenttypes.models import ContentType
 from django import forms
+
+from Layout.models import SpaceUnit
 from Statistic.models import Usage
 from .models import Item
 
@@ -112,6 +114,10 @@ class EditItemForm(forms.ModelForm):
             'location': forms.Select(attrs={'class': 'form-control'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['location'].queryset = self.instance.category.origin.sectors.all()
+
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:
@@ -140,7 +146,7 @@ class EditItemForm(forms.ModelForm):
         return instance
 
 
-class ResApplicationForm(forms.Form): # TODO 目前的问题是, 只有Exhibitor才能创建资源申请, 而Organizer不行
+class ResApplicationForm(forms.Form):
     # 关联的场馆ID
     booth_id = forms.IntegerField(widget=forms.HiddenInput())
     category = forms.ModelChoiceField(

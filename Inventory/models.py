@@ -35,7 +35,7 @@ class InventoryCategory(models.Model):
     description = models.TextField(blank=True, null=True)
     is_public = models.BooleanField(default=True)  # 是否公开(即,是否可以被下一级的Exhibition/Booth申请)
     cost = models.FloatField(blank=True, null=True)
-    rent = models.FloatField(blank=True, null=True, default=0)  # TODO 租金,可能需要想办法在form中限定只有Manager才能设置
+    rent = models.FloatField(blank=True, null=True, default=0)
     # items : List<Item>, 由Django ORM的反向关系实现
     image = models.ImageField(upload_to=inventory_category_upload_to, null=True, blank=True)
     # origin, Django泛型, 表示该Category是在哪个Venue/Exhibition/Booth中被创建的
