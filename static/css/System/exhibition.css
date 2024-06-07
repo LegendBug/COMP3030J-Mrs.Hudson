@@ -24,9 +24,12 @@ body.dark-mode::before {
 }
 
 #exhibition-name {
-    font-family: 'Cursive', sans-serif;
-    font-size: 28px;
-    font-weight: bold;
+    font-family: 'Montserrat', sans-serif;
+    background: linear-gradient(180deg, rgb(170, 209, 239), rgb(98, 178, 239));
+    font-size: 36px;
+    font-weight: 700;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .dropdown .dropdown-toggle {
