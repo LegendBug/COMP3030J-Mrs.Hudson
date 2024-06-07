@@ -97,8 +97,16 @@
                             <strong><i>[{{ conversation.timestamp }}]</i></strong>
                         </div>
                         <div class="chat-message-body">
-                            <p><strong>You:</strong> {{ conversation.user_input }}</p>
-                            <p><strong>Watson:</strong> {{ conversation.copilot_response|markdown|safe }}</p>
+                            <p>
+                                <img src="{% static 'images/System/user-avatar.jpg' %}" alt="User" class="chat-avatar">
+                                <strong>You:</strong>
+                                {{ conversation.user_input|markdown|safe }}
+                            </p>
+                            <p>
+                                <img src="{% static 'images/System/watson-avatar.jpg' %}" alt="Watson" class="chat-avatar">
+                                <strong>Watson:</strong>
+                                {{ conversation.copilot_response|markdown|safe }}
+                            </p>
                         </div>
                     </div>
                 {% endfor %}
