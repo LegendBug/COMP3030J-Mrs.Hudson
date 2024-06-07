@@ -19,22 +19,225 @@
 
 {% block content %}
 
-{% if user_type == 'Organizer' or user_type == 'Exhibitor' %}
-    <div class="container .container-lg  mt-5">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card mt-5 shadow-lg custom-card-width">
-                    <div class="card-header text-white">
-                        <br>
-                        <h2 class="profile-title mb-3">User Profile</h2>
+    {% if user_type == 'Organizer' or user_type == 'Exhibitor' %}
+        <div class="container mt-5">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mt-5">
+                        <div class="card-header text-white">
+                            <br>
+                            <h2 class="profile-title mb-3">User Profile</h2>
+                        </div>
+                        <!-- Form Column -->
+                        <div class="card-body text-dark">
+                            <form id="profile-form" class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <!-- Username and Email Fields -->
+                                    <div>
+                                        <label for="username" class="form-label font-artistic">Username:</label>
+                                        <input type="text" class="form-control" id="username" name="username"
+                                               value="{{ user.username }}" required>
+                                        <div class="invalid-feedback">
+                                            Please choose a username.
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="email" class="form-label font-artistic">Email:</label>
+                                        <input type="email" class="form-control" id="email" name="email"
+                                               value="{{ user.email }}" required>
+                                        <div class="invalid-feedback">
+                                            Please provide a valid email.
+                                        </div>
+                                    </div>
+                                    <!-- Password and Confirm Password Fields -->
+                                    <div>
+                                        <label for="password" class="form-label font-artistic">Password:</label>
+                                        <input type="password" class="form-control" id="password" name="password"
+                                               placeholder="Enter new password">
+                                    </div>
+                                    <div>
+                                        <label for="confirm_password" class="form-label font-artistic">Confirm
+                                            Password:</label>
+                                        <input type="password" class="form-control" id="confirm_password"
+                                               name="confirm_password" placeholder="Confirm new password">
+                                    </div>
+
+
+                                    <!-- User Type and Account Created Fields -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label font-artistic">User Type:</label>
+                                        <input type="text" class="form-control-plaintext" id="user_type"
+                                               name="user_type" value="{{ user_type }}" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label font-artistic">Account Created:</label>
+                                        <input type="text" class="form-control-plaintext" id="account_created"
+                                               name="account_created" value="{{ user.date_joined|date:'Y-m-d' }}"
+                                               readonly>
+                                    </div>
+                                    <div class="col-md-12 d-flex justify-content-between align-items-center">
+                                        <button type="submit" class="btn btn-success save-btn"
+                                                onclick="submitProfileForm()">
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                    <!-- Form Column -->
-                    <div class="card-body bg-light text-dark">
-                        <form id="profile-form" class="needs-validation" novalidate>
-                            {% csrf_token %}
-                            <div class="form-group">
-                                <!-- Username and Email Fields -->
-                                <div>
+                </div>
+
+                <div class="col-md-8 d-flex">
+                    <div class="card mt-5 shadow-lg">
+                        <!-- Exhibitions or Booths Column -->
+                        <div class="col-md-12">
+                            {% if user_type == 'Organizer' %}
+                                <div class="card-header text-white transparent-card-header">
+                                    <br>
+                                    <h2 class="profile-title mb-3">Your Exhibitions</h2>
+                                </div>
+                                <div class="table-responsive"
+                                     style="margin: 1rem; user-select: none; height: 400px">
+                                    <table class="table table-hover text-dark">
+                                        <thead class="text-white">
+                                        <tr>
+                                            <th></th>
+                                            <th>Exhibition Name</th>
+                                            <th>Description</th>
+                                            <th>Organizer</th>
+                                            <th>Start Time</th>
+                                            <th>End Time</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for exhibition in page_obj %}
+                                            <tr onclick="window.location.href='{% url 'Exhibition:exhibition' exhibition.exhibition.id %}';"
+                                                style="cursor: pointer;">
+                                                <td><img
+                                                        src="{{ exhibition.exhibition.image.url|default:'../../static/images/Public/poster.jpg' }}"
+                                                        alt="No Poster" class="exhibition-img"
+                                                        style="width: 100px; height: 80px;"></td>
+                                                <td>{{ exhibition.exhibition.name }}</td>
+                                                <td>{{ exhibition.exhibition.description }}</td>
+                                                <td>{{ exhibition.exhibition.organizer.detail.username }}</td>
+                                                <td>{{ exhibition.exhibition.start_at|date:"Y-m-d H:i" }}</td>
+                                                <td>{{ exhibition.exhibition.end_at|date:"Y-m-d H:i" }}</td>
+                                            </tr>
+                                        {% empty %}
+                                            <tr>
+                                                <td colspan="8" class="text-center">No exhibitions found. 💤</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% elif user_type == 'Exhibitor' %}
+                                <div class="mt-4">
+                                    <div class="card-header text-white transparent-card-header">
+                                        <br>
+                                        <h2 class="profile-title mb-3">Your Booths</h2>
+                                    </div>
+                                    <div class="table-responsive"
+                                         style="margin: 1rem; user-select: none;">
+                                        <table class="table table-hover text-dark">
+                                            <thead class="bg-dark">
+                                            <tr>
+                                                <th></th>
+                                                <th>Booth Name</th>
+                                                <th>Description</th>
+                                                <th>Sector</th>
+                                                <th>Start Time</th>
+                                                <th>End Time</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for booth in page_obj %}
+                                                <tr onclick="window.location.href='{% url 'Booth:booth' booth.booth.id %}';"
+                                                    style="cursor: pointer;">
+                                                    <td><img
+                                                            src="{{ booth.booth.image.url|default:'../../static/images/Public/poster.jpg' }}"
+                                                            alt="No Poster" class="booth-img"
+                                                            style="width: 100px; height: 80px;">
+                                                    </td>
+                                                    <td>{{ booth.booth.name }}</td>
+                                                    <td>{{ booth.booth.description }}</td>
+                                                    <td>{{ booth.booth.sector.name }}</td>
+                                                    <td>{{ booth.booth.start_at|date:"Y-m-d H:i" }}</td>
+                                                    <td>{{ booth.booth.end_at|date:"Y-m-d H:i" }}</td>
+                                                </tr>
+                                            {% empty %}
+                                                <tr>
+                                                    <td colspan="6" class="text-center">No booths found. 💤</td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <!-- 分页按键 -->
+                            <nav aria-label="Page navigation" class="d-flex justify-content-center">
+                                <ul class="pagination">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1"
+                                               aria-label="First">
+                                                <span aria-hidden="true">&laquo;&laquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?page={{ page_obj.previous_page_number }}"
+                                               aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    <li class="page-item disabled">
+                                                <span class="page-link"
+                                                      style="background-color: rgba(255, 255, 255, 0.4)">
+                                                    {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                                                </span>
+                                    </li>
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?page={{ page_obj.next_page_number }}"
+                                               aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?page={{ page_obj.paginator.num_pages }}"
+                                               aria-label="Last">
+                                                <span aria-hidden="true">&raquo;&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    {% elif user_type == 'Manager' %}
+        <div class="container mt-5 profile-container">
+            <div class="card mt-5 shadow-lg">
+                <div class="card-header text-white">
+                    <br>
+                    <h2 class="profile-title mb-3">User Profile</h2>
+                </div>
+                <div class="card-body bg-light text-dark">
+                    <form id="profile-form" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <div class="row g-4">
+                                <div class="col-md-6">
                                     <label for="username" class="form-label font-artistic">Username:</label>
                                     <input type="text" class="form-control" id="username" name="username"
                                            value="{{ user.username }}" required>
@@ -42,266 +245,75 @@
                                         Please choose a username.
                                     </div>
                                 </div>
-                                <div>
+                                <div class="col-md-6">
                                     <label for="email" class="form-label font-artistic">Email:</label>
                                     <input type="email" class="form-control" id="email" name="email"
-                                           value="{{ user.email }}" required>
+                                           value="{{ user.email }}"
+                                           required>
                                     <div class="invalid-feedback">
                                         Please provide a valid email.
                                     </div>
                                 </div>
-                                <!-- Password and Confirm Password Fields -->
-                                <div>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-md-6">
                                     <label for="password" class="form-label font-artistic">Password:</label>
                                     <input type="password" class="form-control" id="password" name="password"
                                            placeholder="Enter new password">
                                 </div>
-                                <div>
+                                <div class="col-md-6">
                                     <label for="confirm_password" class="form-label font-artistic">Confirm
                                         Password:</label>
                                     <input type="password" class="form-control" id="confirm_password"
-                                           name="confirm_password" placeholder="Confirm new password">
+                                           name="confirm_password"
+                                           placeholder="Confirm new password">
                                 </div>
+                            </div>
 
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label for="Authorization Code" class="form-label font-artistic">Authorization
+                                        Code:</label>
+                                    <input type="text" class="form-control" id="authorization_code"
+                                           name="authorization_code" value="{{ authorization_code }}" required>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid Authorization Code.
+                                    </div>
+                                </div>
+                            </div>
 
-                                <!-- User Type and Account Created Fields -->
+                            <div class="row g-4">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label font-artistic">User Type:</label>
-                                    <input type="text" class="form-control-plaintext" id="user_type"
-                                           name="user_type" value="{{ user_type }}" readonly>
+                                    <input type="text" class="form-control-plaintext" id="user_type" name="user_type"
+                                           value="{{ user_type }}" readonly>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label font-artistic">Account Created:</label>
                                     <input type="text" class="form-control-plaintext" id="account_created"
-                                           name="account_created" value="{{ user.date_joined|date:'Y-m-d' }}"
-                                           readonly>
+                                           name="account_created" value="{{ user.date_joined|date:'Y-m-d' }}" readonly>
                                 </div>
+                            </div>
+
+                            <div class="row g-4">
                                 <div class="col-md-12 d-flex justify-content-between align-items-center">
+                                    <a href="{% url 'admin:index' %}" class="btn btn-primary">
+                                        View Console
+                                    </a>
                                     <button type="submit" class="btn btn-success save-btn"
-                                            onclick="submitProfileForm()">
-                                        Save Changes
+                                            onclick="submitProfileForm()">Save
+                                        Changes
                                     </button>
                                 </div>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-8 d-flex">
-                <div class="card mt-5 shadow-lg">
-                    <!-- Exhibitions or Booths Column -->
-                    <div class="col-md-12">
-                        {% if user_type == 'Organizer' %}
-                        <div class="exhibition-list mt-4">
-                            <div class="card-header text-white transparent-card-header">
-                                <br>
-                                <h2 class="profile-title mb-3">Your Exhibitions</h2>
-                            </div>
-                            <div class="table-responsive" style="margin: 1rem; user-select: none; height: 400px">
-                                <table class="table table-hover text-dark">
-                                    <thead class="bg-dark text-white">
-                                    <tr>
-                                        <th></th>
-                                        <th>Exhibition Name</th>
-                                        <th>Description</th>
-                                        <th>Organizer</th>
-                                        <th>Sector</th>
-                                        <th>Start Time</th>
-                                        <th>End Time</th>
-                                        <th>Stage</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for exhibition in exhibition_page_obj %}
-                                    <tr onclick="window.location.href='{% url 'Exhibition:exhibition' exhibition.id %}';"
-                                        style="cursor: pointer;">
-                                        <td><img
-                                                src="{{ exhibition.exhibition.image|default:'../../static/images/Public/poster.jpg' }}"
-                                                alt="No Poster" class="exhibition-img"
-                                                style="width: 100px; height: 80px;"></td>
-                                        <td>{{ exhibition.exhibition.name }}</td>
-                                        <td>{{ exhibition.exhibition.description }}</td>
-                                        <td>{{ exhibition.exhibition.organizer.detail.username }}</td>
-                                        <td>{{ exhibition.exhibition.sectors }}</td>
-                                        <td>{{ exhibition.exhibition.start_at|date:"Y-m-d H:i" }}</td>
-                                        <td>{{ exhibition.exhibition.end_at|date:"Y-m-d H:i" }}</td>
-                                        <td>{{ exhibition.exhibition.stage }}</td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="8" class="text-center">No exhibitions found. 💤</td>
-                                    </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="pagination">
-                                <span class="step-links">
-                                    {% if exhibition_page_obj.has_previous %}
-                                        <a href="?exhibition_page=1">&laquo; first</a>
-                                        <a href="?exhibition_page={{ exhibition_page_obj.previous_page_number }}">previous</a>
-                                    {% endif %}
-        <!--?                            <span class="current">-->
-        <!--?                                Page {{ exhibition_page_obj.number }} of {{ exhibition_page_obj.paginator.num_pages }}.-->
-        <!--?                            </span>-->
-                                    {% if exhibition_page_obj.has_next %}
-                                        <a href="?exhibition_page={{ exhibition_page_obj.next_page_number }}">next</a>
-                                        <a href="?exhibition_page={{ exhibition_page_obj.paginator.num_pages }}">last &raquo;</a>
-                                    {% endif %}
-                                </span>
-                            </div>
                         </div>
-
-                        {% elif user_type == 'Exhibitor' %}
-                        <div class="booth-list mt-4">
-                            <div class="card-header text-white transparent-card-header">
-                                <br>
-                                <h2 class="profile-title mb-3">Your Booths</h2>
-                            </div>
-                            <div class="table-responsive" style="margin: 1rem; user-select: none; height: 400px">
-                                <table class="table table-hover text-dark">
-                                    <thead class="bg-dark text-white">
-                                    <tr>
-                                        <th></th>
-                                        <th>Booth Name</th>
-                                        <th>Description</th>
-                                        <th>Sector</th>
-                                        <th>Start Time</th>
-                                        <th>End Time</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for booth in booth_page_obj %}
-                                    <tr onclick="window.location.href='{% url 'Booth:booth' booth.id %}';"
-                                        style="cursor: pointer;">
-                                        <td><img
-                                                src="{{ booth.booth.image|default:'../../static/images/Public/poster.jpg' }}"
-                                                alt="No Poster" class="booth-img" style="width: 100px; height: 80px;">
-                                        </td>
-                                        <td>{{ booth.booth.name }}</td>
-                                        <td>{{ booth.booth.description }}</td>
-                                        <td>{{ booth.booth.sector.name }}</td>
-                                        <td>{{ booth.booth.start_at|date:"Y-m-d H:i" }}</td>
-                                        <td>{{ booth.booth.end_at|date:"Y-m-d H:i" }}</td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="6" class="text-center">No booths found. 💤</td>
-                                    </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="pagination">
-                                <span class="step-links">
-                                    {% if booth_page_obj.has_previous %}
-                                        <a href="?booth_page=1">&laquo; first</a>
-                                        <a href="?booth_page={{ booth_page_obj.previous_page_number }}">previous</a>
-                                    {% endif %}
-            <!--?                        <span class="current">-->
-            <!--?                            Page {{ booth_page_obj.number }} of {{ booth_page_obj.paginator.num_pages }}.-->
-            <!--?                        </span>-->
-                                    {% if booth_page_obj.has_next %}
-                                        <a href="?booth_page={{ booth_page_obj.next_page_number }}">next</a>
-                                        <a href="?booth_page={{ booth_page_obj.paginator.num_pages }}">last &raquo;</a>
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </div>
+    {% endif %}
 
-
-{% elif user_type == 'Manager' %}
-<div class="container mt-5 profile-container">
-    <div class="card mt-5 shadow-lg">
-        <div class="card-header text-white">
-            <br>
-            <h2 class="profile-title mb-3">User Profile</h2>
-        </div>
-        <div class="card-body bg-light text-dark">
-            <form id="profile-form" class="needs-validation" novalidate>
-                {% csrf_token %}
-                <div class="form-group">
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label for="username" class="form-label font-artistic">Username:</label>
-                            <input type="text" class="form-control" id="username" name="username"
-                                   value="{{ user.username }}" required>
-                            <div class="invalid-feedback">
-                                Please choose a username.
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="email" class="form-label font-artistic">Email:</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}"
-                                   required>
-                            <div class="invalid-feedback">
-                                Please provide a valid email.
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label for="password" class="form-label font-artistic">Password:</label>
-                            <input type="password" class="form-control" id="password" name="password"
-                                   placeholder="Enter new password">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="confirm_password" class="form-label font-artistic">Confirm Password:</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
-                                   placeholder="Confirm new password">
-                        </div>
-                    </div>
-
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label for="Authorization Code" class="form-label font-artistic">Authorization
-                                Code:</label>
-                            <input type="text" class="form-control" id="authorization_code"
-                                   name="authorization_code" value="{{ authorization_code }}" required>
-                            <div class="invalid-feedback">
-                                Please provide a valid Authorization Code.
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-4">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label font-artistic">User Type:</label>
-                            <input type="text" class="form-control-plaintext" id="user_type" name="user_type"
-                                   value="{{ user_type }}" readonly>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label font-artistic">Account Created:</label>
-                            <input type="text" class="form-control-plaintext" id="account_created"
-                                   name="account_created" value="{{ user.date_joined|date:'Y-m-d' }}" readonly>
-                        </div>
-                    </div>
-
-                    <div class="row g-4">
-                        <div class="col-md-12 d-flex justify-content-between align-items-center">
-                            <a href="{% url 'admin:index' %}" class="btn btn-primary">
-                                View Console
-                            </a>
-                            <button type="submit" class="btn btn-success save-btn" onclick="submitProfileForm()">Save
-                                Changes
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-{% endif %}
-    
 {% endblock %}
 
 

@@ -85,7 +85,7 @@ def delete_venue(request, venue_id):
     return JsonResponse({'success': 'Venue deleted successfully!'})
 
 
-def venue(request, venue_id):  # TODO 在展览过期后, 将绑定的SpaceUnit的affiliation字段置空（启动定时任务）
+def venue(request, venue_id):
     current_venue = Venue.objects.filter(id=venue_id).first()
     if current_venue is None:
         return redirect('Venue:home')
@@ -113,18 +113,19 @@ def venue(request, venue_id):  # TODO 在展览过期后, 将绑定的SpaceUnit�
             sectors += sector.name + ' '
         stage = exhibition.exhibition_application.get_stage_display()
 
-        if stage == 'REJECTED':  # 展览申请被拒绝(不显示)
-            stage = '❌ REJECTED'
+        if stage == 'REJECTED' or stage == 'CANCELLED':  # 展览申请被拒绝(不显示)
+            continue
         elif stage == 'ACCEPTED':
             stage = '✅ ACCEPTED'
-        elif stage == 'CANCELLED':
-            stage = '❌ CANCELLED'
-        elif exhibition.end_at < timezone.now():  # 展览已结束
-            stage = '🔴 OUTDATED'
-        elif exhibition.start_at < timezone.now() < exhibition.end_at:  # 展览进行中
-            stage = '🟢 UNDERWAY'
-        else:
+            if exhibition.end_at < timezone.now():  # 展览已结束
+                stage = '🔴 OUTDATED'
+            elif exhibition.start_at < timezone.now() < exhibition.end_at:  # 展览进行中
+                stage = '🟢 UNDERWAY'
+        elif stage == 'INITIAL_SUBMISSION':
             stage = '🟠 PENDING'
+        else:
+            continue
+
         exhibitions_list.append({
             'id': exhibition.id,
             'name': exhibition.name,

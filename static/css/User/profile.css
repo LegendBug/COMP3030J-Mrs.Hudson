@@ -20,16 +20,22 @@
 }
 
 .card {
-    background-color: #00963155;
+    border-radius: 10px;
 }
 
 .card-header {
-    background-color: #00963155;
+    background-color: rgba(75, 161, 104, 0.72);
+    border-radius: 10px; /* 增加按钮圆角 */
+
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .row {
@@ -74,3 +80,58 @@
     border-bottom: none
 }
 
+.table-responsive {
+    background: linear-gradient(#00397311, #00336311);  /* 使用深蓝到浅蓝的渐变背景 */
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 1s ease-in-out; /* 平滑的背景色过渡 */
+}
+
+.table {
+    border: none;
+    margin-bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1); /* 表格背景设置为半透明 */
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* 鼠标悬停时更亮的背景色 */
+    transition: background-color 1s ease-in-out; /* 平滑的背景色过渡 */
+}
+
+thead {
+    color: #fff; /* 表头字体颜色 */
+    background: rgba(0,0,0,0.4); /* 表头背景色 */
+}
+
+tbody td {
+    color: #EEE; /* 调整文字颜色以适应深色背景 */
+}
+
+.booth-img {
+    width: 100px;
+    height: auto;
+    border-radius: 5px;
+    transition: transform 0.3s ease-in-out; /* 图片放大效果 */
+}
+
+.booth-img:hover {
+    transform: scale(1.1); /* 鼠标悬停时图片放大 */
+}
+
+th, td {
+    border: none;
+    padding: 12px 15px;
+    text-align: center;
+    vertical-align: middle;
+    transition: all 0.5s ease; /* 添加平滑过渡效果，应用于所有属性改变 */
+}
+
+td a {
+    color: #FFD700;
+    transition: color 0.3s ease-in-out;
+}
+
+td a:hover {
+    color: #FFFFFF;
+}
