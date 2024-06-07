@@ -1,9 +1,7 @@
-/* Default text color for light mode */
 .card-header, .card-text {
     color: rgb(0, 0, 0);
 }
 
-/* Override text color for dark mode */
 .card-header.dark-mode, .card-text.dark-mode {
     color: rgb(255, 255, 255);
 }
@@ -29,10 +27,10 @@ html {
     text-align: center;
     margin-top: -15px;
     margin-bottom: 10px;
-    background: linear-gradient(to right, #098e7c, #00ab66, #0ab8c8); /* A blend from teal to light green, deep forest green, and dark sea green */
+    background: linear-gradient(to right, #098e7c, #00ab66, #0ab8c8);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent; /* Makes the text color transparent, showing the background gradient */
-    font-size: 2em; /* Adjust the font size if needed */
+    -webkit-text-fill-color: transparent;
+    font-size: 2em;
 }
 
 

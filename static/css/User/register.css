@@ -7,7 +7,7 @@
     border-radius: 8px;
     padding: 40px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transform: scale(1.05); /* 略微放大容器及其中内容 */
+    transform: scale(1.05);
 }
 
 .form-control {
@@ -32,13 +32,12 @@
 }
 
 .register-title {
-    text-align: center; /* 文本居中 */
-    font-family: 'Great Vibes', cursive; /* 应用 'Great Vibes' 字体或其他您选择的字体 */
-    color: #fff; /* 根据背景调整字体颜色 */
-    font-size: 3rem; /* 调整字体大小 */
-    margin-top: 0; /* 如果需要的话，调整上边距以使其与容器边缘对齐 */
-    margin-bottom: 1rem; /* 调整下边距以提供足够的空间 */
-    /* 添加更多样式来增强视觉效果 */
+    text-align: center;
+    font-family: 'Great Vibes', cursive;
+    color: #fff;
+    font-size: 3rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
 }
 
 .alert {
@@ -55,5 +54,9 @@
 p,
 a {
     font-family: 'Roboto Slab', serif;
-    font-weight: 700; /* 确保字体加粗 */
+    font-weight: 700;
+}
+
+.container {
+    margin-top: 100px;
 }

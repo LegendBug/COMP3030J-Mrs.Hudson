@@ -15,20 +15,20 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    justify-content: center; /* 水平居中 */
+    justify-content: center;
 }
 
 .chart-container_one {
     flex: 1;
     display: flex;
-    width: 100%; /* 调整为 100% 宽度 */
+    width: 100%;
     justify-content: space-between;
 }
 
 .chart-container_two {
     flex: 1;
-    width: 100%; /* 设置宽度为 100% */
-    padding: 20px; /* 减少 padding */
+    width: 100%;
+    padding: 20px;
 }
 
 .controls {

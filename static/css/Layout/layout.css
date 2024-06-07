@@ -1,64 +1,63 @@
 /* 美化上下文菜单 */
 .context-menu {
     position: absolute;
-    width: 200px; /* 菜单宽度 */
-    z-index: 3000; /* 设置较高的z-index值 */
+    width: 200px;
+    z-index: 3000;
     background-color: white;
-    border: 1px solid #ddd;  /* 浅灰色边框 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 较明显的阴影 */
-    border-radius: 0.25rem;  /* 轻微的圆角 */
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0.25rem;
 }
 
 /* 调整Offcanvas */
 .offcanvas-header {
-    background-color: #f8f9fa;  /* 浅灰色背景 */
-    border-bottom: 1px solid #dee2e6;  /* 底部边框 */
-    padding: 0.75rem 1rem;  /* 内边距调整 */
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
 }
 
 .offcanvas-body {
-    padding: 15px;  /* 更大的内边距 */
-    background-color: #ffffff;  /* 白色背景 */
-    color: #495057;  /* 深灰色文本，增加对比 */
+    padding: 15px;
+    background-color: #ffffff;
+    color: #495057;
 }
 
 
 /* 调整Accordion */
 .accordion-button {
-    background-color: #f8f9fa;  /* 浅灰色背景，更现代 */
-    color: #333;  /* 更新文本颜色为深灰 */
-    border: 1px solid #dee2e6;  /* 更细的边框 */
-    padding: 0.75rem 1.25rem;  /* 适当的内边距 */
-    border-radius: 0.5rem;  /* 圆角风格 */
-    box-shadow: none;  /* 移除阴影 */
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #dee2e6;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    box-shadow: none;
 }
 
 .accordion-button:not(.collapsed) {
-    background-color: #e2e6ea;  /* 更柔和的展开背景色 */
-    color: #495057;  /* 展开时的深色文本 */
+    background-color: #e2e6ea;
+    color: #495057;
 }
 
 .accordion-item {
-    border-bottom: 1px solid transparent;   /* 每个项底部边框 */
-    margin-bottom: 0.5rem;  /* 保持项间距 */
+    border-bottom: 1px solid transparent;
+    margin-bottom: 0.5rem;
 }
 
 .accordion-collapse.collapse.show {
     overflow: hidden;
-    border: none; /* 移除内部边框 */
+    border: none;
 }
 
 .accordion-header {
-    margin: 0;  /* 确保没有外边距 */
-    transition: background-color 0.2s; /* 平滑背景色过渡 */
+    margin: 0;
+    transition: background-color 0.2s;
 }
 
 .list-group-item-action:hover {
-    background-color: #d1e7dd;  /* 鼠标悬浮时的背景颜色，更清新 */
-    color: #155724;  /* 鼠标悬浮时的文字颜色，更鲜明 */
+    background-color: #d1e7dd;
+    color: #155724;
 }
 
-/* 确保动画和过渡的平滑性 */
 * {
     transition: all 0.2s ease-in-out;
 }

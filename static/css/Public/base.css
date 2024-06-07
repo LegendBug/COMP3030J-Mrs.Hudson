@@ -4,7 +4,7 @@ html, body {
     margin: 0;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden; /* Prevent scroll on narrow devices  */
+    overflow-x: hidden;
     transition: background 0.3s;
     scroll-behavior: smooth;
     position: relative;
@@ -39,10 +39,9 @@ body.dark-mode::before {
     min-height: 100vh;
 }
 
-
 image, h1, h2, h3, h4, h5, h6 {
-    user-select: none; /* 防止文本被选中 */
-    cursor: default; /* 设置默认光标 */
+    user-select: none;
+    cursor: default;
 }
 
 /*导航栏样式: */
@@ -63,8 +62,8 @@ image, h1, h2, h3, h4, h5, h6 {
     color: #1f1f1f;
     transition: color 0.3s ease;
     font-family: 'Great Vibes', cursive;
-    font-size: 22px; /* 调整字体大小 */
-    font-weight: bold; /* 加粗文本 */
+    font-size: 22px;
+    font-weight: bold;
     margin-top: 10px;
 }
 
@@ -72,8 +71,8 @@ image, h1, h2, h3, h4, h5, h6 {
     color: #f0f0f0;
     transition: color 0.3s ease;
     font-family: 'Great Vibes', cursive;
-    font-size: 22px; /* 调整字体大小 */
-    font-weight: bold; /* 加粗文本 */
+    font-size: 22px;
+    font-weight: bold;
     margin-top: 10px;
 }
 
@@ -145,7 +144,7 @@ image, h1, h2, h3, h4, h5, h6 {
     padding: 0.75rem 1rem;
     display: flex;
     align-items: center;
-    transition: all 0.3s ease-in-out; /* 平滑过渡效果 */
+    transition: all 0.3s ease-in-out;
 }
 
 .breadcrumb-item + .breadcrumb-item::before {
@@ -157,13 +156,13 @@ image, h1, h2, h3, h4, h5, h6 {
 .breadcrumb-item a {
     color: #6c757d;
     text-decoration: none;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 优雅的字体 */
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-weight: bold;
 }
 
 .breadcrumb-item.active {
     color: #009631;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 优雅的字体 */
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-weight: bold;
 }
 
@@ -189,9 +188,9 @@ image, h1, h2, h3, h4, h5, h6 {
     background: #ececec;
     color: #1f1f1f;
     text-align: center;
-    border-top: 4px solid #62da00; /* 边框 */
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* 向上的阴影效果 */
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 优雅的字体 */
+    border-top: 4px solid #62da00;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     transition: background 0.3s;
 }
 
@@ -200,77 +199,77 @@ image, h1, h2, h3, h4, h5, h6 {
     color: #f0f0f0;
     text-align: center;
     border-top: 4px solid #009631;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* 向上的阴影效果 */
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 优雅的字体 */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     transition: background 0.3s;
 }
 
 /* 页脚链接样式 */
 .public-base-footer a {
-    color: #ffffff; /* 白色链接 */
-    text-decoration: none; /* 去除下划线 */
-    transition: color 0.2s ease-in-out; /* 平滑颜色过渡效果 */
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
 }
 
 /* 页脚链接悬停效果 */
 .public-base-footer a:hover {
-    color: #009631; /* 高亮 */
+    color: #009631;
 }
 
 /* 页脚图片样式 */
 .public-base-footer img {
-    vertical-align: middle; /* 垂直对齐 */
-    border-style: none; /* 无边框 */
-    margin: 0 10px; /* 图片间距 */
+    vertical-align: middle;
+    border-style: none;
+    margin: 0 10px;
 }
 
 /*--------------------------------------------------------------*/
 /* Toast样式 */
 .toast-container {
-    top: 20px; /* 距离顶部20px */
+    top: 20px;
 }
 
 .toast {
-    border-left: 4px solid #62da00; /* 给Toast添加左侧边框 */
-    background-color: #fff; /* 设置Toast的背景颜色 */
-    color: #343a40; /* 设置Toast的文字颜色 */
+    border-left: 4px solid #62da00;
+    background-color: #fff;
+    color: #343a40;
 }
 
 .toast.dark-mode {
-    border-left: 4px solid #009631; /* 更深的绿色边框 */
-    background-color: #1f1f1f; /* 更深的背景颜色 */
-    color: #f0f0f0; /* 更深的文字颜色 */
+    border-left: 4px solid #009631;
+    background-color: #1f1f1f;
+    color: #f0f0f0;
 }
 
 .toast-header {
-    background-color: #f8f9fa; /* 设置Toast头部的背景颜色 */
-    border-bottom: 1px solid #e2e3e5; /* 设置Toast头部的底部边框 */
-    color: #6c757d; /* 设置Toast头部的文字颜色 */
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e2e3e5;
+    color: #6c757d;
 }
 
 .toast-header.dark-mode {
-    background-color: #343a40; /* 更深的背景颜色 */
-    border-bottom: 1px solid #343a40; /* 更深的底部边框 */
-    color: #f0f0f0; /* 更深的文字颜色 */
+    background-color: #343a40;
+    border-bottom: 1px solid #343a40;
+    color: #f0f0f0;
 }
 
 .toast-body {
-    padding: 10px; /* 设置Toast内容的内边距 */
+    padding: 10px;
 }
 
 /* 成功消息样式 */
 .toast-success {
-    border-left: 4px solid #28a745; /* 绿色边框 */
+    border-left: 4px solid #28a745;
 }
 
 /* 警告消息样式 */
 .toast-warning {
-    border-left: 4px solid #ffc107; /* 橙色边框 */
+    border-left: 4px solid #ffc107;
 }
 
 /* 错误消息样式 */
 .toast-error {
-    border-left: 4px solid #dc3545; /* 红色边框 */
+    border-left: 4px solid #dc3545;
 }
 
 
@@ -278,13 +277,13 @@ image, h1, h2, h3, h4, h5, h6 {
 #konva-container {
     position: relative;
     max-height: 65vh;
-    box-sizing: border-box; /* 包含边框和内边距在内的总宽高 */
-    overflow: hidden; /* 防止内容溢出 */
+    box-sizing: border-box;
+    overflow: hidden;
     background-color: #f0f0f050;
-    border-radius: 1rem;  /* 圆角边框 */
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);  /* 轻微阴影 */
+    border-radius: 1rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
     transition: background-color 0.3s;
-    animation: fadeInUp 1s ease-in-out; /* 平滑的背景色过渡 */
+    animation: fadeInUp 1s ease-in-out;
 
 /*    background-image: url('../../images/Layout/Grid_Blue.jpg'); !* 确保路径正确 *!
     background-size: cover; !* 覆盖整个容器 *!
@@ -294,51 +293,51 @@ image, h1, h2, h3, h4, h5, h6 {
 
 /* 表格全局样式 */
 .table {
-    color: #f0f0f0; /* 使用较亮的字体颜色，如浅灰色或纯白色 */
-    background-color: rgba(255, 255, 255, 0.1); /* 表格背景半透明，稍微调整透明度 */
-    border: 1px solid #444; /* 边框颜色 */
-    border-radius: 0.5rem; /* 边框圆角 */
-    margin-bottom: 0; /* Removes bottom margin */
+    color: #f0f0f0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid #444;
+    border-radius: 0.5rem;
+    margin-bottom: 0;
 }
 
 /* 表格头部样式 */
 .table thead {
-    background-color: rgba(183, 183, 183, 0.8); /* 表头背景半透明 */
-    color: #9d9d9d; /* 表头字体颜色，使用纯白色 */
+    background-color: rgba(183, 183, 183, 0.8);
+    color: #9d9d9d;
     border-radius: 0.5rem;
     transition: background-color 0.3s;
 }
 
 .table.dark-mode thead {
-    background-color: rgba(34, 34, 34, 0.8); /* 更深的表头背景 */
-    color: #f0f0f0; /* 更深的表头字体颜色 */
+    background-color: rgba(34, 34, 34, 0.8);
+    color: #f0f0f0;
 }
 
 /* 表格单元格样式 */
 .table th, .table td {
-    color: #ffffff; /* 使用纯白色字体颜色 */
-    background-color: rgba(183, 183, 183, 0.8); /* 单元格背景透明 */
-    border: none; /* 无边框 */
-    padding: 0.75rem; /* 内边距 */
-    text-align: center; /* Centers text in all cells */
+    color: #ffffff;
+    background-color: rgba(183, 183, 183, 0.8);
+    border: none;
+    padding: 0.75rem;
+    text-align: center;
 }
 
 .table.dark-mode th, .table.dark-mode td {
-    color: #f0f0f0; /* 更深的字体颜色 */
-    background-color: rgba(34, 34, 34, 0.8); /* 更深的背景 */
+    color: #f0f0f0;
+    background-color: rgba(34, 34, 34, 0.8);
     transition: background-color 0.3s;
 }
 
 /* 表格行悬停时的样式 */
 .table-hover tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.2); /* 行背景变亮且半透明 */
-    color: #f0f0f0; /* 更深的字体颜色 */
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #f0f0f0;
     transition: background-color 0.3s;
 }
 
 .table-hover.dark-mode tbody tr td:hover {
-    background-color: rgba(34, 34, 34, 0.5); /* 更深的行背景 */
-    color: #e9ecef; /* 更深的字体颜色 */
+    background-color: rgba(34, 34, 34, 0.5);
+    color: #e9ecef;
 }
 
 /*.table tbody td {*/
@@ -346,19 +345,19 @@ image, h1, h2, h3, h4, h5, h6 {
 /*}*/
 
 .table img {
-    width: auto; /* 自动调整宽度以保持图片比例 */
-    max-height: 100px; /* 限制图片最大高度 */
-    margin: auto; /* 居中显示 */
-    display: block; /* 块级显示 */
+    width: auto;
+    max-height: 100px;
+    margin: auto;
+    display: block;
 }
 
 h1 a {
-    text-decoration: none; /* Removes underline */
-    color: inherit; /* Inherits color from parent element */
+    text-decoration: none;
+    color: inherit;
 }
 
 h1 a:hover {
-    color: #28a745; /* Inherits color from parent element */
+    color: #28a745;
 }
 
 /*--------------------------------------------------------------*/
@@ -386,20 +385,20 @@ h1 a:hover {
 }
 
 .card {
-    transition: transform 0.5s ease; /* 添加图片缩放的过渡效果 */
+    transition: transform 0.5s ease;
 }
 
 .card.dark-mode {
-    transition: transform 0.5s ease; /* 添加图片缩放的过渡效果 */
+    transition: transform 0.5s ease;
 }
 
 .card-columns {
-    column-count: 2; /* Adjust based on preference, 2 for two columns */
+    column-count: 2;
     column-gap: 5rem;
 }
 
 .card:hover {
-    transform: scale(1.02); /* 当鼠标悬停时放大图片 */
+    transform: scale(1.02);
 }
 
 .card-title {
@@ -411,35 +410,35 @@ h1 a:hover {
 }
 
 .logo-title {
-    font-size: 48px; /* 增加字体大小 */
-    color: #2c3e50; /* 更新为更深、更专业的颜色 */
-    font-weight: 700; /* 使用700的字重，前提是字体支持 */
-    padding-top: 20px; /* 增加与页面顶部的空间 */
-    font-family: 'Montserrat', sans-serif; /* 应用Roboto字体 */
-    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2); /* 添加轻微的文字阴影以增强可读性 */
+    font-size: 48px;
+    color: #2c3e50;
+    font-weight: 700;
+    padding-top: 20px;
+    font-family: 'Montserrat', sans-serif;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
     animation: fadeInLeft 1s ease-in-out;
-    transition: all 0.3s ease-in-out; /* 平滑过渡效果 */
+    transition: all 0.3s ease-in-out;
 }
 
 .logo-title.dark-mode {
     color: #3c5670;
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-    font-size: 48px; /* 增加字体大小 */
-    font-weight: 700; /* 使用700的字重，前提是字体支持 */
-    padding-top: 20px; /* 增加与页面顶部的空间 */
-    font-family: 'Montserrat', sans-serif; /* 应用Roboto字体 */
+    font-size: 48px;
+    font-weight: 700;
+    padding-top: 20px;
+    font-family: 'Montserrat', sans-serif;
     animation: fadeInLeft 1s ease-in-out;
-    transition: all 0.3s ease-in-out; /* 平滑过渡效果 */
+    transition: all 0.3s ease-in-out;
 }
 
 .message-info {
-    font-size: 3rem; /* 较大的字体大小 */
-    font-weight: bold; /* 使用粗体 */
-    color: #f0f0f0; /* 使用较亮的字体颜色 */
-    width: 90%; /* 宽度接近全屏，但留有边距 */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* 文本阴影，增强可读性 */
-    transition: all 0.3s ease-in-out; /* 平滑过渡效果 */
-    animation: fadeInUp 1s ease-in-out; /* 应用动画 */
+    font-size: 3rem;
+    font-weight: bold;
+    color: #f0f0f0;
+    width: 90%;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease-in-out;
+    animation: fadeInUp 1s ease-in-out;
 }
 
 @keyframes fadeInLeft {
@@ -464,29 +463,28 @@ h1 a:hover {
     }
 }
 
-
 .btn-primary {
-    background-color: #218838; /* 柔和的绿色 */
-    border-color: #1e7e34; /* 边框颜色略深 */
+    background-color: #218838;
+    border-color: #1e7e34;
     /*min-width: 80px; TODO 跟子模板中的按钮宽度发生了冲突!!!*/
 }
 
 .btn-secondary {
-    background-color: #6c757d; /* 更温暖的灰色 */
-    border-color: #6c757d; /* 保持不变 */
+    background-color: #6c757d;
+    border-color: #6c757d;
     min-width: 80px;
 }
 
 .btn-danger {
-    background-color: #b52b2b; /* 更柔和的红色 */
-    border-color: #a02828; /* 边框颜色略深 */
-    min-width: 80px; /* 最小宽度 */
+    background-color: #b52b2b;
+    border-color: #a02828;
+    min-width: 80px;
 }
 
 /* 统一按钮文字颜色和样式 */
 .btn {
-    color: white; /* 统一文字颜色 */
-    border-radius: 4px; /* 增加按钮圆角 */
+    color: white;
+    border-radius: 4px;
 }
 
 

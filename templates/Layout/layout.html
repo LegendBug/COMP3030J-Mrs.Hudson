@@ -500,7 +500,7 @@
                 },
                 
                 deleteLayer(layer) {
-                    if (confirm("Are you sure you want to delete current layer and its sub-elements?")) {
+                    if (confirm("Are you sure you want to delete current space and its elements?(If current space is available, it can not be deleted)")) {
                         const deletedLayerId = layer.id;
                         while (layer.parent_unit != null) { // 查询currentSectorId
                             layer = layer.parent_unit;
