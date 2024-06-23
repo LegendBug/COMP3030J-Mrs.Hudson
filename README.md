@@ -1,4 +1,11 @@
-# Mrs. Hudson
+<div align="center" id="madewithlua">
+  <img
+    src="https://github.com/LegendBug/COMP3030J-Hudson/blob/main/hudson-logo.png"
+    width="125"
+    height="125"
+  />
+</div>
+<h1 align="center">Mrs. Hudson</h1>
 
 **H.U.D.S.O.N.** stands for **Holistic Utility Deployment & Sustainability Overseeing Network**.
 
@@ -37,7 +44,7 @@ To address the outlined issues, we’re developing a resource management system 
 
 ### Entity-relationship Model for the Database Schema
 
-<img src="https://github.com/LegendBug/COMP3030J-Hudson/blob/ec8acd096d9e878540fda57d4252277848d815a2/ER%20Diagram.png" alt="ER Diagram" style="zoom:100%;" />
+<img src="https://github.com/LegendBug/COMP3030J-Hudson/blob/main/er-diagram.png" alt="Entity-Relationship Diagram" style="zoom:100%;" />
 
 ## Deployment
 
