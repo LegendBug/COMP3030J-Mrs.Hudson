@@ -2,6 +2,7 @@ import os
 from openai import OpenAI
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.core.cache import cache
 from dotenv import load_dotenv
 from .models import Conversation
 
@@ -16,6 +17,26 @@ def custom_404_interceptor(request, exception): # 该视图函数用于无效页
     return redirect('User:welcome')
 
 
+def summarize_conversation(conversation_text):
+    summary_response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system", 
+                "content": "Summarize the following conversation:"
+            },
+            {
+                "role": "user", 
+                "content": conversation_text
+            }
+        ],
+        max_tokens=400
+    )
+    
+    summary = summary_response.choices[0].message.content
+
+    return summary
+
 
 def copilot(request):
     context = {}
@@ -23,9 +44,9 @@ def copilot(request):
     if request.method == 'POST':
         user_input = request.POST.get('user_input')
 
-        previous_conversations = Conversation.objects.filter(user=request.user).order_by('timestamp')
-
-        CONVERSATION_HISTORY_THRESHOLD = 7
+        cache_key = f'chat_history_{request.user.id}'
+        previous_conversations = cache.get(cache_key, [])
+        
 
         prompt_template = """
         You are Watson, a knowledgeable assistant for a system called "Mrs. Hudson". 
@@ -33,7 +54,7 @@ def copilot(request):
         Mrs. Hudson is a comprehensive resource manager for exhibition centers to minimize waste and optimize asset and energy usage. 
         Mrs. Hudson can be divided into six modules:
         1. User Module
-        In this module, we plan to provide functionalities for visitors such as registration, login, logout, and profile
+        In this module, we plan to provide functionalities for users such as registration, login, logout, and profile
         modification.
         2. Exhibition Module
         After this module is delivered, venue administrators will be able to view current exhibitions. Additionally,
@@ -63,7 +84,7 @@ def copilot(request):
         allocation or wastage, the system will automatically adjust resources and notify the holders through system
         messages.
 
-        Note the venue administrator is also called Manager in the system.
+        Note that venue administrators are also called "Managers".
 
         As Watson, you are committed to promoting diversity, inclusivity, and equality. When providing examples, insights, or assistance:
         - Include diverse perspectives, highlighting contributions from various cultural, gender, and socioeconomic backgrounds.
@@ -82,51 +103,70 @@ def copilot(request):
                     },
         ]
 
-        print(len(previous_conversations))
+
+
+        CONVERSATION_HISTORY_THRESHOLD = 7
 
         if len(previous_conversations) > CONVERSATION_HISTORY_THRESHOLD:
             # Create a string of all past conversations for summarization
-            conversation_text = " ".join([conv.user_input + " " + conv.copilot_response for conv in previous_conversations])
+            conversation_text = " ".join([msg['content'] for msg in previous_conversations if msg['role'] == 'user' or msg['role'] == 'assistant'])
 
             try:
-                summary_response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": "Summarize the following conversation:"},
-                        {"role": "user", "content": conversation_text}
-                    ],
-                    max_tokens=350
-                )
+                summary = summarize_conversation(conversation_text)
+                print("summary:", summary)
+                messages = [
+                    messages[0], # The very first message
+                    {
+                        "role": "assistant", 
+                        "content": summary
+                    },
+                ]
+                # Reset the cache after summarization
+                # cache.set(cache_key, [], timeout=None)
+                cache.delete(cache_key)
+                cache.set(cache_key, [], timeout=None)
+                previous_conversations = cache.get(cache_key, [])
+                cache_key = f'chat_history_{request.user.id}'
+                print("Cache reset")
+            except Exception as e:
+                context['error'] = "Failed to summarize the conversation: <Error: " + str(e) + ">"
+                return render(request, 'System/copilot.html', context)
+        # if there is no previous conversations in the cache,
+        # try to get the previous conversations from the database
+        # and summarize them and then add the summary to the cache
+        elif not previous_conversations:
+            # Create a string of all past conversations for summarization
+            previous_conversation_history = Conversation.objects.filter(user=request.user).order_by('timestamp')
+            conversation_text = " ".join([conversation.user_input + " " + conversation.copilot_response for conversation in previous_conversation_history])
 
-                summary = summary_response.choices[0].message.content
-                print(summary)
-                messages.append({"role": "assistant", "content": summary})
+            try:
+                summary = summarize_conversation(conversation_text)
+                print("summary: ", summary)
+
+                messages = [
+                    messages[0], # The very first message
+                    {
+                        "role": "assistant", 
+                        "content": summary
+                    },
+                ]
+                # Reset the cache after summarization
+                cache.set(cache_key, [], timeout=None)
             except Exception as e:
                 context['error'] = "Failed to summarize the conversation: <Error: " + str(e) + ">"
                 return render(request, 'System/copilot.html', context)
         else:
-            for conversation in previous_conversations:
-                messages.append(
-                    {
-                        "role": "user",
-                        "content": conversation.user_input
-                    },
-                )
-                messages.append(
-                    {
-                        "role": "assistant",
-                        "content": conversation.copilot_response
-                    },
-                )
+            messages.extend(previous_conversations)
         
 
         if user_input:
-            messages.append(
-                {
+            user_message = {
                     "role": "user",
                     "content": user_input
                 }
-            )
+            messages.append(user_message)
+            previous_conversations.append(user_message)
+            cache.set(cache_key, previous_conversations, timeout=None)
             
             try: 
                 response = client.chat.completions.create(
@@ -139,10 +179,19 @@ def copilot(request):
                 # saving the response to the database
                 Conversation.objects.create(user=request.user, user_input=user_input, copilot_response=chat_response)
                 # context['response'] = chat_response
+                assistant_message = {
+                    "role": "assistant", 
+                    "content": chat_response
+                }
+                previous_conversations.append(assistant_message)
+                cache.set(cache_key, previous_conversations, timeout=None)
             except Exception as e:
                 context['error'] = "Oops... Seems that a problem occurred 😅. <Error: " + str(e) + ">"
-
+            
+            print(len(previous_conversations))
+            print(previous_conversations)
             return redirect('System:copilot')
+        
 
     conversation_history = Conversation.objects.filter(user=request.user).order_by('-timestamp')
     context['conversation_history'] = conversation_history
@@ -160,6 +209,9 @@ def copilot(request):
 
 
 def delete_all_conversation_history(request):
+    # Clear cache when conversation history is deleted
+    cache_key = f'chat_history_{request.user.id}'
+    cache.delete(cache_key)
     Conversation.objects.filter(user=request.user).delete()
     return redirect('System:copilot')
 
