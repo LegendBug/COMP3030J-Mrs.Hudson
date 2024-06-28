@@ -186,3 +186,14 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 
 # LFobuC5UHf6CT3BlbkFJldFawYhXcw0zQ8D93sBo
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'TIMEOUT': 300,  # Default timeout for cache persistence in seconds (5 minutes)
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,  # Maximum number of entries allowed in the cache
+            'CULL_FREQUENCY': 3,  # Fraction of entries that are culled when `MAX_ENTRIES` is exceeded
+        }
+    }
+}
