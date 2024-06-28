@@ -17,9 +17,26 @@ Holmes Exhibition Company is a company specializes in conference, exhibition, an
 
 Its primary service is exhibition design and construction: the company is responsible for the overall planning and design of exhibition events, including booth layout, exhibition content planning, exhibit design, and exhibition construction. It offers the creative designs based on client requirements and exhibition themes, utilizing various professional equipment and materials for booth construction to create attractive and impactful exhibition spaces.
 
+The company is facing several challenges regrading sustainability, which are
++ **Inefficiency of inventory management**
+  + Holmes Company's inventory management is still at the stage of manual recording, leading to chaotic material circulation, inability to timely recover leased materials, and difficulties in duplicate procurement and equipment damage statistics.
++ **Serious waste of energy resources**
+  + The company lacks dynamic monitoring means for the use of water and electricity resources, unable to adjust consumption according to the flow of people and the number of displays, resulting in unnecessary waste of energy and environmental burden.
++ **Low utilization of venue space**
+  + To simplify management processes, companies often allocate venue space that exceeds customer needs, leading to low utilization rates and indirectly causing a waste of resources.
++ **Inefficient reservation system**
+  + Currently, event organizers need to make reservations for exhibitions with Holmes Company via telephone. This reservation mechanism significantly increases the management costs of Holmes and reduces the operational efficiency of the company's business.
+
 ## Project Solution
 
-To address the outlined issues, we’re developing a resource management system called **Mrs. Hudson**, serving as a comprehensive manager for the exhibition center to minimize waste and optimize asset and energy usage. The system will feature an online repository where exhibitors can find and select needed items like sound systems and lighting, boosting item reusability and the company’s sustainability. The Holmes Exhibition Company will supply these items based on repository stock levels, ensuring efficient use. Additionally, energy management will adapt to the exhibition center’s fluctuating foot traffic, increasing air conditioning during busy times and reducing energy use during quieter periods, thus conserving resources.
+According to the challenges stated, the system should satisfy the following basic requirements:
+
++ Efficient venue reservation
++ Flexible layout design
++ Convenient material management
++ Transmission of various types of messages
+
+To address the outlined issues, we developed a resource management system called **Mrs. Hudson**, serving as a comprehensive manager for the exhibition center to minimize waste and optimize asset and energy usage. The system features an online repository where exhibitors can find and select needed items like sound systems and lighting, boosting item reusability and the company’s sustainability. The Holmes Exhibition Company can supply these items based on repository stock levels, ensuring efficient use. The system also enables its user to manage or apply various venues, exhibitions and booths as well as editing their layouts, during which they can communicate efficiently with a built-in user-friendly messaging system. Additionally, energy management of the system can adapt to the exhibition center’s fluctuating foot traffic, increasing air conditioning during busy times and reducing energy use during quieter periods, thus conserving resources.
 
 ## Functionalities
 
@@ -38,9 +55,9 @@ To address the outlined issues, we’re developing a resource management system 
 + Django
 + JQuery
 + Bootstrap 5
-+ Konva.js *(for the Layout module)*
-+ Vue *(for the Layout module)*
-+ PyTorch *(for the Statistics/Watson Overseer module)*
++ Konva.js
++ Vue
++ PyTorch
 
 ### Entity-relationship Model for the Database Schema
 
@@ -68,6 +85,11 @@ To address the outlined issues, we’re developing a resource management system 
     python manage.py makemigrations
     # Execute migration:
     python manage.py migrate
+    ```
+
+3. Run the project using the following command:
+
+    ```shell
     # Run the server:
     python manage.py runserver
     ```
